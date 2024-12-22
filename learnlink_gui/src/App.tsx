@@ -1,8 +1,8 @@
 import React from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
-import SignInPage from "./features/login/components/LoginPage.tsx";
-import ForgotPasswordPage from "./features/login/components/ForgetPasswordPage.tsx";
-import ResetPasswordPage from "./features/login/components/ResetPasswordPage.tsx";
+import SignInPage from "./features/login/components/LoginPage";
+import ForgotPasswordPage from "./features/login/components/ForgetPasswordPage";
+import ResetPasswordPage from "./features/login/components/ResetPasswordPage";
 
 const App = () => {
   return (

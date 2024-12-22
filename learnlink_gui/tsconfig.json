@@ -1,0 +1,14 @@
+{
+  "compilerOptions": {
+    "lib": ["esnext", "dom"], // DOM desteğini ekleyin
+    "types": ["node", "jest"], // Jest ve Node türlerini ekleyin
+    "moduleResolution": "node",
+    "target": "es2019",
+    "strict": true,
+    "jsx": "react-jsx",
+    "esModuleInterop": true,
+    "skipLibCheck": true // Kütüphane kontrol hatalarını atlamak için
+  },
+  "include": ["src/**/*"],
+  "exclude": ["node_modules"]
+}
