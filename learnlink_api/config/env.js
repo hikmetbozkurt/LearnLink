@@ -17,10 +17,12 @@ export default {
   JWT_EXPIRE: process.env.JWT_EXPIRE || '7d',
   
   // Email
-  SMTP_HOST: process.env.SMTP_HOST,
-  SMTP_PORT: process.env.SMTP_PORT,
-  SMTP_USER: process.env.SMTP_USER,
-  SMTP_PASS: process.env.SMTP_PASS,
+  EMAIL: process.env.EMAIL || 'learnlink411@gmail.com',
+  EMAIL_PASSWORD: process.env.EMAIL_PASSWORD || 'lfjvkxanwfztgkjo',
+  SMTP_HOST: process.env.SMTP_HOST || 'smtp.gmail.com',
+  SMTP_PORT: process.env.SMTP_PORT || 587,
+  SMTP_USER: process.env.SMTP_USER || 'learnlink411@gmail.com',
+  SMTP_PASS: process.env.SMTP_PASS || 'lfjvkxanwfztgkjo',
   
   // File Upload
   UPLOAD_PATH: process.env.UPLOAD_PATH || 'uploads',
