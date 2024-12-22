@@ -4,6 +4,8 @@ import { useNavigate } from "react-router-dom";
 import PersonIcon from "@mui/icons-material/Person";
 import EmailIcon from "@mui/icons-material/Email";
 import PasswordIcon from "@mui/icons-material/Password";
+import { login } from "../services/authService"; // Correct path to authService
+import api from "../../../api/axiosConfig";
 
 const LoginPage = () => {
   const [isSignUp, setIsSignUp] = useState(false);
@@ -30,18 +32,17 @@ const LoginPage = () => {
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      const response = {
-        success: username === "admin" && password === "admin", //will be connected to database.
-      }; // Mock login
-      if (response.success) {
+      const response = await api.post("/api/auth/login", {
+        email: email,
+        password: password,
+      });
+      if (response.data.success) {
         alert("Login successful");
-        navigate("/dashboard"); // Redirect to the dashboard
+        navigate("/dashboard");
       } else {
-        alert("The username or password is wrong!");
+        alert(response.data.message || "Login failed. Please try again.");
       }
-    } catch (error) {
-      console.error("Error during login:", error);
-    }
+    } catch (error) {}
   };
 
   const handleSignUp = async (e: React.FormEvent) => {
@@ -122,13 +123,13 @@ const LoginPage = () => {
           </div>
           <span>or use your email and password</span>
           <div className="input-group">
-            <PersonIcon className="input-icon" />
+            <EmailIcon className="input-icon" />
             <input
-              type="text"
-              placeholder="Username"
+              type="email"
+              placeholder="Email"
               required
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
             />
           </div>
           <div className="input-group">
