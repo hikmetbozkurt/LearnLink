@@ -15,17 +15,10 @@ const pool = new pg.Pool({
 // Test connection
 pool.connect((err, client, release) => {
   if (err) {
-    console.error('Error acquiring client', err.stack)
-    return
+    console.error('Error connecting to database:', err.stack);
+    return;
   }
-  client.query('SELECT NOW()', (err, result) => {
-    release()
-    if (err) {
-      console.error('Error executing query', err.stack)
-      return
-    }
-    console.log('Connected to database')
-  })
+  console.log('Successfully connected to database');
 })
 
 export default pool 

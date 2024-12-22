@@ -1,7 +1,5 @@
 import nodemailer from 'nodemailer'
 import config from '../config/env.js'
-EMAIL="learnlink411@gmail.com"
-EMAIL_PASSWORD="lfjvkxanwfztgkjo"
 
 export class EmailService {
   constructor() {
