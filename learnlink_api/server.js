@@ -1,6 +1,7 @@
 import express from 'express'
 import cors from 'cors'
 import config from './config/env.js'
+import pool from './config/database.js'
 import authRoutes from './routes/authRoutes.js'
 import userRoutes from './routes/userRoutes.js'
 import courseRoutes from './routes/courseRoutes.js'
