@@ -1,51 +1,153 @@
-import { AuthService } from '../services/authService.js'
-import { EmailService } from '../services/emailService.js'
+import bcrypt from 'bcryptjs'
+import jwt from 'jsonwebtoken'
+import pool from '../config/database.js'
 import { createResponse } from '../utils/responseHelper.js'
 
 export class AuthController {
   constructor() {
-    this.authService = new AuthService()
-    this.emailService = new EmailService()
+    // Bind the methods to ensure 'this' context
+    this.login = this.login.bind(this)
+    this.signup = this.signup.bind(this)
   }
 
-  login = async (req, res) => {
+  async signup(req, res) {
+    const { username, email, password } = req.body;
+
     try {
-      const { email, password } = req.body
-      const result = await this.authService.login(email, password)
-      res.json(result)
+      // Check if user already exists
+      const userExists = await pool.query(
+        'SELECT * FROM users WHERE email = $1',
+        [email]
+      );
+
+      if (userExists.rows.length > 0) {
+        return res.status(400).json({
+          success: false,
+          message: 'User already exists'
+        });
+      }
+
+      // Hash password
+      const salt = await bcrypt.genSalt(10);
+      const hashedPassword = await bcrypt.hash(password, salt);
+
+      // Create user
+      const result = await pool.query(
+        'INSERT INTO users (name, email, password, role) VALUES ($1, $2, $3, $4) RETURNING user_id, email, name, role',
+        [username, email, hashedPassword, 'student']
+      );
+
+      const user = result.rows[0];
+
+      // Generate JWT token
+      const token = jwt.sign(
+        { id: user.user_id, email: user.email, role: user.role },
+        process.env.JWT_SECRET || 'learnlink',
+        { expiresIn: '24h' }
+      );
+
+      res.status(201).json({
+        success: true,
+        data: {
+          token,
+          user: {
+            id: user.user_id,
+            email: user.email,
+            name: user.name,
+            role: user.role
+          }
+        }
+      });
+
     } catch (error) {
-      res.status(400).json(createResponse(false, null, error))
+      console.error('Signup error:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Internal server error'
+      });
     }
   }
 
-  register = async (req, res) => {
-    try {
-      const { name, email, password, role = 'student' } = req.body
-      const result = await this.authService.register({ name, email, password, role })
-      res.status(201).json(result)
-    } catch (error) {
-      res.status(400).json(createResponse(false, null, error))
-    }
-  }
+  async login(req, res) {
+    const { email, password } = req.body;
 
-  requestPasswordReset = async (req, res) => {
     try {
-      const { email } = req.body
-      const { data: { code } } = await this.authService.createResetToken(email)
-      await this.emailService.sendVerificationCode(email, code)
-      res.json(createResponse(true, { message: 'Verification code sent' }))
-    } catch (error) {
-      res.status(400).json(createResponse(false, null, error))
-    }
-  }
+      console.log('Login attempt with:', { email, passwordLength: password?.length });
 
-  resetPassword = async (req, res) => {
-    try {
-      const { email, code, newPassword } = req.body
-      const result = await this.authService.resetPassword(email, code, newPassword)
-      res.json(result)
+      // Find user by email
+      const result = await pool.query(
+        'SELECT * FROM users WHERE email = $1',
+        [email]
+      );
+
+      const user = result.rows[0];
+      console.log('User found:', user ? 'Yes' : 'No');
+      
+      if (!user) {
+        console.log('No user found with email:', email);
+        return res.status(401).json({
+          success: false,
+          message: 'Invalid email or password'
+        });
+      }
+
+      // Check if the stored password is already hashed (starts with $2a$ or $2b$)
+      let isValidPassword = false;
+      if (user.password.startsWith('$2')) {
+        // Password is hashed, use bcrypt compare
+        isValidPassword = await bcrypt.compare(password, user.password);
+      } else {
+        // Password is in plain text, do direct comparison and update to hashed if correct
+        isValidPassword = password === user.password;
+        if (isValidPassword) {
+          // Update the plain text password to hashed version
+          const salt = await bcrypt.genSalt(10);
+          const hashedPassword = await bcrypt.hash(password, salt);
+          await pool.query(
+            'UPDATE users SET password = $1 WHERE user_id = $2',
+            [hashedPassword, user.user_id]
+          );
+          console.log('Updated plain text password to hashed version');
+        }
+      }
+
+      if (!isValidPassword) {
+        console.log('Invalid password for user:', email);
+        return res.status(401).json({
+          success: false,
+          message: 'Invalid email or password'
+        });
+      }
+
+      // Generate JWT token
+      const token = jwt.sign(
+        { id: user.user_id, email: user.email, role: user.role },
+        process.env.JWT_SECRET || 'your-secret-key',
+        { expiresIn: '24h' }
+      );
+
+      console.log('Login successful for user:', email);
+
+      // Send successful response
+      res.json({
+        success: true,
+        data: {
+          token,
+          user: {
+            id: user.user_id,
+            email: user.email,
+            name: user.name,
+            role: user.role
+          }
+        }
+      });
+
     } catch (error) {
-      res.status(400).json(createResponse(false, null, error))
+      console.error('Login error:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Internal server error'
+      });
     }
   }
 } 
