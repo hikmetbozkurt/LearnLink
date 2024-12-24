@@ -2,12 +2,16 @@ import bcrypt from 'bcryptjs'
 import jwt from 'jsonwebtoken'
 import pool from '../config/database.js'
 import { createResponse } from '../utils/responseHelper.js'
+import { OAuth2Client } from 'google-auth-library'
+
+const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
 export class AuthController {
   constructor() {
     // Bind the methods to ensure 'this' context
     this.login = this.login.bind(this)
     this.signup = this.signup.bind(this)
+    this.googleAuth = this.googleAuth.bind(this)
   }
 
   async signup(req, res) {
@@ -147,6 +151,109 @@ export class AuthController {
       res.status(500).json({
         success: false,
         message: 'Internal server error'
+      });
+    }
+  }
+
+  async googleAuth(req, res) {
+    const { credential } = req.body;
+
+    try {
+      console.log('Received Google auth request with credential');
+
+      if (!process.env.GOOGLE_CLIENT_ID) {
+        console.error('GOOGLE_CLIENT_ID is not set in environment variables');
+        return res.status(500).json({
+          success: false,
+          message: 'Google authentication is not properly configured'
+        });
+      }
+
+      // Verify the Google token
+      console.log('Verifying Google token...');
+      const ticket = await googleClient.verifyIdToken({
+        idToken: credential,
+        audience: process.env.GOOGLE_CLIENT_ID
+      });
+
+      const payload = ticket.getPayload();
+      console.log('Token verified, payload received');
+      
+      if (!payload) {
+        console.error('No payload received from Google');
+        return res.status(400).json({
+          success: false,
+          message: 'Invalid Google token'
+        });
+      }
+
+      const { email, name, sub: googleId } = payload;
+      console.log('Processing sign-in for:', email);
+
+      // Check if user exists
+      let result = await pool.query(
+        'SELECT * FROM users WHERE email = $1',
+        [email]
+      );
+
+      let user = result.rows[0];
+
+      if (!user) {
+        console.log('Creating new user for:', email);
+        // Create new user if doesn't exist
+        result = await pool.query(
+          'INSERT INTO users (name, email, password, role) VALUES ($1, $2, $3, $4) RETURNING *',
+          [name, email, googleId, 'student'] // Using googleId as password for Google users
+        );
+        user = result.rows[0];
+        console.log('New user created');
+      } else {
+        console.log('Existing user found');
+      }
+
+      // Generate JWT token
+      const token = jwt.sign(
+        { id: user.user_id, email: user.email, role: user.role },
+        process.env.JWT_SECRET || 'learnlink',
+        { expiresIn: '24h' }
+      );
+
+      console.log('Authentication successful for:', email);
+
+      res.json({
+        success: true,
+        data: {
+          token,
+          user: {
+            id: user.user_id,
+            email: user.email,
+            name: user.name,
+            role: user.role
+          }
+        }
+      });
+
+    } catch (error) {
+      console.error('Google auth error:', error);
+      
+      // More specific error messages based on the error type
+      if (error.message.includes('Token used too late')) {
+        return res.status(401).json({
+          success: false,
+          message: 'Authentication token expired. Please try again.'
+        });
+      }
+      
+      if (error.message.includes('invalid_token')) {
+        return res.status(401).json({
+          success: false,
+          message: 'Invalid authentication token. Please try again.'
+        });
+      }
+
+      res.status(500).json({
+        success: false,
+        message: 'Error processing Google sign-in'
       });
     }
   }

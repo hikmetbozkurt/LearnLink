@@ -9,4 +9,6 @@ router.post('/login', authController.login)
 // Signup route
 router.post('/signup', authController.signup)
 
+router.post('/google', authController.googleAuth)
+
 export default router 

@@ -9,13 +9,13 @@
 
 body {
     background: url('../../../../public/images/test-image-3.jpg') no-repeat center center fixed;
-    background-size: cover; /* Ensures the image covers the entire background */
+    background-size: cover;
     display: flex;
     align-items: center;
     justify-content: center;
     flex-direction: column;
     height: 100vh;
-    margin: 0; /* Remove default margin */
+    margin: 0;
 }
 
 .input-group{
