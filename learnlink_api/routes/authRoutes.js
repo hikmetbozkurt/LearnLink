@@ -11,4 +11,9 @@ router.post('/signup', authController.signup)
 
 router.post('/google', authController.googleAuth)
 
+// Add these new routes for password reset
+router.post('/forgot-password', authController.forgotPassword)
+router.post('/verify-reset-code', authController.verifyResetCode)
+router.post('/reset-password', authController.resetPassword)
+
 export default router 

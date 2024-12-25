@@ -3,15 +3,49 @@ import jwt from 'jsonwebtoken'
 import pool from '../config/database.js'
 import { createResponse } from '../utils/responseHelper.js'
 import { OAuth2Client } from 'google-auth-library'
+import { EmailService } from '../services/emailService.js'
+import crypto from 'crypto';
+import config from '../config/env.js'
 
 const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
+// Store verification codes in memory (will be cleared on server restart)
+const verificationCodes = new Map();
+
+// Replace bcrypt password hashing with crypto
+const hashPassword = async (password) => {
+  return new Promise((resolve, reject) => {
+    const salt = crypto.randomBytes(16).toString('hex');
+    crypto.pbkdf2(password, salt, 1000, 64, 'sha512', (err, derivedKey) => {
+      if (err) reject(err);
+      resolve(salt + ':' + derivedKey.toString('hex'));
+    });
+  });
+};
+
+const verifyPassword = async (password, hash) => {
+  return new Promise((resolve, reject) => {
+    const [salt, key] = hash.split(':');
+    crypto.pbkdf2(password, salt, 1000, 64, 'sha512', (err, derivedKey) => {
+      if (err) reject(err);
+      resolve(key === derivedKey.toString('hex'));
+    });
+  });
+};
+
 export class AuthController {
   constructor() {
-    // Bind the methods to ensure 'this' context
+    // Bind existing methods
     this.login = this.login.bind(this)
     this.signup = this.signup.bind(this)
     this.googleAuth = this.googleAuth.bind(this)
+    
+    // Bind new methods
+    this.forgotPassword = this.forgotPassword.bind(this)
+    this.verifyResetCode = this.verifyResetCode.bind(this)
+    this.resetPassword = this.resetPassword.bind(this)
+    
+    this.emailService = new EmailService()
   }
 
   async signup(req, res) {
@@ -76,71 +110,54 @@ export class AuthController {
     const { email, password } = req.body;
 
     try {
-      console.log('Login attempt with:', { email, passwordLength: password?.length });
-
-      // Find user by email
       const result = await pool.query(
         'SELECT * FROM users WHERE email = $1',
         [email]
       );
 
       const user = result.rows[0];
-      console.log('User found:', user ? 'Yes' : 'No');
       
       if (!user) {
-        console.log('No user found with email:', email);
-        return res.status(401).json({
+        return res.status(404).json({
           success: false,
-          message: 'Invalid email or password'
+          error: 'EMAIL_NOT_FOUND',
+          message: 'Email is not registered'
         });
       }
 
-      // Check if the stored password is already hashed (starts with $2a$ or $2b$)
-      let isValidPassword = false;
-      if (user.password.startsWith('$2')) {
-        // Password is hashed, use bcrypt compare
-        isValidPassword = await bcrypt.compare(password, user.password);
-      } else {
-        // Password is in plain text, do direct comparison and update to hashed if correct
-        isValidPassword = password === user.password;
-        if (isValidPassword) {
-          // Update the plain text password to hashed version
-          const salt = await bcrypt.genSalt(10);
-          const hashedPassword = await bcrypt.hash(password, salt);
-          await pool.query(
-            'UPDATE users SET password = $1 WHERE user_id = $2',
-            [hashedPassword, user.user_id]
-          );
-          console.log('Updated plain text password to hashed version');
-        }
-      }
+      // Always use bcrypt.compare for password verification
+      const isValidPassword = await bcrypt.compare(password, user.password);
+      console.log('Password verification result:', isValidPassword);
 
       if (!isValidPassword) {
-        console.log('Invalid password for user:', email);
         return res.status(401).json({
           success: false,
+          error: 'INVALID_CREDENTIALS',
           message: 'Invalid email or password'
         });
       }
 
-      // Generate JWT token
+      // Use process.env.JWT_SECRET directly or config.JWT_SECRET consistently
       const token = jwt.sign(
-        { id: user.user_id, email: user.email, role: user.role },
-        process.env.JWT_SECRET || 'your-secret-key',
-        { expiresIn: '24h' }
+        { 
+          id: user.user_id, 
+          email: user.email, 
+          role: user.role 
+        },
+        process.env.JWT_SECRET || 'learnlink',
+        { 
+          expiresIn: '24h' 
+        }
       );
 
-      console.log('Login successful for user:', email);
-
-      // Send successful response
       res.json({
         success: true,
         data: {
           token,
           user: {
             id: user.user_id,
-            email: user.email,
             name: user.name,
+            email: user.email,
             role: user.role
           }
         }
@@ -150,7 +167,8 @@ export class AuthController {
       console.error('Login error:', error);
       res.status(500).json({
         success: false,
-        message: 'Internal server error'
+        error: 'SERVER_ERROR',
+        message: 'Server error occurred'
       });
     }
   }
@@ -159,28 +177,15 @@ export class AuthController {
     const { credential } = req.body;
 
     try {
-      console.log('Received Google auth request with credential');
-
-      if (!process.env.GOOGLE_CLIENT_ID) {
-        console.error('GOOGLE_CLIENT_ID is not set in environment variables');
-        return res.status(500).json({
-          success: false,
-          message: 'Google authentication is not properly configured'
-        });
-      }
-
       // Verify the Google token
-      console.log('Verifying Google token...');
       const ticket = await googleClient.verifyIdToken({
         idToken: credential,
         audience: process.env.GOOGLE_CLIENT_ID
       });
 
       const payload = ticket.getPayload();
-      console.log('Token verified, payload received');
       
       if (!payload) {
-        console.error('No payload received from Google');
         return res.status(400).json({
           success: false,
           message: 'Invalid Google token'
@@ -188,7 +193,6 @@ export class AuthController {
       }
 
       const { email, name, sub: googleId } = payload;
-      console.log('Processing sign-in for:', email);
 
       // Check if user exists
       let result = await pool.query(
@@ -199,16 +203,12 @@ export class AuthController {
       let user = result.rows[0];
 
       if (!user) {
-        console.log('Creating new user for:', email);
         // Create new user if doesn't exist
         result = await pool.query(
           'INSERT INTO users (name, email, password, role) VALUES ($1, $2, $3, $4) RETURNING *',
           [name, email, googleId, 'student'] // Using googleId as password for Google users
         );
         user = result.rows[0];
-        console.log('New user created');
-      } else {
-        console.log('Existing user found');
       }
 
       // Generate JWT token
@@ -217,8 +217,6 @@ export class AuthController {
         process.env.JWT_SECRET || 'learnlink',
         { expiresIn: '24h' }
       );
-
-      console.log('Authentication successful for:', email);
 
       res.json({
         success: true,
@@ -235,25 +233,160 @@ export class AuthController {
 
     } catch (error) {
       console.error('Google auth error:', error);
-      
-      // More specific error messages based on the error type
-      if (error.message.includes('Token used too late')) {
-        return res.status(401).json({
-          success: false,
-          message: 'Authentication token expired. Please try again.'
-        });
-      }
-      
-      if (error.message.includes('invalid_token')) {
-        return res.status(401).json({
-          success: false,
-          message: 'Invalid authentication token. Please try again.'
-        });
-      }
-
       res.status(500).json({
         success: false,
         message: 'Error processing Google sign-in'
+      });
+    }
+  }
+
+  async forgotPassword(req, res) {
+    const { email } = req.body;
+    
+    console.log('Received forgot password request for email:', email);
+
+    try {
+      // Check if user exists
+      const result = await pool.query(
+        'SELECT * FROM users WHERE email = $1',
+        [email]
+      );
+
+      console.log('Database query result:', result.rows);
+
+      if (!result.rows.length) {
+        console.log('No user found with email:', email);
+        return res.status(404).json({
+          success: false,
+          error: 'EMAIL_NOT_FOUND',
+          message: 'Email is not registered'
+        });
+      }
+
+      // Generate a random 4-digit code
+      const verificationCode = Math.floor(1000 + Math.random() * 9000).toString();
+      console.log('Generated verification code:', verificationCode);
+      
+      // Store the code with expiration (10 minutes)
+      verificationCodes.set(email, {
+        code: verificationCode,
+        expires: Date.now() + 10 * 60 * 1000 // 10 minutes
+      });
+
+      // Send email with verification code
+      await this.emailService.sendVerificationCode(email, verificationCode);
+
+      console.log('Verification code sent successfully');
+
+      res.json({
+        success: true,
+        message: 'Password reset code sent to email'
+      });
+
+    } catch (error) {
+      console.error('Forgot password error:', error);
+      res.status(500).json({
+        success: false,
+        error: 'SERVER_ERROR',
+        message: 'Failed to process password reset request'
+      });
+    }
+  }
+
+  async verifyResetCode(req, res) {
+    const { email, code } = req.body;
+
+    try {
+      const storedData = verificationCodes.get(email);
+      
+      if (!storedData || 
+          storedData.code !== code || 
+          Date.now() > storedData.expires) {
+        return res.status(400).json({
+          success: false,
+          error: 'INVALID_CODE',
+          message: 'Invalid or expired verification code'
+        });
+      }
+
+      res.json({
+        success: true,
+        message: 'Code verified successfully'
+      });
+
+    } catch (error) {
+      console.error('Code verification error:', error);
+      res.status(500).json({
+        success: false,
+        error: 'SERVER_ERROR',
+        message: 'Failed to verify code'
+      });
+    }
+  }
+
+  async resetPassword(req, res) {
+    const { email, code, newPassword } = req.body;
+    console.log('Reset password request received:', { email, code, passwordLength: newPassword?.length });
+
+    try {
+      const storedData = verificationCodes.get(email);
+      
+      if (!storedData || 
+          storedData.code !== code || 
+          Date.now() > storedData.expires) {
+        console.log('Invalid or expired code for email:', email);
+        return res.status(400).json({
+          success: false,
+          error: 'INVALID_CODE',
+          message: 'Invalid or expired verification code'
+        });
+      }
+
+      // Hash new password using bcrypt
+      const salt = await bcrypt.genSalt(10);
+      const hashedPassword = await bcrypt.hash(newPassword, salt);
+      console.log('Password hashed successfully');
+
+      // Update password with explicit WHERE clause and RETURNING
+      const updateQuery = `
+        UPDATE users 
+        SET password = $1 
+        WHERE email = $2 
+        RETURNING user_id, email`;
+      
+      console.log('Executing update query for email:', email);
+      const result = await pool.query(updateQuery, [hashedPassword, email]);
+
+      if (!result.rows.length) {
+        console.error('No user found to update password for email:', email);
+        throw new Error('Failed to update password - user not found');
+      }
+
+      console.log('Password updated in database for user:', result.rows[0]);
+
+      // Clear the verification code
+      verificationCodes.delete(email);
+      console.log('Verification code cleared from memory');
+
+      // Verify the update worked by checking the new password
+      const verifyQuery = 'SELECT password FROM users WHERE email = $1';
+      const verifyResult = await pool.query(verifyQuery, [email]);
+      
+      if (verifyResult.rows.length) {
+        const isPasswordUpdated = await bcrypt.compare(newPassword, verifyResult.rows[0].password);
+      }
+
+      res.json({
+        success: true,
+        message: 'Password updated successfully'
+      });
+
+    } catch (error) {
+      console.error('Password reset error:', error);
+      res.status(500).json({
+        success: false,
+        error: 'SERVER_ERROR',
+        message: 'Failed to reset password: ' + error.message
       });
     }
   }

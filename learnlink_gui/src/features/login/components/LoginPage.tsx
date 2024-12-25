@@ -7,7 +7,9 @@ import PasswordIcon from "@mui/icons-material/Password";
 import { GoogleOAuthProvider, GoogleLogin } from '@react-oauth/google';
 import api from "../../../api/axiosConfig";
 
-const GOOGLE_CLIENT_ID = process.env.REACT_APP_GOOGLE_CLIENT_ID || "your-client-id-here";
+console.log('Google Client ID:', process.env.REACT_APP_GOOGLE_CLIENT_ID);
+
+const GOOGLE_CLIENT_ID = "69975858042-qg58t1vmhplr463opgmg4dca01jdaal4.apps.googleusercontent.com";
 
 const LoginPage = () => {
   const [isSignUp, setIsSignUp] = useState(false);
@@ -17,6 +19,7 @@ const LoginPage = () => {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [passwordVisible, setPasswordVisible] = useState(false);
   const navigate = useNavigate();
+  const [error, setError] = useState('');
 
   // Toggle between sign-in and sign-up views
   const toggleView = () => {
@@ -34,32 +37,22 @@ const LoginPage = () => {
 
   const handleGoogleSuccess = async (credentialResponse: any) => {
     try {
-      console.log('Google Sign-In successful. Sending token to backend...');
-      const response = await api.post("/api/auth/google", {
-        credential: credentialResponse.credential,
+      const response = await api.post('/api/auth/google', {
+        credential: credentialResponse.credential
       });
 
       if (response.data.success) {
-        // Store the token in localStorage
         localStorage.setItem('token', response.data.data.token);
         localStorage.setItem('user', JSON.stringify(response.data.data.user));
-        
-        console.log('Backend authentication successful');
-        alert("Google Sign-in successful!");
-        navigate("/dashboard");
-      } else {
-        console.error('Backend authentication failed:', response.data.message);
-        alert(response.data.message || "Google Sign-in failed. Please try again.");
+        navigate('/dashboard');
       }
-    } catch (error: any) {
-      console.error('Google Sign-in error:', error);
-      alert(error.response?.data?.message || "An error occurred during Google Sign-in");
+    } catch (error) {
+      setError('Failed to sign in with Google. Please try again.');
     }
   };
 
   const handleGoogleError = () => {
-    console.error('Google Sign-In failed');
-    alert("Google Sign-in failed. Please try again.");
+    setError('Google sign-in was unsuccessful. Please try again.');
   };
 
   const handleLogin = async (e: React.FormEvent) => {
@@ -111,8 +104,46 @@ const LoginPage = () => {
     }
   };
 
+  const handleSignIn = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    try {
+      const response = await api.post('/api/auth/login', {
+        email,
+        password
+      });
+
+      if (response.data.success) {
+        // Handle successful login
+        localStorage.setItem('token', response.data.data.token);
+        localStorage.setItem('user', JSON.stringify(response.data.data.user));
+        navigate('/dashboard');
+      }
+    } catch (error: any) {
+      if (error.response) {
+        const { status, data } = error.response;
+
+        if (status === 404 && data.error === 'EMAIL_NOT_FOUND') {
+          // Just show the error message without switching to signup
+          setError('Email is not registered. Please sign up.');
+          // Pre-fill the signup form but don't switch automatically
+          setUsername('');
+          setEmail(email); // Keep the email they tried to login with
+          setPassword('');
+          setConfirmPassword('');
+        } else if (status === 401 && data.error === 'INVALID_CREDENTIALS') {
+          setError('Invalid email or password');
+        } else {
+          setError('An error occurred. Please try again.');
+        }
+      } else {
+        setError('Network error. Please check your connection.');
+      }
+    }
+  };
+
   return (
-    <GoogleOAuthProvider clientId={GOOGLE_CLIENT_ID || ''}>
+    <GoogleOAuthProvider clientId={GOOGLE_CLIENT_ID}>
       <div className={`container ${isSignUp ? "active" : ""}`} id="container">
         <div className="form-container sign-up">
           <form id="signUpForm" onSubmit={handleSignUp}>
@@ -169,33 +200,47 @@ const LoginPage = () => {
           </form>
         </div>
         <div className="form-container sign-in">
-          <form id="loginForm" onSubmit={handleLogin}>
+          <form onSubmit={handleSignIn}>
             <h1>Sign In</h1>
-            <div className="social-icons">
-              <span>with&nbsp;&nbsp;</span>
-              <div className="icon" style={{ position: 'relative' }}>
-                <i className="fa-brands fa-google-plus-g"></i>
-                <div style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', opacity: 0 }}>
-                  <GoogleLogin
-                    onSuccess={handleGoogleSuccess}
-                    onError={handleGoogleError}
-                    useOneTap={false}
-                    type="icon"
-                    shape="circle"
-                    size="large"
-                  />
-                </div>
+            
+            {error && (
+              <div className="error-message" style={{ 
+                color: '#ff3333',
+                marginBottom: '1rem',
+                fontSize: '0.9rem'
+              }}>
+                {error}
               </div>
+            )}
+
+            <div className="social-icons">
+              <GoogleLogin
+                onSuccess={handleGoogleSuccess}
+                onError={handleGoogleError}
+                theme="outline"
+                size="large"
+                text="continue_with"
+                shape="rectangular"
+                useOneTap={false}
+                ux_mode="popup"
+              />
             </div>
-            <span>or use your email and password</span>
+
+            <div className="divider">
+              <span>or use your email and password</span>
+            </div>
+
             <div className="input-group">
               <EmailIcon className="input-icon" />
               <input
                 type="email"
                 placeholder="Email"
-                required
                 value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                onChange={(e) => {
+                  setEmail(e.target.value);
+                  setError(''); // Clear error when user starts typing
+                }}
+                required
               />
             </div>
             <div className="input-group">

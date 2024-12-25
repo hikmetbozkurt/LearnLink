@@ -291,3 +291,142 @@ body {
     text-align: center;
 }
 
+.error-message {
+  background-color: rgba(255, 51, 51, 0.1);
+  border-radius: 4px;
+  padding: 8px 12px;
+  margin-bottom: 1rem;
+  font-size: 0.9rem;
+  color: #ff3333;
+  text-align: center;
+  animation: fadeIn 0.3s ease-in;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Make input fields shake on error */
+.input-group.error input {
+  border-color: #ff3333;
+  animation: shake 0.5s ease-in-out;
+}
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-5px); }
+  75% { transform: translateX(5px); }
+}
+
+.form-container.sign-in form {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  max-width: 400px;
+  padding: 2rem;
+  box-sizing: border-box;
+}
+
+.form-container.sign-in h1 {
+  font-size: 2rem;
+  margin-bottom: 1rem;
+  color: #333;
+  text-align: center;
+  width: 100%;
+}
+
+.form-description {
+  color: #666;
+  text-align: center;
+  margin-bottom: 1.5rem;
+  font-size: 0.9rem;
+  width: 100%;
+  padding: 0 1rem;
+  box-sizing: border-box;
+}
+
+.input-group {
+  width: 100%;
+  margin-bottom: 1rem;
+  position: relative;
+}
+
+.input-group input {
+  width: 100%;
+  padding: 0.8rem 2.5rem;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 0.9rem;
+  box-sizing: border-box;
+}
+
+.form-container.sign-in button {
+  width: 100%;
+  padding: 0.8rem;
+  margin: 0.5rem 0;
+  border-radius: 25px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  background-color: #6B4EE6;
+  color: white;
+  border: 2px solid #6B4EE6;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.form-container.sign-in button:hover {
+  background-color: #5840b8;
+  border-color: #5840b8;
+  transform: translateY(-1px);
+}
+
+.form-container.sign-in button:disabled {
+  background-color: #a497e6;
+  border-color: #a497e6;
+  cursor: not-allowed;
+}
+
+.form-container.sign-in .secondary-button {
+  background: transparent;
+  border: 2px solid #6B4EE6;
+  color: #6B4EE6;
+}
+
+.form-container.sign-in .secondary-button:hover {
+  background-color: rgba(107, 78, 230, 0.1);
+  color: #5840b8;
+  border-color: #5840b8;
+}
+
+.social-icons {
+  margin: 20px 0;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+}
+
+.divider {
+  width: 100%;
+  text-align: center;
+  border-bottom: 1px solid #ddd;
+  line-height: 0.1em;
+  margin: 20px 0 30px;
+}
+
+.divider span {
+  background: #fff;
+  padding: 0 10px;
+  color: #666;
+  font-size: 0.9rem;
+}
+
