@@ -2,6 +2,8 @@ import express from 'express'
 import cors from 'cors'
 import config from './config/env.js'
 import authRoutes from './routes/authRoutes.js'
+import courseRoutes from './routes/courseRoutes.js'
+import chatRoutes from './routes/chatRoutes.js'
 
 const app = express()
 
@@ -11,6 +13,8 @@ app.use(express.json())
 
 // Mount auth routes
 app.use('/api/auth', authRoutes)
+app.use('/api/courses', courseRoutes)
+app.use('/api/chat', chatRoutes)
 
 // Error handling
 app.use((err, req, res, next) => {

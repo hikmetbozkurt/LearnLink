@@ -263,8 +263,8 @@ export class AuthController {
         });
       }
 
-      // Generate a random 4-digit code
-      const verificationCode = Math.floor(1000 + Math.random() * 9000).toString();
+      // Generate a random 6-digit code (instead of 4-digit)
+      const verificationCode = Math.floor(100000 + Math.random() * 900000).toString();
       console.log('Generated verification code:', verificationCode);
       
       // Store the code with expiration (10 minutes)

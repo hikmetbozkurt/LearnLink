@@ -91,12 +91,16 @@ const ResetPasswordPage = () => {
             <LockIcon className="input-icon" />
             <input
               type="text"
-              placeholder="Verification Code"
+              placeholder="Enter 6-digit Code"
               value={verificationCode}
               onChange={(e) => {
-                setVerificationCode(e.target.value);
+                // Only allow 6 digits
+                const value = e.target.value.replace(/\D/g, '').slice(0, 6);
+                setVerificationCode(value);
                 setError("");
               }}
+              pattern="\d{6}"
+              maxLength={6}
               required
             />
           </div>

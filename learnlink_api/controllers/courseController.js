@@ -1,75 +1,185 @@
-import { CourseService } from '../services/courseService.js'
-import { createResponse } from '../utils/responseHelper.js'
+import pool from '../config/database.js';
 
 export class CourseController {
   constructor() {
-    this.courseService = new CourseService()
+    // Bind methods
+    this.createCourse = this.createCourse.bind(this);
+    this.getCourses = this.getCourses.bind(this);
+    this.getCourseById = this.getCourseById.bind(this);
+    this.updateCourse = this.updateCourse.bind(this);
+    this.deleteCourse = this.deleteCourse.bind(this);
+    this.enrollInCourse = this.enrollInCourse.bind(this);
   }
 
-  createCourse = async (req, res) => {
+  // Create a new course
+  async createCourse(req, res) {
+    const { title, description, instructor_id, category } = req.body;
+
     try {
-      const courseData = {
-        ...req.body,
-        teacher_id: req.user.user_id
+      const result = await pool.query(
+        'INSERT INTO courses (title, description, instructor_id, category) VALUES ($1, $2, $3, $4) RETURNING *',
+        [title, description, instructor_id, category]
+      );
+
+      res.status(201).json({
+        success: true,
+        data: result.rows[0]
+      });
+    } catch (error) {
+      console.error('Create course error:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to create course'
+      });
+    }
+  }
+
+  // Get all courses
+  async getCourses(req, res) {
+    try {
+      const result = await pool.query(
+        'SELECT c.*, u.name as instructor_name FROM courses c JOIN users u ON c.instructor_id = u.user_id'
+      );
+
+      res.json({
+        success: true,
+        data: result.rows
+      });
+    } catch (error) {
+      console.error('Get courses error:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to fetch courses'
+      });
+    }
+  }
+
+  // Get course by ID
+  async getCourseById(req, res) {
+    const { id } = req.params;
+
+    try {
+      const result = await pool.query(
+        'SELECT c.*, u.name as instructor_name FROM courses c JOIN users u ON c.instructor_id = u.user_id WHERE c.course_id = $1',
+        [id]
+      );
+
+      if (!result.rows.length) {
+        return res.status(404).json({
+          success: false,
+          message: 'Course not found'
+        });
       }
-      const result = await this.courseService.createCourse(courseData)
-      res.status(201).json(result)
+
+      res.json({
+        success: true,
+        data: result.rows[0]
+      });
     } catch (error) {
-      res.status(400).json(createResponse(false, null, error))
+      console.error('Get course error:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to fetch course'
+      });
     }
   }
 
-  getAllCourses = async (req, res) => {
+  // Update course
+  async updateCourse(req, res) {
+    const { id } = req.params;
+    const { title, description, category } = req.body;
+
     try {
-      const result = await this.courseService.getAllCourses()
-      res.json(result)
+      const result = await pool.query(
+        'UPDATE courses SET title = $1, description = $2, category = $3 WHERE course_id = $4 RETURNING *',
+        [title, description, category, id]
+      );
+
+      if (!result.rows.length) {
+        return res.status(404).json({
+          success: false,
+          message: 'Course not found'
+        });
+      }
+
+      res.json({
+        success: true,
+        data: result.rows[0]
+      });
     } catch (error) {
-      res.status(400).json(createResponse(false, null, error))
+      console.error('Update course error:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to update course'
+      });
     }
   }
 
-  getCourseById = async (req, res) => {
+  // Delete course
+  async deleteCourse(req, res) {
+    const { id } = req.params;
+
     try {
-      const result = await this.courseService.getCourseById(req.params.id)
-      res.json(result)
+      const result = await pool.query(
+        'DELETE FROM courses WHERE course_id = $1 RETURNING *',
+        [id]
+      );
+
+      if (!result.rows.length) {
+        return res.status(404).json({
+          success: false,
+          message: 'Course not found'
+        });
+      }
+
+      res.json({
+        success: true,
+        message: 'Course deleted successfully'
+      });
     } catch (error) {
-      res.status(400).json(createResponse(false, null, error))
+      console.error('Delete course error:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to delete course'
+      });
     }
   }
 
-  updateCourse = async (req, res) => {
-    try {
-      const result = await this.courseService.updateCourse(req.params.id, req.body)
-      res.json(result)
-    } catch (error) {
-      res.status(400).json(createResponse(false, null, error))
-    }
-  }
+  // Enroll in course
+  async enrollInCourse(req, res) {
+    const { course_id } = req.params;
+    const { user_id } = req.body;
 
-  deleteCourse = async (req, res) => {
     try {
-      const result = await this.courseService.deleteCourse(req.params.id)
-      res.json(result)
-    } catch (error) {
-      res.status(400).json(createResponse(false, null, error))
-    }
-  }
+      // Check if already enrolled
+      const enrolled = await pool.query(
+        'SELECT * FROM enrollments WHERE course_id = $1 AND user_id = $2',
+        [course_id, user_id]
+      );
 
-  enrollStudent = async (req, res) => {
-    try {
-      const result = await this.courseService.enrollStudent(req.params.id, req.user.user_id)
-      res.json(result)
-    } catch (error) {
-      res.status(400).json(createResponse(false, null, error))
-    }
-  }
+      if (enrolled.rows.length) {
+        return res.status(400).json({
+          success: false,
+          message: 'Already enrolled in this course'
+        });
+      }
 
-  getEnrolledStudents = async (req, res) => {
-    try {
-      const result = await this.courseService.getEnrolledStudents(req.params.id)
-      res.json(result)
+      // Create enrollment
+      await pool.query(
+        'INSERT INTO enrollments (course_id, user_id) VALUES ($1, $2)',
+        [course_id, user_id]
+      );
+
+      res.json({
+        success: true,
+        message: 'Successfully enrolled in course'
+      });
     } catch (error) {
-      res.status(400).json(createResponse(false, null, error))
+      console.error('Enrollment error:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to enroll in course'
+      });
     }
   }
 } 
