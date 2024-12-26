@@ -1,0 +1,25 @@
+{
+  "short_name": "LearnLink",
+  "name": "LearnLink Learning Platform",
+  "icons": [
+    {
+      "src": "/assets/images/learnlink-logo.jpeg",
+      "sizes": "64x64 32x32 24x24 16x16",
+      "type": "image/jpeg"
+    },
+    {
+      "src": "/assets/images/learnlink-logo.jpeg",
+      "type": "image/jpeg",
+      "sizes": "192x192"
+    },
+    {
+      "src": "/assets/images/learnlink-logo.jpeg",
+      "type": "image/jpeg",
+      "sizes": "512x512"
+    }
+  ],
+  "start_url": ".",
+  "display": "standalone",
+  "theme_color": "#6B4EE6",
+  "background_color": "#ffffff"
+} 
