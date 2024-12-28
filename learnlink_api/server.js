@@ -14,7 +14,8 @@ const httpServer = createServer(app)
 const io = new Server(httpServer, {
   cors: {
     origin: "http://localhost:3000",
-    methods: ["GET", "POST"]
+    methods: ["GET", "POST"],
+    credentials: true
   }
 })
 
@@ -29,6 +30,21 @@ app.use(express.json())
 app.use((req, res, next) => {
   console.log(`${new Date().toISOString()} - ${req.method} ${req.url}`);
   next();
+});
+
+// Root route handler
+app.get('/', (req, res) => {
+  res.json({
+    message: 'LearnLink API is running',
+    version: '1.0.0',
+    endpoints: {
+      auth: '/api/auth',
+      users: '/api/users',
+      courses: '/api/courses',
+      messages: '/api/messages',
+      chat: '/api/chat'
+    }
+  });
 });
 
 // Routes

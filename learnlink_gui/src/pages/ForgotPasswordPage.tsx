@@ -1,9 +1,9 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { CircularProgress } from "@mui/material";
 import EmailIcon from "@mui/icons-material/Email";
-import api from "../../../api/axiosConfig";
-import "./signin_style.css";
+import { authService } from "../services/authService";
+import '../styles/pages/login.css';
 
 const ForgotPasswordPage = () => {
   const [loading, setLoading] = useState(false);
@@ -17,10 +17,9 @@ const ForgotPasswordPage = () => {
     setError("");
 
     try {
-      const response = await api.post('/api/auth/forgot-password', { email });
+      const response = await authService.forgotPassword(email);
 
-      if (response.data.success) {
-        // Store email in sessionStorage for the reset page
+      if (response.success) {
         sessionStorage.setItem('resetEmail', email);
         navigate('/reset-password');
       }
@@ -85,4 +84,4 @@ const ForgotPasswordPage = () => {
   );
 };
 
-export default ForgotPasswordPage;
+export default ForgotPasswordPage; 

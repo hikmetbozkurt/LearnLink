@@ -1,0 +1,31 @@
+/* Global styles */
+:root {
+  --primary-color: #6B4EE6;
+  --secondary-color: #5840b8;
+  --error-color: #ff3333;
+  --text-color: #333;
+  --border-color: #ddd;
+  --background-color: #f5f5f5;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Montserrat', sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+button {
+  cursor: pointer;
+  border: none;
+  outline: none;
+}
+
+input {
+  outline: none;
+} 

@@ -1,0 +1,57 @@
+.assignments-page {
+  padding: 20px;
+}
+
+.assignments-list {
+  display: grid;
+  gap: 20px;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+}
+
+.assignment-card {
+  background: white;
+  border-radius: 10px;
+  padding: 20px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  transition: transform 0.2s;
+}
+
+.assignment-card:hover {
+  transform: translateY(-2px);
+}
+
+.assignment-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+}
+
+.assignment-title {
+  font-size: 18px;
+  font-weight: 600;
+  color: #512da8;
+}
+
+.assignment-due-date {
+  font-size: 14px;
+  color: #666;
+}
+
+.assignment-status {
+  display: inline-block;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.status-pending {
+  background-color: #fff3e0;
+  color: #f57c00;
+}
+
+.status-submitted {
+  background-color: #e8f5e9;
+  color: #2e7d32;
+} 

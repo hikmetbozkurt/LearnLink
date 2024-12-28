@@ -3,8 +3,8 @@ import { useNavigate } from "react-router-dom";
 import { CircularProgress } from "@mui/material";
 import LockIcon from '@mui/icons-material/Lock';
 import PasswordIcon from "@mui/icons-material/Password";
-import api from "../../../api/axiosConfig";
-import "./signin_style.css";
+import { authService } from "../services/authService";
+import '../styles/pages/login.css';
 
 const ResetPasswordPage = () => {
   const [loading, setLoading] = useState(false);
@@ -41,21 +41,12 @@ const ResetPasswordPage = () => {
     setLoading(true);
 
     try {
-      // First verify the code
-      const verifyResponse = await api.post('/api/auth/verify-reset-code', {
-        email,
-        code: verificationCode
-      });
+      const verifyResponse = await authService.verifyResetCode(email, verificationCode);
 
-      if (verifyResponse.data.success) {
-        // If code is valid, reset the password
-        const resetResponse = await api.post('/api/auth/reset-password', {
-          email,
-          code: verificationCode,
-          newPassword
-        });
+      if (verifyResponse.success) {
+        const resetResponse = await authService.resetPassword(email, verificationCode, newPassword);
 
-        if (resetResponse.data.success) {
+        if (resetResponse.success) {
           sessionStorage.removeItem('resetEmail');
           alert('Password reset successful!');
           navigate('/');
@@ -94,7 +85,6 @@ const ResetPasswordPage = () => {
               placeholder="Enter 6-digit Code"
               value={verificationCode}
               onChange={(e) => {
-                // Only allow 6 digits
                 const value = e.target.value.replace(/\D/g, '').slice(0, 6);
                 setVerificationCode(value);
                 setError("");
@@ -154,4 +144,4 @@ const ResetPasswordPage = () => {
   );
 };
 
-export default ResetPasswordPage;
+export default ResetPasswordPage; 

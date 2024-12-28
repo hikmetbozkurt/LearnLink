@@ -6,6 +6,15 @@ CREATE TABLE users (
     password VARCHAR(255) NOT NULL
 );
 
+CREATE TABLE courses (
+    course_id SERIAL PRIMARY KEY,
+    title VARCHAR(255) NOT NULL,
+    description TEXT,
+    instructor_id INTEGER REFERENCES users(user_id),
+    category VARCHAR(100),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
 CREATE TABLE progress_tracking (
     progress_id SERIAL PRIMARY KEY,
     last_access TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -60,15 +69,6 @@ CREATE TABLE submissions (
     assignment_id INT NOT NULL,
     FOREIGN KEY (user_id) REFERENCES users(user_id),
     FOREIGN KEY (assignment_id) REFERENCES assignments(assignment_id)
-);
-
-CREATE TABLE courses (
-    course_id SERIAL PRIMARY KEY,
-    title VARCHAR(255) NOT NULL,
-    description TEXT,
-    instructor_id INTEGER REFERENCES users(user_id),
-    category VARCHAR(100),
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
 CREATE TABLE enrollments (

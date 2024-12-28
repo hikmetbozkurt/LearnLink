@@ -1,11 +1,12 @@
-import React, { useState, useEffect } from "react";
-import "./signin_style.css";
+import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { GoogleOAuthProvider, GoogleLogin } from '@react-oauth/google';
 import PersonIcon from "@mui/icons-material/Person";
 import EmailIcon from "@mui/icons-material/Email";
 import PasswordIcon from "@mui/icons-material/Password";
-import { GoogleOAuthProvider, GoogleLogin } from '@react-oauth/google';
-import api from "../../../api/axiosConfig";
+import { authService } from "../services/authService";
+import '../styles/pages/login.css';
+import api from "../api/axiosConfig";
 
 console.log('Google Client ID:', process.env.REACT_APP_GOOGLE_CLIENT_ID);
 
@@ -37,13 +38,11 @@ const LoginPage = () => {
 
   const handleGoogleSuccess = async (credentialResponse: any) => {
     try {
-      const response = await api.post('/api/auth/google', {
-        credential: credentialResponse.credential
-      });
+      const response = await authService.googleLogin(credentialResponse.credential);
 
-      if (response.data.success) {
-        localStorage.setItem('token', response.data.data.token);
-        localStorage.setItem('user', JSON.stringify(response.data.data.user));
+      if (response.success) {
+        localStorage.setItem('token', response.data.token);
+        localStorage.setItem('user', JSON.stringify(response.data.user));
         navigate('/dashboard');
       }
     } catch (error) {
@@ -55,80 +54,27 @@ const LoginPage = () => {
     setError('Google sign-in was unsuccessful. Please try again.');
   };
 
-  const handleLogin = async (e: React.FormEvent) => {
-    e.preventDefault();
-    try {
-      const response = await api.post("/api/auth/login", {
-        email: email,
-        password: password,
-      });
-      if (response.data.success) {
-        alert("Login successful");
-        navigate("/dashboard");
-      } else {
-        alert(response.data.message || "Login failed. Please try again.");
-      }
-    } catch (error) {}
-  };
-
-  const handleSignUp = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    // First check if passwords match
-    if (password !== confirmPassword) {
-      alert("Passwords do not match!");
-      return;
-    }
-
-    try {
-      const response = await api.post("/api/auth/signup", {
-        username: username, // This will be stored as 'name' in the database
-        email: email,
-        password: password
-      });
-
-      if (response.data.success) {
-        alert("Account created successfully!");
-        setIsSignUp(false); // Switch back to login view
-        // Clear the form
-        setUsername("");
-        setEmail("");
-        setPassword("");
-        setConfirmPassword("");
-      } else {
-        alert(response.data.message || "Failed to create account. Please try again.");
-      }
-    } catch (error: any) {
-      console.error('Signup error:', error);
-      alert(error.response?.data?.message || "An error occurred during signup");
-    }
-  };
-
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
     
     try {
-      const response = await api.post('/api/auth/login', {
-        email,
-        password
-      });
+      const response = await authService.login(email, password);
 
-      if (response.data.success) {
-        // Handle successful login
-        localStorage.setItem('token', response.data.data.token);
-        localStorage.setItem('user', JSON.stringify(response.data.data.user));
-        navigate('/dashboard');
+      if (response.success) {
+        localStorage.setItem('token', response.data.token);
+        localStorage.setItem('user', JSON.stringify(response.data.user));
+        navigate('/home');
+      } else {
+        //setError(response.message || 'Login failed. Please try again.');
       }
     } catch (error: any) {
       if (error.response) {
         const { status, data } = error.response;
 
         if (status === 404 && data.error === 'EMAIL_NOT_FOUND') {
-          // Just show the error message without switching to signup
           setError('Email is not registered. Please sign up.');
-          // Pre-fill the signup form but don't switch automatically
           setUsername('');
-          setEmail(email); // Keep the email they tried to login with
+          setEmail(email);
           setPassword('');
           setConfirmPassword('');
         } else if (status === 401 && data.error === 'INVALID_CREDENTIALS') {
@@ -139,6 +85,34 @@ const LoginPage = () => {
       } else {
         setError('Network error. Please check your connection.');
       }
+    }
+  };
+
+  const handleSignUp = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (password !== confirmPassword) {
+      setError("Passwords do not match!");
+      return;
+    }
+
+    try {
+      const response = await authService.signup({
+        username,
+        email,
+        password
+      });
+
+      if (response.success) {
+        setError('');
+        setIsSignUp(false);
+        setUsername("");
+        setEmail("");
+        setPassword("");
+        setConfirmPassword("");
+      }
+    } catch (error: any) {
+      setError(error.response?.data?.message || "An error occurred during signup");
     }
   };
 
@@ -238,7 +212,7 @@ const LoginPage = () => {
                 value={email}
                 onChange={(e) => {
                   setEmail(e.target.value);
-                  setError(''); // Clear error when user starts typing
+                  setError('');
                 }}
                 required
               />
@@ -294,4 +268,4 @@ const LoginPage = () => {
   );
 };
 
-export default LoginPage;
+export default LoginPage; 
