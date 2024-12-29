@@ -12,6 +12,7 @@
     "@react-oauth/google": "^0.12.1",
     "@types/gapi": "^0.0.47",
     "@types/gapi.auth2": "^0.0.61",
+    "bcrypt": "^5.1.1",
     "bcryptjs": "^2.4.3",
     "cors": "^2.8.5",
     "dotenv": "^16.0.3",

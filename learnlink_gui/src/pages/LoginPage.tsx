@@ -23,6 +23,7 @@ const LoginPage = () => {
   const [passwordVisible, setPasswordVisible] = useState(false);
   const navigate = useNavigate();
   const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
 
   // Toggle between sign-in and sign-up views
   const toggleView = () => {
@@ -42,10 +43,13 @@ const LoginPage = () => {
     try {
       console.log('Google login started with credential response:', credentialResponse);
       
-      const response = await authService.googleLogin(credentialResponse.credential);
+      const response = await api.post('/api/auth/google', {
+        credential: credentialResponse.credential
+      });
+
       console.log('Google login response:', response);
 
-      if (response.success && response.data.token && response.data.user) {
+      if (response.data?.token && response.data?.user) {
         // Clean and store token
         const cleanToken = response.data.token.replace(/['"]+/g, '');
         
@@ -83,7 +87,7 @@ const LoginPage = () => {
       }
     } catch (error: any) {
       console.error('Google login error:', error);
-      setError(error.message || 'Failed to sign in with Google. Please try again.');
+      setError(error.response?.data?.message || error.message || 'Failed to sign in with Google');
       
       // Clean up any partial data
       localStorage.removeItem('token');
@@ -97,6 +101,8 @@ const LoginPage = () => {
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
+    setError('');
+    setLoading(true);
     
     try {
       const response = await api.post('/api/auth/login', {
@@ -104,19 +110,21 @@ const LoginPage = () => {
         password
       });
 
-      if (response.data.success) {
-        const { token, user } = response.data.data;
-        localStorage.setItem('token', token.replace(/['"]+/g, ''));
-        localStorage.setItem('user', JSON.stringify({
-          ...user,
-          id: user.user_id
-        }));
-        
-        navigate('/home');
-      }
-    } catch (error) {
+      // The response directly contains token and user
+      const { token, user } = response.data;
+      
+      // Store token without quotes
+      localStorage.setItem('token', token.replace(/['"]+/g, ''));
+      
+      // Store user data
+      localStorage.setItem('user', JSON.stringify(user));
+      
+      navigate('/home');
+    } catch (error: any) {
       console.error('Login error:', error);
-      setError('Login failed');
+      setError(error.response?.data?.message || 'Failed to login');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -145,27 +153,6 @@ const LoginPage = () => {
       }
     } catch (error: any) {
       setError(error.response?.data?.message || "An error occurred during signup");
-    }
-  };
-
-  const handleGoogleLogin = async (response: any) => {
-    try {
-      const result = await axios.post(`${API_URL}/auth/google`, {
-        token: response.credential
-      });
-
-      if (result.data.success) {
-        const { token, user } = result.data.data;
-        localStorage.setItem('token', token);
-        localStorage.setItem('user', JSON.stringify({
-          ...user,
-          id: user.user_id || user.id
-        }));
-        navigate('/chatrooms');
-      }
-    } catch (error) {
-      console.error('Google login error:', error);
-      setError('Failed to login with Google');
     }
   };
 
