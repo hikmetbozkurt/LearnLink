@@ -1,18 +1,17 @@
 import express from 'express'
-import { UserController } from '../controllers/userController.js'
-import { authMiddleware } from '../middleware/authMiddleware.js'
+import { authenticateToken } from '../middleware/authMiddleware.js'
+import { getUser, searchUsers, sendFriendRequest, acceptFriendRequest, getFriendRequests, getFriends } from '../controllers/userController.js'
 
 const router = express.Router()
-const userController = new UserController()
 
-// Apply auth middleware to all routes
-router.use(authMiddleware)
+// Protected routes - require authentication
+router.use(authenticateToken)
 
-// User API Endpoints
-router.get('/profile', userController.getProfile)    // Get profile info
-router.put('/profile', userController.updateProfile) // Update profile
-
-// Get all students
-router.get('/students', userController.getStudents)
+router.get('/search/:query', searchUsers)
+router.get('/friends/:userId', getFriends)
+router.get('/friend-requests/:userId', getFriendRequests)
+router.get('/:id', getUser)
+router.post('/friend-request/:userId', sendFriendRequest)
+router.put('/friend-request/:requestId/accept', acceptFriendRequest)
 
 export default router 

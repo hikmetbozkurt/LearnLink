@@ -1,11 +1,16 @@
 import React from 'react';
+import '../styles/pages/shared.css';
 import '../styles/pages/assignments.css';
 
 const AssignmentsPage = () => {
   return (
-    <div className="assignments-page">
-      <h1>Assignments</h1>
-      {/* Assignments content will be added */}
+    <div className="page-container">
+      <div className="page-content">
+        <div className="page-header">
+          <h2 className="page-title">Assignments</h2>
+        </div>
+        {/* Assignments content will go here */}
+      </div>
     </div>
   );
 };

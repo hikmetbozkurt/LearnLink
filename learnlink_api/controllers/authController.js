@@ -1,393 +1,120 @@
-import bcrypt from 'bcryptjs'
-import jwt from 'jsonwebtoken'
-import pool from '../config/database.js'
-import { createResponse } from '../utils/responseHelper.js'
-import { OAuth2Client } from 'google-auth-library'
-import { EmailService } from '../services/emailService.js'
-import crypto from 'crypto';
-import config from '../config/env.js'
+import { AuthService } from '../services/authService.js';
+import { EmailService } from '../services/emailService.js';
+import asyncHandler from '../utils/asyncHandler.js';
+import pool from '../config/database.js';
 
-const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
+const authService = new AuthService();
+const emailService = new EmailService();
 
-// Store verification codes in memory (will be cleared on server restart)
-const verificationCodes = new Map();
+export const login = asyncHandler(async (req, res) => {
+  const { email, password } = req.body;
 
-// Replace bcrypt password hashing with crypto
-const hashPassword = async (password) => {
-  return new Promise((resolve, reject) => {
-    const salt = crypto.randomBytes(16).toString('hex');
-    crypto.pbkdf2(password, salt, 1000, 64, 'sha512', (err, derivedKey) => {
-      if (err) reject(err);
-      resolve(salt + ':' + derivedKey.toString('hex'));
+  if (!email || !password) {
+    return res.status(400).json({ message: 'Email and password are required' });
+  }
+
+  try {
+    const { token, user } = await authService.login(email, password);
+    res.json({ token, user });
+  } catch (error) {
+    res.status(401).json({ message: error.message });
+  }
+});
+
+export const register = asyncHandler(async (req, res) => {
+  const { email, password, username, first_name, last_name } = req.body;
+
+  if (!email || !password || !username || !first_name || !last_name) {
+    return res.status(400).json({ message: 'All fields are required' });
+  }
+
+  try {
+    const { token, user } = await authService.register({
+      email,
+      password,
+      username,
+      first_name,
+      last_name,
+      role: 'user'
     });
-  });
-};
 
-const verifyPassword = async (password, hash) => {
-  return new Promise((resolve, reject) => {
-    const [salt, key] = hash.split(':');
-    crypto.pbkdf2(password, salt, 1000, 64, 'sha512', (err, derivedKey) => {
-      if (err) reject(err);
-      resolve(key === derivedKey.toString('hex'));
+    res.status(201).json({ token, user });
+  } catch (error) {
+    if (error.message === 'User already exists') {
+      res.status(409).json({ message: error.message });
+    } else {
+      res.status(500).json({ message: 'Error creating user' });
+    }
+  }
+});
+
+export const getProfile = asyncHandler(async (req, res) => {
+  const userId = req.user.user_id;
+
+  try {
+    const result = await pool.query(
+      `SELECT user_id, email, username, first_name, last_name, role, profile_picture
+       FROM users 
+       WHERE user_id = $1`,
+      [userId]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    const user = result.rows[0];
+    res.json({
+      id: user.user_id,
+      user_id: user.user_id,
+      email: user.email,
+      username: user.username,
+      first_name: user.first_name,
+      last_name: user.last_name,
+      role: user.role,
+      profile_picture: user.profile_picture
     });
-  });
-};
+  } catch (error) {
+    console.error('Error fetching user profile:', error);
+    res.status(500).json({ message: 'Error fetching user profile' });
+  }
+});
 
-export class AuthController {
-  constructor() {
-    // Bind existing methods
-    this.login = this.login.bind(this)
-    this.signup = this.signup.bind(this)
-    this.googleAuth = this.googleAuth.bind(this)
-    
-    // Bind new methods
-    this.forgotPassword = this.forgotPassword.bind(this)
-    this.verifyResetCode = this.verifyResetCode.bind(this)
-    this.resetPassword = this.resetPassword.bind(this)
-    
-    this.emailService = new EmailService()
+export const requestPasswordReset = asyncHandler(async (req, res) => {
+  const { email } = req.body;
+
+  if (!email) {
+    return res.status(400).json({ message: 'Email is required' });
   }
 
-  async signup(req, res) {
-    const { username, email, password } = req.body;
-
-    try {
-      // Check if user already exists
-      const userExists = await pool.query(
-        'SELECT * FROM users WHERE email = $1',
-        [email]
-      );
-
-      if (userExists.rows.length > 0) {
-        return res.status(400).json({
-          success: false,
-          message: 'User already exists'
-        });
-      }
-
-      // Hash password
-      const salt = await bcrypt.genSalt(10);
-      const hashedPassword = await bcrypt.hash(password, salt);
-
-      // Create user
-      const result = await pool.query(
-        'INSERT INTO users (name, email, password, role) VALUES ($1, $2, $3, $4) RETURNING user_id, email, name, role',
-        [username, email, hashedPassword, 'student']
-      );
-
-      const user = result.rows[0];
-
-      // Generate JWT token
-      const token = jwt.sign(
-        { id: user.user_id, email: user.email, role: user.role },
-        process.env.JWT_SECRET || 'learnlink',
-        { expiresIn: '24h' }
-      );
-
-      res.status(201).json({
-        success: true,
-        data: {
-          token,
-          user: {
-            id: user.user_id,
-            email: user.email,
-            name: user.name,
-            role: user.role
-          }
-        }
-      });
-
-    } catch (error) {
-      console.error('Signup error:', error);
-      res.status(500).json({
-        success: false,
-        message: 'Internal server error'
-      });
+  try {
+    const code = await authService.createResetToken(email);
+    await emailService.sendVerificationCode(email, code);
+    res.json({ message: 'Reset code sent successfully' });
+  } catch (error) {
+    if (error.message === 'User not found') {
+      res.status(404).json({ message: error.message });
+    } else {
+      res.status(500).json({ message: 'Error sending reset code' });
     }
   }
+});
 
-  async login(req, res) {
-    const { email, password } = req.body;
+export const resetPassword = asyncHandler(async (req, res) => {
+  const { email, code, newPassword } = req.body;
 
-    try {
-      const result = await pool.query(
-        'SELECT * FROM users WHERE email = $1',
-        [email]
-      );
-
-      const user = result.rows[0];
-      
-      if (!user) {
-        return res.status(404).json({
-          success: false,
-          error: 'EMAIL_NOT_FOUND',
-          message: 'Email is not registered'
-        });
-      }
-
-      // Always use bcrypt.compare for password verification
-      const isValidPassword = await bcrypt.compare(password, user.password);
-      console.log('Password verification result:', isValidPassword);
-
-      if (!isValidPassword) {
-        return res.status(401).json({
-          success: false,
-          error: 'INVALID_CREDENTIALS',
-          message: 'Invalid email or password'
-        });
-      }
-
-      // Use process.env.JWT_SECRET directly or config.JWT_SECRET consistently
-      const token = jwt.sign(
-        { 
-          id: user.user_id, 
-          email: user.email, 
-          role: user.role 
-        },
-        process.env.JWT_SECRET || 'learnlink',
-        { 
-          expiresIn: '24h' 
-        }
-      );
-
-      res.json({
-        success: true,
-        data: {
-          token,
-          user: {
-            id: user.user_id,
-            name: user.name,
-            email: user.email,
-            role: user.role
-          }
-        }
-      });
-
-    } catch (error) {
-      console.error('Login error:', error);
-      res.status(500).json({
-        success: false,
-        error: 'SERVER_ERROR',
-        message: 'Server error occurred'
-      });
-    }
+  if (!email || !code || !newPassword) {
+    return res.status(400).json({ message: 'All fields are required' });
   }
 
-  async googleAuth(req, res) {
-    const { credential } = req.body;
-
-    try {
-      // Verify the Google token
-      const ticket = await googleClient.verifyIdToken({
-        idToken: credential,
-        audience: process.env.GOOGLE_CLIENT_ID
-      });
-
-      const payload = ticket.getPayload();
-      
-      if (!payload) {
-        return res.status(400).json({
-          success: false,
-          message: 'Invalid Google token'
-        });
-      }
-
-      const { email, name, sub: googleId } = payload;
-
-      // Check if user exists
-      let result = await pool.query(
-        'SELECT * FROM users WHERE email = $1',
-        [email]
-      );
-
-      let user = result.rows[0];
-
-      if (!user) {
-        // Create new user if doesn't exist
-        result = await pool.query(
-          'INSERT INTO users (name, email, password, role) VALUES ($1, $2, $3, $4) RETURNING *',
-          [name, email, googleId, 'student'] // Using googleId as password for Google users
-        );
-        user = result.rows[0];
-      }
-
-      // Generate JWT token
-      const token = jwt.sign(
-        { id: user.user_id, email: user.email, role: user.role },
-        process.env.JWT_SECRET || 'learnlink',
-        { expiresIn: '24h' }
-      );
-
-      res.json({
-        success: true,
-        data: {
-          token,
-          user: {
-            id: user.user_id,
-            email: user.email,
-            name: user.name,
-            role: user.role
-          }
-        }
-      });
-
-    } catch (error) {
-      console.error('Google auth error:', error);
-      res.status(500).json({
-        success: false,
-        message: 'Error processing Google sign-in'
-      });
+  try {
+    await authService.resetPassword(email, code, newPassword);
+    res.json({ message: 'Password reset successful' });
+  } catch (error) {
+    if (error.message === 'Invalid or expired reset code') {
+      res.status(400).json({ message: error.message });
+    } else {
+      res.status(500).json({ message: 'Error resetting password' });
     }
   }
-
-  async forgotPassword(req, res) {
-    const { email } = req.body;
-    
-    console.log('Received forgot password request for email:', email);
-
-    try {
-      // Check if user exists
-      const result = await pool.query(
-        'SELECT * FROM users WHERE email = $1',
-        [email]
-      );
-
-      console.log('Database query result:', result.rows);
-
-      if (!result.rows.length) {
-        console.log('No user found with email:', email);
-        return res.status(404).json({
-          success: false,
-          error: 'EMAIL_NOT_FOUND',
-          message: 'Email is not registered'
-        });
-      }
-
-      // Generate a random 6-digit code (instead of 4-digit)
-      const verificationCode = Math.floor(100000 + Math.random() * 900000).toString();
-      console.log('Generated verification code:', verificationCode);
-      
-      // Store the code with expiration (10 minutes)
-      verificationCodes.set(email, {
-        code: verificationCode,
-        expires: Date.now() + 10 * 60 * 1000 // 10 minutes
-      });
-
-      // Send email with verification code
-      await this.emailService.sendVerificationCode(email, verificationCode);
-
-      console.log('Verification code sent successfully');
-
-      res.json({
-        success: true,
-        message: 'Password reset code sent to email'
-      });
-
-    } catch (error) {
-      console.error('Forgot password error:', error);
-      res.status(500).json({
-        success: false,
-        error: 'SERVER_ERROR',
-        message: 'Failed to process password reset request'
-      });
-    }
-  }
-
-  async verifyResetCode(req, res) {
-    const { email, code } = req.body;
-
-    try {
-      const storedData = verificationCodes.get(email);
-      
-      if (!storedData || 
-          storedData.code !== code || 
-          Date.now() > storedData.expires) {
-        return res.status(400).json({
-          success: false,
-          error: 'INVALID_CODE',
-          message: 'Invalid or expired verification code'
-        });
-      }
-
-      res.json({
-        success: true,
-        message: 'Code verified successfully'
-      });
-
-    } catch (error) {
-      console.error('Code verification error:', error);
-      res.status(500).json({
-        success: false,
-        error: 'SERVER_ERROR',
-        message: 'Failed to verify code'
-      });
-    }
-  }
-
-  async resetPassword(req, res) {
-    const { email, code, newPassword } = req.body;
-    console.log('Reset password request received:', { email, code, passwordLength: newPassword?.length });
-
-    try {
-      const storedData = verificationCodes.get(email);
-      
-      if (!storedData || 
-          storedData.code !== code || 
-          Date.now() > storedData.expires) {
-        console.log('Invalid or expired code for email:', email);
-        return res.status(400).json({
-          success: false,
-          error: 'INVALID_CODE',
-          message: 'Invalid or expired verification code'
-        });
-      }
-
-      // Hash new password using bcrypt
-      const salt = await bcrypt.genSalt(10);
-      const hashedPassword = await bcrypt.hash(newPassword, salt);
-      console.log('Password hashed successfully');
-
-      // Update password with explicit WHERE clause and RETURNING
-      const updateQuery = `
-        UPDATE users 
-        SET password = $1 
-        WHERE email = $2 
-        RETURNING user_id, email`;
-      
-      console.log('Executing update query for email:', email);
-      const result = await pool.query(updateQuery, [hashedPassword, email]);
-
-      if (!result.rows.length) {
-        console.error('No user found to update password for email:', email);
-        throw new Error('Failed to update password - user not found');
-      }
-
-      console.log('Password updated in database for user:', result.rows[0]);
-
-      // Clear the verification code
-      verificationCodes.delete(email);
-      console.log('Verification code cleared from memory');
-
-      // Verify the update worked by checking the new password
-      const verifyQuery = 'SELECT password FROM users WHERE email = $1';
-      const verifyResult = await pool.query(verifyQuery, [email]);
-      
-      if (verifyResult.rows.length) {
-        const isPasswordUpdated = await bcrypt.compare(newPassword, verifyResult.rows[0].password);
-      }
-
-      res.json({
-        success: true,
-        message: 'Password updated successfully'
-      });
-
-    } catch (error) {
-      console.error('Password reset error:', error);
-      res.status(500).json({
-        success: false,
-        error: 'SERVER_ERROR',
-        message: 'Failed to reset password: ' + error.message
-      });
-    }
-  }
-} 
+}); 

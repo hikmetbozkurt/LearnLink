@@ -1,15 +1,34 @@
 import express from 'express'
-import { AssignmentController } from '../controllers/assignmentController.js'
-import { protect } from '../middleware/authMiddleware.js'
+import { authenticateToken } from '../middleware/authMiddleware.js'
+import { 
+  getAllAssignments,
+  getAssignment,
+  createAssignment,
+  updateAssignment,
+  deleteAssignment,
+  getAssignments,
+  submitAssignment,
+  gradeSubmission,
+  getSubmissions
+} from '../controllers/assignmentController.js'
 
 const router = express.Router()
-const assignmentController = new AssignmentController()
 
-router.post('/', protect, assignmentController.createAssignment)
-router.get('/course/:course_id', protect, assignmentController.getAssignments)
-router.get('/:id', protect, assignmentController.getAssignment)
-router.post('/:id/submit', protect, assignmentController.submitAssignment)
-router.post('/:id/submissions/:submission_id/grade', protect, assignmentController.gradeSubmission)
-router.get('/:id/submissions', protect, assignmentController.getSubmissions)
+// All routes require authentication
+router.use(authenticateToken)
+
+router.route('/')
+  .get(getAllAssignments)
+  .post(createAssignment)
+
+router.route('/:id')
+  .get(getAssignment)
+  .put(updateAssignment)
+  .delete(deleteAssignment)
+
+router.get('/course/:course_id', getAssignments)
+router.post('/:id/submit', submitAssignment)
+router.post('/:id/submissions/:submission_id/grade', gradeSubmission)
+router.get('/:id/submissions', getSubmissions)
 
 export default router 

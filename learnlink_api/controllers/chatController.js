@@ -1,141 +1,72 @@
+import asyncHandler from '../utils/asyncHandler.js';
 import pool from '../config/database.js';
 
-export class ChatController {
-  constructor() {
-    // Bind methods
-    this.getMessages = this.getMessages.bind(this);
-    this.sendMessage = this.sendMessage.bind(this);
-    this.getChatRooms = this.getChatRooms.bind(this);
-    this.createChatRoom = this.createChatRoom.bind(this);
+export const getAllChats = asyncHandler(async (req, res) => {
+  const userId = req.user.user_id;
+  const result = await pool.query(
+    'SELECT * FROM chats WHERE user_id = $1 OR recipient_id = $1',
+    [userId]
+  );
+  res.json(result.rows);
+});
+
+export const getChat = asyncHandler(async (req, res) => {
+  const { id } = req.params;
+  const userId = req.user.user_id;
+  
+  const result = await pool.query(
+    'SELECT * FROM chats WHERE chat_id = $1 AND (user_id = $2 OR recipient_id = $2)',
+    [id, userId]
+  );
+  
+  if (result.rows.length === 0) {
+    return res.status(404).json({ message: 'Chat not found' });
   }
+  
+  res.json(result.rows[0]);
+});
 
-  // Get messages for a specific chat room
-  async getMessages(req, res) {
-    const { roomId } = req.params;
-    const { limit = 50, offset = 0 } = req.query;
+export const createChat = asyncHandler(async (req, res) => {
+  const { recipient_id } = req.body;
+  const userId = req.user.user_id;
+  
+  const result = await pool.query(
+    'INSERT INTO chats (user_id, recipient_id) VALUES ($1, $2) RETURNING *',
+    [userId, recipient_id]
+  );
+  
+  res.status(201).json(result.rows[0]);
+});
 
-    try {
-      const result = await pool.query(
-        `SELECT m.*, u.name as sender_name 
-         FROM messages m 
-         JOIN users u ON m.sender_id = u.user_id 
-         WHERE m.room_id = $1 
-         ORDER BY m.created_at DESC 
-         LIMIT $2 OFFSET $3`,
-        [roomId, limit, offset]
-      );
-
-      res.json({
-        success: true,
-        data: result.rows
-      });
-    } catch (error) {
-      console.error('Get messages error:', error);
-      res.status(500).json({
-        success: false,
-        message: 'Failed to fetch messages'
-      });
-    }
+export const updateChat = asyncHandler(async (req, res) => {
+  const { id } = req.params;
+  const userId = req.user.user_id;
+  const { last_message } = req.body;
+  
+  const result = await pool.query(
+    'UPDATE chats SET last_message = $1 WHERE chat_id = $2 AND (user_id = $3 OR recipient_id = $3) RETURNING *',
+    [last_message, id, userId]
+  );
+  
+  if (result.rows.length === 0) {
+    return res.status(404).json({ message: 'Chat not found' });
   }
+  
+  res.json(result.rows[0]);
+});
 
-  // Send a new message
-  async sendMessage(req, res) {
-    const { room_id, sender_id, content } = req.body;
-
-    try {
-      const result = await pool.query(
-        'INSERT INTO messages (room_id, sender_id, content) VALUES ($1, $2, $3) RETURNING *',
-        [room_id, sender_id, content]
-      );
-
-      // Get sender information
-      const userResult = await pool.query(
-        'SELECT name FROM users WHERE user_id = $1',
-        [sender_id]
-      );
-
-      const message = {
-        ...result.rows[0],
-        sender_name: userResult.rows[0].name
-      };
-
-      res.status(201).json({
-        success: true,
-        data: message
-      });
-    } catch (error) {
-      console.error('Send message error:', error);
-      res.status(500).json({
-        success: false,
-        message: 'Failed to send message'
-      });
-    }
+export const deleteChat = asyncHandler(async (req, res) => {
+  const { id } = req.params;
+  const userId = req.user.user_id;
+  
+  const result = await pool.query(
+    'DELETE FROM chats WHERE chat_id = $1 AND (user_id = $2 OR recipient_id = $2) RETURNING *',
+    [id, userId]
+  );
+  
+  if (result.rows.length === 0) {
+    return res.status(404).json({ message: 'Chat not found' });
   }
-
-  // Get all chat rooms for a user
-  async getChatRooms(req, res) {
-    const { userId } = req.params;
-
-    try {
-      const result = await pool.query(
-        `SELECT cr.*, 
-         (SELECT COUNT(*) FROM chat_room_participants WHERE room_id = cr.room_id) as participant_count
-         FROM chat_rooms cr
-         JOIN chat_room_participants crp ON cr.room_id = crp.room_id
-         WHERE crp.user_id = $1`,
-        [userId]
-      );
-
-      res.json({
-        success: true,
-        data: result.rows
-      });
-    } catch (error) {
-      console.error('Get chat rooms error:', error);
-      res.status(500).json({
-        success: false,
-        message: 'Failed to fetch chat rooms'
-      });
-    }
-  }
-
-  // Create a new chat room
-  async createChatRoom(req, res) {
-    const { name, creator_id, participant_ids } = req.body;
-
-    try {
-      // Start transaction
-      await pool.query('BEGIN');
-
-      // Create chat room
-      const roomResult = await pool.query(
-        'INSERT INTO chat_rooms (name, creator_id) VALUES ($1, $2) RETURNING *',
-        [name, creator_id]
-      );
-
-      const roomId = roomResult.rows[0].room_id;
-
-      // Add participants
-      const participantValues = [creator_id, ...participant_ids]
-        .map((id) => `(${roomId}, ${id})`).join(',');
-
-      await pool.query(
-        `INSERT INTO chat_room_participants (room_id, user_id) VALUES ${participantValues}`
-      );
-
-      await pool.query('COMMIT');
-
-      res.status(201).json({
-        success: true,
-        data: roomResult.rows[0]
-      });
-    } catch (error) {
-      await pool.query('ROLLBACK');
-      console.error('Create chat room error:', error);
-      res.status(500).json({
-        success: false,
-        message: 'Failed to create chat room'
-      });
-    }
-  }
-} 
+  
+  res.json({ message: 'Chat deleted successfully' });
+}); 

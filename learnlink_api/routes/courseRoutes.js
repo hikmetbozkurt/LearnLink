@@ -1,22 +1,25 @@
 import express from 'express';
-import { CourseController } from '../controllers/courseController.js';
-import { authMiddleware } from '../middleware/authMiddleware.js';
-import { authorize } from '../middleware/authMiddleware.js';
+import { authenticateToken } from '../middleware/authMiddleware.js';
+import { 
+  createCourse,
+  getCourse,
+  updateCourse,
+  deleteCourse,
+  getAllCourses
+} from '../controllers/courseController.js';
 
 const router = express.Router();
-const courseController = new CourseController();
 
-// Apply auth middleware to all routes
-router.use(authMiddleware);
+// All routes require authentication
+router.use(authenticateToken);
 
-// Course CRUD operations
-router.post('/', authMiddleware, authorize('instructor'), courseController.createCourse);
-router.get('/', authMiddleware, courseController.getCourses);
-router.get('/:id', authMiddleware, courseController.getCourseById);
-router.put('/:id', authMiddleware, authorize('instructor'), courseController.updateCourse);
-router.delete('/:id', authMiddleware, authorize('instructor'), courseController.deleteCourse);
+router.route('/')
+  .get(getAllCourses)
+  .post(createCourse);
 
-// Enrollment
-router.post('/:course_id/enroll', authMiddleware, authorize('student'), courseController.enrollInCourse);
+router.route('/:id')
+  .get(getCourse)
+  .put(updateCourse)
+  .delete(deleteCourse);
 
-export default router; 
+export default router;

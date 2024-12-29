@@ -23,14 +23,6 @@ CREATE TABLE progress_tracking (
     FOREIGN KEY (user_id) REFERENCES users(user_id)
 );
 
-CREATE TABLE notifications (
-    notification_id SERIAL PRIMARY KEY,
-    message TEXT NOT NULL,
-    date TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    user_id INT NOT NULL,
-    FOREIGN KEY (user_id) REFERENCES users(user_id)
-);
-
 CREATE TABLE ai_recommendations (
     recommendation_id SERIAL PRIMARY KEY,
     content_id INT NOT NULL,
@@ -79,24 +71,82 @@ CREATE TABLE enrollments (
     UNIQUE(course_id, user_id)
 );
 
-CREATE TABLE chat_rooms (
-    room_id SERIAL PRIMARY KEY,
-    name VARCHAR(255),
-    creator_id INTEGER REFERENCES users(user_id),
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+-- Chatrooms tablosu
+CREATE TABLE IF NOT EXISTS chatrooms (
+    id SERIAL PRIMARY KEY,
+    name VARCHAR(100) NOT NULL,
+    description TEXT,
+    created_by INTEGER REFERENCES users(user_id) NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE TABLE chat_room_participants (
-    room_id INTEGER REFERENCES chat_rooms(room_id),
-    user_id INTEGER REFERENCES users(user_id),
+-- Chatroom üyelikleri için tablo
+CREATE TABLE IF NOT EXISTS chatroom_members (
+    chatroom_id INTEGER REFERENCES chatrooms(id) NOT NULL,
+    user_id INTEGER REFERENCES users(user_id) NOT NULL,
     joined_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    PRIMARY KEY (room_id, user_id)
+    PRIMARY KEY (chatroom_id, user_id)
 );
 
 CREATE TABLE messages (
-    message_id SERIAL PRIMARY KEY,
-    room_id INTEGER REFERENCES chat_rooms(room_id),
+    id SERIAL PRIMARY KEY,
+    chatroom_id INTEGER REFERENCES chatrooms(id),
     sender_id INTEGER REFERENCES users(user_id),
     content TEXT NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Chats tablosu
+CREATE TABLE IF NOT EXISTS chats (
+    id SERIAL PRIMARY KEY,
+    title VARCHAR(100),
+    created_by INTEGER REFERENCES users(user_id),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Chat katılımcıları için tablo
+CREATE TABLE IF NOT EXISTS chat_participants (
+    chat_id INTEGER REFERENCES chats(id),
+    user_id INTEGER REFERENCES users(user_id),
+    joined_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (chat_id, user_id)
+);
+
+-- Chat mesajları için tablo
+CREATE TABLE IF NOT EXISTS chat_messages (
+    id SERIAL PRIMARY KEY,
+    chat_id INTEGER REFERENCES chats(id),
+    sender_id INTEGER REFERENCES users(user_id),
+    content TEXT NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS notifications (
+    notifications_id SERIAL PRIMARY KEY,
+    sender_id INTEGER REFERENCES users(user_id) ON DELETE CASCADE,
+    recipient_id INTEGER REFERENCES users(user_id) ON DELETE CASCADE,
+    content TEXT NOT NULL,
+    chatroom_id INTEGER REFERENCES chatrooms(id) ON DELETE CASCADE,
+    read BOOLEAN DEFAULT false,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Friend Requests Table
+CREATE TABLE IF NOT EXISTS friend_requests (
+    id SERIAL PRIMARY KEY,
+    sender_id INTEGER REFERENCES users(user_id) ON DELETE CASCADE,
+    receiver_id INTEGER REFERENCES users(user_id) ON DELETE CASCADE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE(sender_id, receiver_id)
+);
+
+-- Friendships Table
+CREATE TABLE IF NOT EXISTS friendships (
+    id SERIAL PRIMARY KEY,
+    user1_id INTEGER REFERENCES users(user_id) ON DELETE CASCADE,
+    user2_id INTEGER REFERENCES users(user_id) ON DELETE CASCADE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE(user1_id, user2_id)
 );

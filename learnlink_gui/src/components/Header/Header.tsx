@@ -1,17 +1,39 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { 
   FaSearch, 
-  FaBell, 
   FaCog, 
   FaSignOutAlt,
   FaUser
 } from 'react-icons/fa';
+import NotificationBell from '../NotificationBell';
 import './Header.css';
+import defaultAvatar from '../../assets/images/default-avatar.png';
+import { authService } from '../../services/authService';
+
+type DropdownType = 'settings' | null;
 
 const Header = () => {
-  const [showNotifications, setShowNotifications] = useState(false);
-  const [showSettings, setShowSettings] = useState(false);
+  const navigate = useNavigate();
+  const [activeDropdown, setActiveDropdown] = useState<DropdownType>(null);
   const [searchQuery, setSearchQuery] = useState('');
+  const dropdownRef = useRef<HTMLDivElement>(null);
+  const notificationRef = useRef<any>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setActiveDropdown(null);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  const handleDropdownClick = (dropdownType: DropdownType) => {
+    setActiveDropdown(activeDropdown === dropdownType ? null : dropdownType);
+  };
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -19,7 +41,37 @@ const Header = () => {
   };
 
   const handleLogout = () => {
-    // Implement logout functionality
+    try {
+      authService.logout();
+      navigate('/');
+    } catch (error) {
+      console.error('Logout error:', error);
+    }
+  };
+
+  const renderDropdownContent = (type: DropdownType) => {
+    switch (type) {
+      case 'settings':
+        return (
+          <div className="dropdown-menu settings">
+            <div className="dropdown-header">Settings</div>
+            <div className="menu-item">
+              <FaUser />
+              <span>Profile</span>
+            </div>
+            <div className="menu-item">
+              <FaCog />
+              <span>Settings</span>
+            </div>
+            <div className="menu-item" onClick={handleLogout}>
+              <FaSignOutAlt />
+              <span>Logout</span>
+            </div>
+          </div>
+        );
+      default:
+        return null;
+    }
   };
 
   return (
@@ -41,43 +93,16 @@ const Header = () => {
           </form>
         </div>
 
-        <div className="header-actions">
+        <div className="header-actions" ref={dropdownRef}>
           <div className="profile-avatar">
-            <img src="/assets/images/avatar.jpg" alt="Profile" />
+            <img src={defaultAvatar} alt="Profile" />
           </div>
 
-          <div className="notification-icon" onClick={() => setShowNotifications(!showNotifications)}>
-            <FaBell />
-            <span className="notification-badge">3</span>
-            {showNotifications && (
-              <div className="dropdown-menu notifications">
-                <div className="notification-item">
-                  <span>New message from John</span>
-                  <small>2 minutes ago</small>
-                </div>
-                {/* Add more notifications */}
-              </div>
-            )}
-          </div>
+          <NotificationBell ref={notificationRef} />
 
-          <div className="settings-icon" onClick={() => setShowSettings(!showSettings)}>
+          <div className="settings-icon" onClick={() => handleDropdownClick('settings')}>
             <FaCog />
-            {showSettings && (
-              <div className="dropdown-menu settings">
-                <div className="menu-item">
-                  <FaUser />
-                  <span>Profile</span>
-                </div>
-                <div className="menu-item">
-                  <FaCog />
-                  <span>Settings</span>
-                </div>
-                <div className="menu-item" onClick={handleLogout}>
-                  <FaSignOutAlt />
-                  <span>Logout</span>
-                </div>
-              </div>
-            )}
+            {activeDropdown === 'settings' && renderDropdownContent('settings')}
           </div>
         </div>
       </div>

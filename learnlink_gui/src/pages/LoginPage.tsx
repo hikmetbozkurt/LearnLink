@@ -7,6 +7,8 @@ import PasswordIcon from "@mui/icons-material/Password";
 import { authService } from "../services/authService";
 import '../styles/pages/login.css';
 import api from "../api/axiosConfig";
+import axios from "axios";
+import { API_URL } from '../config/config';
 
 console.log('Google Client ID:', process.env.REACT_APP_GOOGLE_CLIENT_ID);
 
@@ -38,15 +40,54 @@ const LoginPage = () => {
 
   const handleGoogleSuccess = async (credentialResponse: any) => {
     try {
+      console.log('Google login started with credential response:', credentialResponse);
+      
       const response = await authService.googleLogin(credentialResponse.credential);
+      console.log('Google login response:', response);
 
-      if (response.success) {
-        localStorage.setItem('token', response.data.token);
-        localStorage.setItem('user', JSON.stringify(response.data.user));
-        navigate('/dashboard');
+      if (response.success && response.data.token && response.data.user) {
+        // Clean and store token
+        const cleanToken = response.data.token.replace(/['"]+/g, '');
+        
+        // Ensure user data has all required fields
+        const userData = {
+          id: response.data.user.user_id || response.data.user.id,
+          email: response.data.user.email,
+          name: response.data.user.name,
+          role: response.data.user.role || 'student'
+        };
+
+        // Store the data
+        localStorage.setItem('token', cleanToken);
+        localStorage.setItem('user', JSON.stringify(userData));
+        
+        console.log('Google login - Stored auth data:', {
+          token: cleanToken,
+          user: userData
+        });
+
+        // Verify data is stored correctly
+        const storedToken = localStorage.getItem('token');
+        const storedUser = JSON.parse(localStorage.getItem('user') || '{}');
+        
+        if (storedToken && storedUser.id && storedUser.email) {
+          console.log('Google login - Verification successful, navigating to home');
+          navigate('/home');
+        } else {
+          console.error('Google login - Failed to verify stored data:', { storedToken, storedUser });
+          throw new Error('Failed to store authentication data');
+        }
+      } else {
+        console.error('Google login - Invalid response format:', response);
+        throw new Error('Invalid response format from server');
       }
-    } catch (error) {
-      setError('Failed to sign in with Google. Please try again.');
+    } catch (error: any) {
+      console.error('Google login error:', error);
+      setError(error.message || 'Failed to sign in with Google. Please try again.');
+      
+      // Clean up any partial data
+      localStorage.removeItem('token');
+      localStorage.removeItem('user');
     }
   };
 
@@ -54,37 +95,28 @@ const LoginPage = () => {
     setError('Google sign-in was unsuccessful. Please try again.');
   };
 
-  const handleSignIn = async (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     
     try {
-      const response = await authService.login(email, password);
+      const response = await api.post('/api/auth/login', {
+        email,
+        password
+      });
 
-      if (response.success) {
-        localStorage.setItem('token', response.data.token);
-        localStorage.setItem('user', JSON.stringify(response.data.user));
+      if (response.data.success) {
+        const { token, user } = response.data.data;
+        localStorage.setItem('token', token.replace(/['"]+/g, ''));
+        localStorage.setItem('user', JSON.stringify({
+          ...user,
+          id: user.user_id
+        }));
+        
         navigate('/home');
-      } else {
-        //setError(response.message || 'Login failed. Please try again.');
       }
-    } catch (error: any) {
-      if (error.response) {
-        const { status, data } = error.response;
-
-        if (status === 404 && data.error === 'EMAIL_NOT_FOUND') {
-          setError('Email is not registered. Please sign up.');
-          setUsername('');
-          setEmail(email);
-          setPassword('');
-          setConfirmPassword('');
-        } else if (status === 401 && data.error === 'INVALID_CREDENTIALS') {
-          setError('Invalid email or password');
-        } else {
-          setError('An error occurred. Please try again.');
-        }
-      } else {
-        setError('Network error. Please check your connection.');
-      }
+    } catch (error) {
+      console.error('Login error:', error);
+      setError('Login failed');
     }
   };
 
@@ -113,6 +145,27 @@ const LoginPage = () => {
       }
     } catch (error: any) {
       setError(error.response?.data?.message || "An error occurred during signup");
+    }
+  };
+
+  const handleGoogleLogin = async (response: any) => {
+    try {
+      const result = await axios.post(`${API_URL}/auth/google`, {
+        token: response.credential
+      });
+
+      if (result.data.success) {
+        const { token, user } = result.data.data;
+        localStorage.setItem('token', token);
+        localStorage.setItem('user', JSON.stringify({
+          ...user,
+          id: user.user_id || user.id
+        }));
+        navigate('/chatrooms');
+      }
+    } catch (error) {
+      console.error('Google login error:', error);
+      setError('Failed to login with Google');
     }
   };
 
@@ -174,7 +227,7 @@ const LoginPage = () => {
           </form>
         </div>
         <div className="form-container sign-in">
-          <form onSubmit={handleSignIn}>
+          <form onSubmit={handleLogin}>
             <h1>Sign In</h1>
             
             {error && (

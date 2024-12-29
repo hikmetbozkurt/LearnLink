@@ -1,19 +1,16 @@
 import express from 'express'
-import { AuthController } from '../controllers/authController.js'
+import { login, register, getProfile, requestPasswordReset, resetPassword } from '../controllers/authController.js'
+import { authenticateToken } from '../middleware/authMiddleware.js'
 
 const router = express.Router()
-const authController = new AuthController()
 
-router.post('/login', authController.login)
+// Public routes
+router.post('/login', login)
+router.post('/register', register)
+router.post('/forgot-password', requestPasswordReset)
+router.post('/reset-password', resetPassword)
 
-// Signup route
-router.post('/signup', authController.signup)
-
-router.post('/google', authController.googleAuth)
-
-// Add these new routes for password reset
-router.post('/forgot-password', authController.forgotPassword)
-router.post('/verify-reset-code', authController.verifyResetCode)
-router.post('/reset-password', authController.resetPassword)
+// Protected routes
+router.get('/profile', authenticateToken, getProfile)
 
 export default router 

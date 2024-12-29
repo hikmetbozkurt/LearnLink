@@ -1,15 +1,25 @@
 import express from 'express';
-import { MessageController } from '../controllers/messageController.js';
-import { authMiddleware } from '../middleware/authMiddleware.js';
+import { authenticateToken } from '../middleware/authMiddleware.js';
+import { 
+  createMessage,
+  getMessage,
+  updateMessage,
+  deleteMessage,
+  getAllMessages
+} from '../controllers/messageController.js';
 
 const router = express.Router();
-const messageController = new MessageController();
 
-// Apply auth middleware
-router.use(authMiddleware);
+// All routes require authentication
+router.use(authenticateToken);
 
-// Message routes
-router.post('/', messageController.sendMessage);
-router.get('/:user_id/:other_user_id', messageController.getMessages);
+router.route('/')
+  .get(getAllMessages)
+  .post(createMessage);
+
+router.route('/:id')
+  .get(getMessage)
+  .put(updateMessage)
+  .delete(deleteMessage);
 
 export default router;

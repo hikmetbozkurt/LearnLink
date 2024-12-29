@@ -19,8 +19,36 @@ export const authService = {
   googleLogin: async (credential: string) => {
     try {
       const response = await api.post('/api/auth/google', { credential });
-      return response.data;
+      console.log('Google login service - Raw response:', response.data);
+      
+      // Ensure we have the expected data structure
+      if (!response.data?.success || !response.data?.data?.token || !response.data?.data?.user) {
+        console.error('Google login service - Invalid response format:', response.data);
+        throw new Error('Invalid response format from Google login');
+      }
+
+      // Validate required user fields
+      const { user, token } = response.data.data;
+      if (!user.email || !(user.user_id || user.id) || !user.name) {
+        console.error('Google login service - Missing required user fields:', user);
+        throw new Error('Missing required user information');
+      }
+
+      return {
+        success: true,
+        data: {
+          token,
+          user: {
+            user_id: user.user_id || user.id,
+            id: user.user_id || user.id,
+            email: user.email,
+            name: user.name,
+            role: user.role || 'student'
+          }
+        }
+      };
     } catch (error) {
+      console.error('Google login service error:', error);
       throw error;
     }
   },

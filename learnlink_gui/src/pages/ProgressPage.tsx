@@ -1,11 +1,15 @@
 import React from 'react';
-
+import '../styles/pages/shared.css';
 
 const ProgressPage = () => {
   return (
-    <div className="progress-page">
-      <h1>Progress Tracking</h1>
-      {/* Progress content will be added */}
+    <div className="page-container">
+      <div className="page-content">
+        <div className="page-header">
+          <h2 className="page-title">Progress</h2>
+        </div>
+        {/* Progress content will go here */}
+      </div>
     </div>
   );
 };

@@ -1,19 +1,25 @@
 import express from 'express'
-import { ChatController } from '../controllers/chatController.js'
-import { authMiddleware } from '../middleware/authMiddleware.js'
+import { authenticateToken } from '../middleware/authMiddleware.js'
+import { 
+  createChat,
+  getChat,
+  updateChat,
+  deleteChat,
+  getAllChats
+} from '../controllers/chatController.js'
 
 const router = express.Router()
-const chatController = new ChatController()
 
-// Apply auth middleware to all routes
-router.use(authMiddleware)
+// All routes require authentication
+router.use(authenticateToken)
 
-// Chat room operations
-router.post('/rooms', chatController.createChatRoom)
-router.get('/rooms/user/:userId', chatController.getChatRooms)
+router.route('/')
+  .get(getAllChats)
+  .post(createChat)
 
-// Message operations
-router.get('/rooms/:roomId/messages', chatController.getMessages)
-router.post('/messages', chatController.sendMessage)
+router.route('/:id')
+  .get(getChat)
+  .put(updateChat)
+  .delete(deleteChat)
 
 export default router 

@@ -6,7 +6,7 @@ import ForgotPasswordPage from "./pages/ForgotPasswordPage";
 import ResetPasswordPage from "./pages/ResetPasswordPage";
 import HomePage from "./pages/HomePage";
 import ChatroomsPage from "./pages/ChatroomsPage";
-import NotificationsPage from "./pages/NotificationsPage";
+import ConnectionsPage from "./pages/ConnectionsPage";
 import CoursesPage from "./pages/CoursesPage";
 import AssignmentsPage from "./pages/AssignmentsPage";
 import EventsPage from "./pages/EventsPage";
@@ -31,7 +31,7 @@ const App = () => {
         }>
           <Route path="/home" element={<HomePage />} />
           <Route path="/chatrooms" element={<ChatroomsPage />} />
-          <Route path="/notifications" element={<NotificationsPage />} />
+          <Route path="/connections" element={<ConnectionsPage />} />
           <Route path="/courses" element={<CoursesPage />} />
           <Route path="/assignments" element={<AssignmentsPage />} />
           <Route path="/events" element={<EventsPage />} />

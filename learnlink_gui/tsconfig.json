@@ -1,7 +1,7 @@
 {
   "compilerOptions": {
     "lib": ["esnext", "dom"], // DOM desteğini ekleyin
-    "types": ["node", "jest"], // Jest ve Node türlerini ekleyin
+    "types": ["node", "jest", "socket.io-client"], // Jest ve Node türlerini ekleyin
     "moduleResolution": "node",
     "target": "es2019",
     "strict": true,

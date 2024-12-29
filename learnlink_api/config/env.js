@@ -1,7 +1,7 @@
 import dotenv from 'dotenv'
 dotenv.config()
 
-export default {
+const config = {
   PORT: process.env.PORT || 5001,
   NODE_ENV: process.env.NODE_ENV || 'development',
   
@@ -13,7 +13,7 @@ export default {
   DB_PORT: process.env.DB_PORT || 5432,
   
   // JWT
-  JWT_SECRET: process.env.JWT_SECRET || 'learnlink',
+  JWT_SECRET: process.env.JWT_SECRET || 'learnlink-secret-key',
   JWT_EXPIRE: '24h',
   
   // Email
@@ -33,4 +33,6 @@ export default {
   
   // CORS
   CORS_ORIGIN: process.env.CORS_ORIGIN || 'http://localhost:3000'
-} 
+}
+
+export default config 

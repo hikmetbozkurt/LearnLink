@@ -1,47 +1,76 @@
 import React from 'react';
-import { NavLink } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { 
   FaHome, 
   FaComments, 
-  FaBell, 
-  FaGraduationCap, 
-  FaTasks,
-  FaCalendarAlt,
+  FaBook, 
+  FaCalendarAlt, 
+  FaTasks, 
   FaChartLine,
+  FaUsers,
   FaQuestionCircle
 } from 'react-icons/fa';
 import './Sidebar.css';
+import logo from '../../assets/images/learnlink-logo.png';
 
 const Sidebar = () => {
-  const menuItems = [
-    { path: '/home', icon: <FaHome />, label: 'Home' },
-    { path: '/chatrooms', icon: <FaComments />, label: 'Chatrooms' },
-    { path: '/notifications', icon: <FaBell />, label: 'Notifications' },
-    { path: '/courses', icon: <FaGraduationCap />, label: 'Courses' },
-    { path: '/assignments', icon: <FaTasks />, label: 'Assignments' },
-    { path: '/events', icon: <FaCalendarAlt />, label: 'Upcoming Events' },
-    { path: '/progress', icon: <FaChartLine />, label: 'Progress Tracking' },
-    { path: '/support', icon: <FaQuestionCircle />, label: 'Support Center' },
+  const location = useLocation();
+
+  const sections = [
+    {
+      title: 'Main',
+      items: [
+        { path: '/home', icon: <FaHome />, label: 'Home' },
+        { path: '/chatrooms', icon: <FaComments />, label: 'Chatrooms' },
+        { path: '/connections', icon: <FaUsers />, label: 'Connections' }
+      ]
+    },
+    {
+      title: 'Academic',
+      items: [
+        { path: '/courses', icon: <FaBook />, label: 'Courses' },
+        { path: '/assignments', icon: <FaTasks />, label: 'Assignments' }
+      ]
+    },
+    {
+      title: 'Activities',
+      items: [
+        { path: '/events', icon: <FaCalendarAlt />, label: 'Events' },
+        { path: '/progress', icon: <FaChartLine />, label: 'Progress' }
+      ]
+    },
+    {
+      title: 'Support',
+      items: [
+        { path: '/support', icon: <FaQuestionCircle />, label: 'Support Center' }
+      ]
+    }
   ];
 
   return (
     <div className="sidebar">
-      <div className="logo">
-        <img src="/assets/images/learnlink-logo.jpeg" alt="LearnLink" />
-        <span>LearnLink</span>
+      <div className="logo-container">
+        <Link to="/home">
+          <img src={logo} alt="LearnLink" className="logo" />
+          <span className="logo-text">LearnLink</span>
+        </Link>
       </div>
-      <nav className="nav-menu">
-        {menuItems.map((item) => (
-          <NavLink
-            key={item.path}
-            to={item.path}
-            className={({ isActive }) => 
-              isActive ? 'nav-item active' : 'nav-item'
-            }
-          >
-            <span className="icon">{item.icon}</span>
-            <span className="label">{item.label}</span>
-          </NavLink>
+
+      <nav className="nav-links">
+        {sections.map((section, index) => (
+          <div key={index} className="nav-section">
+            <h3 className="section-title">{section.title}</h3>
+            {section.items.map((item, itemIndex) => (
+              <Link
+                key={itemIndex}
+                to={item.path}
+                className={`nav-link ${location.pathname === item.path ? 'active' : ''}`}
+              >
+                {item.icon}
+                <span>{item.label}</span>
+              </Link>
+            ))}
+          </div>
         ))}
       </nav>
     </div>

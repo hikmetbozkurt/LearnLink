@@ -3,8 +3,17 @@ import User from '../models/userModel.js'
 import config from '../config/env.js'
 
 export class AuthService {
-  generateToken(userId) {
-    return jwt.sign({ id: userId }, config.JWT_SECRET, { expiresIn: '24h' })
+  generateToken(userId, email, role) {
+    return jwt.sign(
+      { 
+        id: userId,
+        user_id: userId,
+        email,
+        role
+      }, 
+      config.JWT_SECRET, 
+      { expiresIn: '24h' }
+    );
   }
 
   async login(email, password) {
@@ -14,16 +23,16 @@ export class AuthService {
     }
 
     return {
-      token: this.generateToken(user.user_id),
+      token: this.generateToken(user.user_id, user.email, user.role),
       user: {
         id: user.user_id,
-        name: user.name,
+        user_id: user.user_id,
         email: user.email,
+        username: user.username,
+        first_name: user.first_name,
+        last_name: user.last_name,
         role: user.role,
-        profile_pic: user.profile_pic,
-        notification_pref: user.notification_pref,
-        created_at: user.created_at,
-        updated_at: user.updated_at
+        profile_picture: user.profile_picture
       }
     }
   }
@@ -37,11 +46,14 @@ export class AuthService {
     const user = await User.create(userData)
 
     return {
-      token: this.generateToken(user.user_id),
+      token: this.generateToken(user.user_id, user.email, user.role),
       user: {
         id: user.user_id,
-        name: user.name,
+        user_id: user.user_id,
         email: user.email,
+        username: user.username,
+        first_name: user.first_name,
+        last_name: user.last_name,
         role: user.role
       }
     }
