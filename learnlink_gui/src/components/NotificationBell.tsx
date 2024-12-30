@@ -27,27 +27,56 @@ export interface NotificationBellRef {
   }) => void;
 }
 
-const NotificationBell = forwardRef<NotificationBellRef, {}>((props, ref) => {
+interface NotificationBellProps {
+  isOpen: boolean;
+  onToggle: () => void;
+}
+
+const NotificationBell = forwardRef<NotificationBellRef, NotificationBellProps>((props, ref) => {
+  const { isOpen, onToggle } = props;
   const [notifications, setNotifications] = useState<ChatNotification[]>([]);
-  const [showDropdown, setShowDropdown] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
 
   useEffect(() => {
-    const socket = io('http://localhost:5001');
+    const socket = io('http://localhost:5001', {
+      transports: ['websocket'],
+      upgrade: false,
+      reconnection: true,
+      reconnectionAttempts: 5,
+      reconnectionDelay: 1000,
+      withCredentials: true,
+      auth: {
+        token: localStorage.getItem('token')
+      }
+    });
+
     const user = JSON.parse(localStorage.getItem('user') || '{}');
 
     socket.on('connect', () => {
       console.log('Connected to notification socket');
-      socket.emit('user_connected', user.id);
+      if (user.id) {
+        socket.emit('user_connected', user.id);
+      }
+    });
+
+    socket.on('connect_error', (error) => {
+      console.error('Socket connection error:', error);
+      setError('Failed to connect to notification server');
+    });
+
+    socket.on('disconnect', (reason) => {
+      console.log('Disconnected from notification socket:', reason);
     });
 
     socket.on('new_notification', (notification) => {
+      if (!user.id) return;
+
       const newNotification: ChatNotification = {
         notifications_id: Date.now(),
-        sender_id: -1, // Will be updated when fetching notifications
+        sender_id: -1,
         recipient_id: user.id,
         content: notification.content,
         chatroom_id: notification.chatroom_id,
@@ -63,6 +92,10 @@ const NotificationBell = forwardRef<NotificationBellRef, {}>((props, ref) => {
     });
 
     return () => {
+      socket.off('connect');
+      socket.off('connect_error');
+      socket.off('disconnect');
+      socket.off('new_notification');
       socket.disconnect();
     };
   }, []);
@@ -111,7 +144,7 @@ const NotificationBell = forwardRef<NotificationBellRef, {}>((props, ref) => {
   const handleNotificationClick = (notification: ChatNotification) => {
     markAsRead(notification.notifications_id);
     navigate(`/chatrooms?room=${notification.chatroom_id}`);
-    setShowDropdown(false);
+    onToggle(); // Close dropdown when navigating
   };
 
   const clearNotifications = async () => {
@@ -155,12 +188,11 @@ const NotificationBell = forwardRef<NotificationBellRef, {}>((props, ref) => {
     }
   }));
 
-  const handleClick = () => {
-    setShowDropdown(!showDropdown);
-    if (showDropdown && unreadCount > 0) {
+  useEffect(() => {
+    if (isOpen && unreadCount > 0) {
       markAsRead();
     }
-  };
+  }, [isOpen]);
 
   const formatTime = (timestamp: string) => {
     const date = new Date(timestamp);
@@ -179,14 +211,14 @@ const NotificationBell = forwardRef<NotificationBellRef, {}>((props, ref) => {
 
   return (
     <div className="notification-bell-container">
-      <button className="notification-bell" onClick={handleClick}>
+      <button className="notification-bell" onClick={onToggle}>
         <FaBell />
         {unreadCount > 0 && (
           <span className="notification-badge">{unreadCount}</span>
         )}
       </button>
 
-      {showDropdown && (
+      {isOpen && (
         <div className="notification-dropdown">
           <div className="notification-header">
             <h3>Messages</h3>

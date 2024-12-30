@@ -120,11 +120,20 @@ const ChatroomsPage = () => {
 
   useEffect(() => {
     // Socket.IO bağlantısını kur
+    const token = localStorage.getItem('token');
+    if (!token) {
+      setError('Authentication required');
+      return;
+    }
+
     socketRef.current = io(SOCKET_URL, {
       autoConnect: true,
       reconnection: true,
       reconnectionAttempts: 5,
-      reconnectionDelay: 1000
+      reconnectionDelay: 1000,
+      auth: {
+        token: token.replace(/['"]+/g, '')
+      }
     });
 
     const socket = socketRef.current;
@@ -132,6 +141,7 @@ const ChatroomsPage = () => {
     socket.on('connect_error', (error) => {
       console.error('Socket connection error:', error);
       setError('Failed to connect to chat server');
+      // Don't clear auth data here
     });
 
     socket.on('reconnect', (attemptNumber) => {
@@ -146,15 +156,15 @@ const ChatroomsPage = () => {
       }
     });
 
-    // Kullanıcı bilgilerini al
+    // Get user info from localStorage
     const user = JSON.parse(localStorage.getItem('user') || '{}');
 
     // Socket event listeners
     socket.on('connect', () => {
       console.log('Socket connected');
       setConnected(true);
-      if (user.id) {
-        socket.emit('user_connected', user.id);
+      if (user.id || user.user_id) {
+        socket.emit('user_connected', (user.id || user.user_id).toString());
       }
     });
 
@@ -173,7 +183,7 @@ const ChatroomsPage = () => {
         socket.disconnect();
       }
     };
-  }, []);
+  }, []); // Empty dependency array since we want this to run once
 
   const handleCreateRoom = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();

@@ -4,6 +4,7 @@ import { Server } from 'socket.io';
 import config from './config/env.js';
 import ChatRoom from './models/chatroomModel.js';
 import pool from './config/database.js';
+import jwt from 'jsonwebtoken';
 
 const httpServer = createServer(app);
 
@@ -18,12 +19,32 @@ export const io = new Server(httpServer, {
 // Store connected users
 const connectedUsers = new Map();
 
+// Add authentication middleware
+io.use((socket, next) => {
+  try {
+    const token = socket.handshake.auth.token;
+    if (!token) {
+      return next(new Error('Authentication error'));
+    }
+
+    // Verify token
+    const decoded = jwt.verify(token, config.JWT_SECRET);
+    socket.user = decoded;
+    next();
+  } catch (error) {
+    console.error('Socket auth error:', error);
+    next(new Error('Authentication error'));
+  }
+});
+
 io.on('connection', (socket) => {
   console.log('User connected:', socket.id);
 
   socket.on('user_connected', (userId) => {
-    connectedUsers.set(userId, socket.id);
-    console.log('User registered:', userId);
+    if (socket.user && (socket.user.user_id === userId || socket.user.id === userId)) {
+      connectedUsers.set(userId, socket.id);
+      console.log('User registered:', userId);
+    }
   });
 
   socket.on('join_room', (roomId) => {
@@ -37,7 +58,9 @@ io.on('connection', (socket) => {
   });
 
   socket.on('send_message', async (data) => {
-    const { roomId, message, userId } = data;
+    const { roomId, message } = data;
+    const userId = socket.user.user_id || socket.user.id;
+
     try {
       // Save message to database
       const savedMessage = await ChatRoom.createMessage({
@@ -105,6 +128,7 @@ io.on('connection', (socket) => {
       io.to(roomId).emit('receive_message', savedMessage);
     } catch (error) {
       console.error('Error sending message:', error);
+      socket.emit('error', { message: 'Failed to send message' });
     }
   });
 

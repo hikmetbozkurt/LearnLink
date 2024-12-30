@@ -69,29 +69,56 @@ export const login = asyncHandler(async (req, res) => {
 });
 
 export const register = asyncHandler(async (req, res) => {
-  const { email, password, username, first_name, last_name } = req.body;
+  const { email, password, name, role } = req.body;
 
-  if (!email || !password || !username || !first_name || !last_name) {
+  if (!email || !password || !name) {
     return res.status(400).json({ message: 'All fields are required' });
   }
 
   try {
-    const { token, user } = await authService.register({
-      email,
-      password,
-      username,
-      first_name,
-      last_name,
-      role: 'user'
-    });
+    // Check if user exists
+    const userExists = await pool.query(
+      'SELECT * FROM users WHERE email = $1',
+      [email]
+    );
 
-    res.status(201).json({ token, user });
-  } catch (error) {
-    if (error.message === 'User already exists') {
-      res.status(409).json({ message: error.message });
-    } else {
-      res.status(500).json({ message: 'Error creating user' });
+    if (userExists.rows.length > 0) {
+      return res.status(409).json({ message: 'User already exists' });
     }
+
+    // Hash password
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash(password, salt);
+
+    // Create user
+    const result = await pool.query(
+      'INSERT INTO users (email, password, name, role) VALUES ($1, $2, $3, $4) RETURNING user_id, name, email, role',
+      [email, hashedPassword, name, role || 'student']
+    );
+
+    const user = result.rows[0];
+
+    // Generate token
+    const token = jwt.sign(
+      { user_id: user.user_id, email: user.email },
+      process.env.JWT_SECRET || 'your-secret-key',
+      { expiresIn: '24h' }
+    );
+
+    // Send response
+    res.status(201).json({
+      token,
+      user: {
+        id: user.user_id,
+        user_id: user.user_id,
+        name: user.name,
+        email: user.email,
+        role: user.role
+      }
+    });
+  } catch (error) {
+    console.error('Registration error:', error);
+    res.status(500).json({ message: 'Error creating user' });
   }
 });
 

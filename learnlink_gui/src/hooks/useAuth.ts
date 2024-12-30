@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import axios from 'axios';
+import api from '../api/axiosConfig';
 
 interface User {
   id: number;
@@ -21,14 +21,20 @@ interface AuthContextType {
 }
 
 export const useAuth = (): AuthContextType => {
-  const [user, setUser] = useState<User | null>(null);
+  const [user, setUser] = useState<User | null>(() => {
+    const storedUser = localStorage.getItem('user');
+    return storedUser ? JSON.parse(storedUser) : null;
+  });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const token = localStorage.getItem('token');
-    if (token) {
-      fetchUser();
+    const storedUser = localStorage.getItem('user');
+    
+    if (token && storedUser) {
+      setUser(JSON.parse(storedUser));
+      setLoading(false);
     } else {
       setLoading(false);
     }
@@ -36,26 +42,17 @@ export const useAuth = (): AuthContextType => {
 
   const fetchUser = async () => {
     try {
-      const token = localStorage.getItem('token');
-      if (!token) {
-        setUser(null);
-        return;
-      }
-
-      const response = await axios.get('/api/auth/profile', {
-        headers: {
-          Authorization: `Bearer ${token}`
-        }
-      });
-      
+      const response = await api.get('/api/auth/profile');
       const userData = response.data;
       userData.id = userData.user_id || userData.id;
       
       setUser(userData);
+      localStorage.setItem('user', JSON.stringify(userData));
     } catch (err) {
       console.error('Error fetching user:', err);
       setError('Failed to fetch user data');
       localStorage.removeItem('token');
+      localStorage.removeItem('user');
       setUser(null);
     } finally {
       setLoading(false);
@@ -66,9 +63,15 @@ export const useAuth = (): AuthContextType => {
     try {
       setLoading(true);
       setError(null);
-      const response = await axios.post('/api/auth/login', { email, password });
-      localStorage.setItem('token', response.data.token);
-      await fetchUser();
+      const response = await api.post('/api/auth/login', { email, password });
+      
+      const { token, user: userData } = response.data;
+      
+      // Store clean token
+      localStorage.setItem('token', token.replace(/['"]+/g, ''));
+      localStorage.setItem('user', JSON.stringify(userData));
+      
+      setUser(userData);
     } catch (err: any) {
       setError(err.response?.data?.message || 'Failed to login');
       throw err;
@@ -79,6 +82,7 @@ export const useAuth = (): AuthContextType => {
 
   const logout = () => {
     localStorage.removeItem('token');
+    localStorage.removeItem('user');
     setUser(null);
   };
 
@@ -86,9 +90,15 @@ export const useAuth = (): AuthContextType => {
     try {
       setLoading(true);
       setError(null);
-      const response = await axios.post('/api/auth/register', userData);
-      localStorage.setItem('token', response.data.token);
-      await fetchUser();
+      const response = await api.post('/api/auth/register', userData);
+      
+      const { token, user: newUser } = response.data;
+      
+      // Store clean token
+      localStorage.setItem('token', token.replace(/['"]+/g, ''));
+      localStorage.setItem('user', JSON.stringify(newUser));
+      
+      setUser(newUser);
     } catch (err: any) {
       setError(err.response?.data?.message || 'Failed to register');
       throw err;
@@ -105,4 +115,4 @@ export const useAuth = (): AuthContextType => {
     logout,
     register
   };
-}; 
+} 

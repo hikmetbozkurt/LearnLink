@@ -130,29 +130,39 @@ const LoginPage = () => {
 
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
+    setError('');
+    setLoading(true);
     
     if (password !== confirmPassword) {
       setError("Passwords do not match!");
+      setLoading(false);
       return;
     }
 
     try {
-      const response = await authService.signup({
-        username,
+      const response = await api.post('/api/auth/register', {
+        name: username,
         email,
-        password
+        password,
+        role: 'student'
       });
 
-      if (response.success) {
-        setError('');
-        setIsSignUp(false);
-        setUsername("");
-        setEmail("");
-        setPassword("");
-        setConfirmPassword("");
-      }
+      // The response directly contains token and user
+      const { token, user } = response.data;
+      
+      // Store token without quotes
+      localStorage.setItem('token', token.replace(/['"]+/g, ''));
+      
+      // Store user data
+      localStorage.setItem('user', JSON.stringify(user));
+      
+      // Navigate to home page
+      navigate('/home');
     } catch (error: any) {
+      console.error('Signup error:', error);
       setError(error.response?.data?.message || "An error occurred during signup");
+    } finally {
+      setLoading(false);
     }
   };
 

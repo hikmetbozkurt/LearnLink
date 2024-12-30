@@ -11,7 +11,7 @@ import './Header.css';
 import defaultAvatar from '../../assets/images/default-avatar.png';
 import { authService } from '../../services/authService';
 
-type DropdownType = 'settings' | null;
+type DropdownType = 'settings' | 'notifications' | null;
 
 const Header = () => {
   const navigate = useNavigate();
@@ -98,7 +98,11 @@ const Header = () => {
             <img src={defaultAvatar} alt="Profile" />
           </div>
 
-          <NotificationBell ref={notificationRef} />
+          <NotificationBell 
+            ref={notificationRef} 
+            isOpen={activeDropdown === 'notifications'}
+            onToggle={() => handleDropdownClick('notifications')}
+          />
 
           <div className="settings-icon" onClick={() => handleDropdownClick('settings')}>
             <FaCog />

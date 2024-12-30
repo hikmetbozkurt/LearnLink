@@ -91,8 +91,28 @@ export const authService = {
 
   signup: async (userData: { username: string; email: string; password: string }) => {
     try {
-      const response = await api.post('/api/auth/signup', userData);
-      return response.data;
+      const response = await api.post('/api/auth/register', {
+        name: userData.username,
+        email: userData.email,
+        password: userData.password,
+        role: 'student'
+      });
+      
+      // Ensure we have the expected data structure
+      if (!response.data?.token || !response.data?.user) {
+        throw new Error('Invalid response format from registration');
+      }
+
+      return {
+        success: true,
+        data: {
+          token: response.data.token,
+          user: {
+            ...response.data.user,
+            id: response.data.user.user_id || response.data.user.id
+          }
+        }
+      };
     } catch (error) {
       throw error;
     }

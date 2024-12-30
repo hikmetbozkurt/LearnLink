@@ -1,152 +1,63 @@
 import pool from '../config/database.js';
+import asyncHandler from '../utils/asyncHandler.js';
 
-export const getUserNotifications = async (req, res) => {
-  const { userId } = req.params;
+export const getNotifications = asyncHandler(async (req, res) => {
+  const userId = req.user.user_id;
 
   try {
-    const query = `
-      SELECT n.*, 
-             u.name as sender_name,
-             c.name as chatroom_name
-      FROM notifications n
-      LEFT JOIN users u ON n.sender_id = u.user_id
-      LEFT JOIN chatrooms c ON n.chatroom_id = c.id
-      WHERE n.recipient_id = $1
-      ORDER BY n.created_at DESC
-      LIMIT 50
-    `;
-    
-    const result = await pool.query(query, [userId]);
-    
-    return res.status(200).json({
-      success: true,
-      data: result.rows
-    });
+    const result = await pool.query(
+      `SELECT n.*, u.name as sender_name
+       FROM notifications n
+       JOIN users u ON n.sender_id = u.user_id
+       WHERE n.recipient_id = $1
+       ORDER BY n.created_at DESC
+       LIMIT 50`,
+      [userId]
+    );
+
+    res.json(result.rows);
   } catch (error) {
     console.error('Error fetching notifications:', error);
-    return res.status(500).json({
-      success: false,
-      message: 'Failed to fetch notifications'
-    });
+    res.status(500).json({ message: 'Error fetching notifications' });
   }
-};
+});
 
-export const markNotificationAsRead = async (req, res) => {
+export const markAsRead = asyncHandler(async (req, res) => {
   const { notificationId } = req.params;
+  const userId = req.user.user_id;
 
   try {
-    const query = `
-      UPDATE notifications
-      SET read = true,
-          updated_at = CURRENT_TIMESTAMP
-      WHERE notifications_id = $1
-      RETURNING *
-    `;
-    
-    const result = await pool.query(query, [notificationId]);
-    
+    const result = await pool.query(
+      `UPDATE notifications 
+       SET read = true, updated_at = CURRENT_TIMESTAMP 
+       WHERE notifications_id = $1 AND recipient_id = $2
+       RETURNING *`,
+      [notificationId, userId]
+    );
+
     if (result.rows.length === 0) {
-      return res.status(404).json({
-        success: false,
-        message: 'Notification not found'
-      });
+      return res.status(404).json({ message: 'Notification not found' });
     }
 
-    return res.status(200).json({
-      success: true,
-      data: result.rows[0]
-    });
+    res.json(result.rows[0]);
   } catch (error) {
     console.error('Error marking notification as read:', error);
-    return res.status(500).json({
-      success: false,
-      message: 'Failed to mark notification as read'
-    });
+    res.status(500).json({ message: 'Error updating notification' });
   }
-};
+});
 
-export const markAllNotificationsAsRead = async (req, res) => {
-  const { userId } = req.params;
+export const getUnreadCount = asyncHandler(async (req, res) => {
+  const userId = req.user.user_id;
 
   try {
-    const query = `
-      UPDATE notifications
-      SET read = true,
-          updated_at = CURRENT_TIMESTAMP
-      WHERE recipient_id = $1
-      RETURNING *
-    `;
-    
-    const result = await pool.query(query, [userId]);
-    
-    return res.status(200).json({
-      success: true,
-      data: result.rows
-    });
+    const result = await pool.query(
+      'SELECT COUNT(*) FROM notifications WHERE recipient_id = $1 AND read = false',
+      [userId]
+    );
+
+    res.json({ count: parseInt(result.rows[0].count) });
   } catch (error) {
-    console.error('Error marking all notifications as read:', error);
-    return res.status(500).json({
-      success: false,
-      message: 'Failed to mark all notifications as read'
-    });
+    console.error('Error getting unread count:', error);
+    res.status(500).json({ message: 'Error getting unread count' });
   }
-};
-
-export const clearAllNotifications = async (req, res) => {
-  const { userId } = req.params;
-
-  try {
-    const query = `
-      DELETE FROM notifications
-      WHERE recipient_id = $1
-      RETURNING *
-    `;
-    
-    const result = await pool.query(query, [userId]);
-    
-    return res.status(200).json({
-      success: true,
-      message: 'All notifications cleared successfully'
-    });
-  } catch (error) {
-    console.error('Error clearing notifications:', error);
-    return res.status(500).json({
-      success: false,
-      message: 'Failed to clear notifications'
-    });
-  }
-};
-
-export const createNotification = async (req, res) => {
-  const { sender_id, recipient_id, content, chatroom_id } = req.body;
-
-  try {
-    const query = `
-      INSERT INTO notifications (
-        sender_id,
-        recipient_id,
-        content,
-        chatroom_id,
-        read,
-        created_at,
-        updated_at
-      )
-      VALUES ($1, $2, $3, $4, false, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
-      RETURNING *
-    `;
-    
-    const values = [sender_id, recipient_id, content, chatroom_id];
-    const result = await pool.query(query, values);
-    
-    return res.status(201).json({
-      success: true,
-      data: result.rows[0]
-    });
-  } catch (error) {
-    console.error('Error creating notification:', error);
-    return res.status(500).json({
-      success: false,
-      message: 'Failed to create notification'
-    });
-  }
-}; 
+}); 
