@@ -2,16 +2,17 @@
   background: white;
   padding: 12px 24px;
   border-bottom: 1px solid #e0e0e0;
-  position: fixed;
+  position: sticky;
   top: 0;
-  left: 250px;
-  right: 0;
+  width: 100%;
+  height: var(--navbar-height);
   z-index: 999;
+  display: flex;
+  align-items: center;
 }
 
 .header-content {
-  max-width: 1400px;
-  margin: 0 auto;
+  width: 100%;
   display: flex;
   justify-content: flex-end;
   align-items: center;
@@ -21,7 +22,6 @@
 .search-container {
   flex: 0 1 500px;
   margin-right: auto;
-  margin-left: 50px;
 }
 
 .search-wrapper {
@@ -87,16 +87,27 @@
 .settings-icon {
   position: relative;
   color: #512da8;
-  font-size: 1.2rem;
+  font-size: 20px;
   cursor: pointer;
   padding: 8px;
   border-radius: 50%;
-  transition: all 0.2s ease;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .settings-icon:hover {
-  background: rgba(81, 45, 168, 0.1);
-  transform: translateY(-2px);
+  color: #3f1f8f;
+  transform: scale(1.1);
+}
+
+.settings-icon svg {
+  transition: transform 0.3s ease;
+}
+
+.settings-icon.active svg {
+  transform: rotate(90deg);
 }
 
 .dropdown-menu {

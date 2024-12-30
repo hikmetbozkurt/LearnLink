@@ -95,7 +95,6 @@ const ConnectionsPage = () => {
     try {
       setError(null);
       await api.post(`/api/users/friend-request/${targetUserId}`);
-      showToast('Friend request sent successfully!', 'success');
       setSentRequests(prev => [...prev, targetUserId]);
     } catch (err: any) {
       console.error('Error sending friend request:', err);
@@ -109,8 +108,6 @@ const ConnectionsPage = () => {
     try {
       setError(null);
       await api.put(`/api/users/friend-request/${requestId}/accept`);
-      showToast('Friend request accepted!', 'success');
-      // Refresh lists
       fetchFriendRequests();
       fetchFriends();
     } catch (err: any) {
@@ -125,8 +122,6 @@ const ConnectionsPage = () => {
     try {
       setError(null);
       await api.delete(`/api/users/friend-request/${requestId}`);
-      showToast('Friend request rejected', 'success');
-      // Refresh friend requests
       fetchFriendRequests();
     } catch (err: any) {
       console.error('Error rejecting friend request:', err);
@@ -140,8 +135,6 @@ const ConnectionsPage = () => {
     try {
       setError(null);
       await api.delete(`/api/users/friends/${friendId}`);
-      showToast('Friend removed successfully', 'success');
-      // Refresh friends list
       fetchFriends();
     } catch (err: any) {
       console.error('Error removing friend:', err);
@@ -199,32 +192,44 @@ const ConnectionsPage = () => {
           {searchResults.length > 0 && (
             <div className="search-results">
               <h3>Search Results</h3>
-              {searchResults.map((result) => (
-                <div key={result.id || result.user_id} className="user-card">
-                  <div className="user-info">
-                    <div className="user-details">
-                      <h3>{result.name}</h3>
-                      <p>{result.email}</p>
-                      <small>{result.role}</small>
+              {searchResults.map((result) => {
+                const isFriend = friends.some(friend => 
+                  (friend.id || friend.user_id) === (result.id || result.user_id)
+                );
+                const isRequestSent = sentRequests.includes(result.id || result.user_id!);
+
+                return (
+                  <div key={result.id || result.user_id} className="user-card">
+                    <div className="user-info">
+                      <div className="user-details">
+                        <h3>{result.name}</h3>
+                        <p>{result.email}</p>
+                        <small>{result.role}</small>
+                      </div>
                     </div>
+                    {isFriend ? (
+                      <button className="already-friend-btn" disabled>
+                        <FaUserCheck />
+                        Friends
+                      </button>
+                    ) : isRequestSent ? (
+                      <button className="request-sent-btn" disabled>
+                        <FaCheck />
+                        Request Sent
+                      </button>
+                    ) : (
+                      <button
+                        onClick={() => sendFriendRequest(result.id || result.user_id!)}
+                        className="add-friend-btn"
+                        disabled={loading}
+                      >
+                        <FaUserPlus />
+                        Add Friend
+                      </button>
+                    )}
                   </div>
-                  {sentRequests.includes(result.id || result.user_id!) ? (
-                    <button className="request-sent-btn" disabled>
-                      <FaCheck />
-                      Request Sent
-                    </button>
-                  ) : (
-                    <button
-                      onClick={() => sendFriendRequest(result.id || result.user_id!)}
-                      className="add-friend-btn"
-                      disabled={loading}
-                    >
-                      <FaUserPlus />
-                      Add Friend
-                    </button>
-                  )}
-                </div>
-              ))}
+                );
+              })}
             </div>
           )}
         </div>

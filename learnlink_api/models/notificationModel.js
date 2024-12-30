@@ -30,6 +30,24 @@ class Notification {
     return result.rows[0]
   }
 
+  static async markAllAsRead(userId) {
+    const result = await db.query(
+      `UPDATE notifications 
+       SET status = 'read', read_at = CURRENT_TIMESTAMP 
+       WHERE user_id = $1 AND status = 'unread' RETURNING *`,
+      [userId]
+    )
+    return result.rows
+  }
+
+  static async clearAll(userId) {
+    const result = await db.query(
+      'DELETE FROM notifications WHERE user_id = $1 RETURNING *',
+      [userId]
+    )
+    return result.rows
+  }
+
   static async getUnreadCount(userId) {
     const result = await db.query(
       "SELECT COUNT(*) FROM notifications WHERE user_id = $1 AND status = 'unread'",

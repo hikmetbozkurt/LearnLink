@@ -9,13 +9,8 @@ const HomePage = () => {
         <div className="section-header">
           <h2 className="section-title">DASHBOARD</h2>
           <div className="header-actions">
-            <button className="action-button">
-              <FaPlus />
-              <span>New Course</span>
-            </button>
           </div>
         </div>
-
         <div className="stats-grid">
           <div className="stat-card">
             <div className="stat-number">12</div>

@@ -1,142 +1,114 @@
-import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
-import { CircularProgress } from "@mui/material";
-import LockIcon from '@mui/icons-material/Lock';
-import PasswordIcon from "@mui/icons-material/Password";
-import { authService } from "../services/authService";
-import '../styles/pages/login.css';
+import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import api from '../api/axiosConfig';
+import { useToast } from '../components/ToastProvider';
+import '../styles/ResetPasswordPage.css';
+import { FaKey, FaLock, FaEnvelope } from 'react-icons/fa';
 
 const ResetPasswordPage = () => {
-  const [loading, setLoading] = useState(false);
-  const [verificationCode, setVerificationCode] = useState("");
-  const [newPassword, setNewPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
-  const [error, setError] = useState("");
-  const [email, setEmail] = useState("");
+  const [email, setEmail] = useState('');
+  const [code, setCode] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
-
-  useEffect(() => {
-    const resetEmail = sessionStorage.getItem('resetEmail');
-    if (!resetEmail) {
-      navigate('/forgot-password');
-    } else {
-      setEmail(resetEmail);
-    }
-  }, [navigate]);
+  const { showToast } = useToast();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError("");
+    setIsLoading(true);
 
     if (newPassword !== confirmPassword) {
-      setError("Passwords do not match");
+      showToast('Passwords do not match', 'error');
+      setIsLoading(false);
       return;
     }
-
-    if (newPassword.length < 6) {
-      setError("Password must be at least 6 characters long");
-      return;
-    }
-
-    setLoading(true);
 
     try {
-      const verifyResponse = await authService.verifyResetCode(email, verificationCode);
-
-      if (verifyResponse.success) {
-        const resetResponse = await authService.resetPassword(email, verificationCode, newPassword);
-
-        if (resetResponse.success) {
-          sessionStorage.removeItem('resetEmail');
-          alert('Password reset successful!');
-          navigate('/');
-        }
-      }
+      await api.post('/api/auth/reset-password', {
+        email,
+        code,
+        newPassword
+      });
+      navigate('/');
     } catch (error: any) {
-      if (error.response?.data?.error === 'INVALID_CODE') {
-        setError('Invalid or expired verification code');
-      } else {
-        setError('Failed to reset password. Please try again.');
-      }
+      showToast(error.response?.data?.message || 'Failed to reset password', 'error');
     } finally {
-      setLoading(false);
+      setIsLoading(false);
     }
   };
 
   return (
-    <div className="container">
-      <div className="form-container sign-in">
-        <form onSubmit={handleSubmit}>
-          <h1>Reset Password</h1>
-          <div className="form-description">
-            Enter the verification code sent to your email
+    <div className="reset-password-container">
+      <div className="reset-password-card">
+        <h1 className="reset-password-title">Reset Password</h1>
+        <p className="reset-password-subtitle">
+          Enter the code sent to your email and your new password
+        </p>
+        
+        <form onSubmit={handleSubmit} className="reset-password-form">
+          <div className="input-group">
+            <FaEnvelope className="input-icon" />
+            <input
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="Email"
+              required
+              className="reset-password-input"
+            />
           </div>
 
-          {error && (
-            <div className="error-message">
-              {error}
-            </div>
-          )}
-
           <div className="input-group">
-            <LockIcon className="input-icon" />
+            <FaKey className="input-icon" />
             <input
               type="text"
-              placeholder="Enter 6-digit Code"
-              value={verificationCode}
-              onChange={(e) => {
-                const value = e.target.value.replace(/\D/g, '').slice(0, 6);
-                setVerificationCode(value);
-                setError("");
-              }}
-              pattern="\d{6}"
-              maxLength={6}
+              value={code}
+              onChange={(e) => setCode(e.target.value)}
+              placeholder="Reset Code"
               required
+              className="reset-password-input"
             />
           </div>
 
           <div className="input-group">
-            <PasswordIcon className="input-icon" />
+            <FaLock className="input-icon" />
             <input
               type="password"
-              placeholder="New Password"
               value={newPassword}
-              onChange={(e) => {
-                setNewPassword(e.target.value);
-                setError("");
-              }}
+              onChange={(e) => setNewPassword(e.target.value)}
+              placeholder="New Password"
               required
+              className="reset-password-input"
             />
           </div>
 
           <div className="input-group">
-            <PasswordIcon className="input-icon" />
+            <FaLock className="input-icon" />
             <input
               type="password"
-              placeholder="Confirm New Password"
               value={confirmPassword}
-              onChange={(e) => {
-                setConfirmPassword(e.target.value);
-                setError("");
-              }}
+              onChange={(e) => setConfirmPassword(e.target.value)}
+              placeholder="Confirm New Password"
               required
+              className="reset-password-input"
             />
           </div>
 
-          <button type="submit" disabled={loading}>
-            {loading ? (
-              <CircularProgress size={24} color="inherit" />
-            ) : (
-              "Reset Password"
-            )}
+          <button
+            type="submit"
+            disabled={isLoading}
+            className="reset-password-button"
+          >
+            {isLoading ? 'Resetting...' : 'RESET PASSWORD'}
           </button>
 
-          <button 
+          <button
             type="button"
             onClick={() => navigate('/')}
-            className="secondary-button"
+            className="back-to-login-button"
           >
-            Back to Login
+            BACK TO LOGIN
           </button>
         </form>
       </div>

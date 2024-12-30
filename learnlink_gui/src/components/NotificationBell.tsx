@@ -1,7 +1,8 @@
 import React, { useState, useEffect, forwardRef, useImperativeHandle } from 'react';
-import { FaBell, FaComment } from 'react-icons/fa';
+import { FaBell, FaComment, FaEye, FaTrash, FaUserPlus, FaUserFriends } from 'react-icons/fa';
 import { useNavigate } from 'react-router-dom';
 import api from '../api/axiosConfig';
+import { useToast } from './ToastProvider';
 import '../styles/components/NotificationBell.css';
 import { io } from 'socket.io-client';
 
@@ -14,7 +15,6 @@ interface ChatNotification {
   read: boolean;
   created_at: string;
   updated_at: string;
-  // Additional fields from joins
   sender_name?: string;
   chatroom_name?: string;
 }
@@ -36,11 +36,38 @@ const NotificationBell = forwardRef<NotificationBellRef, NotificationBellProps>(
   const { isOpen, onToggle } = props;
   const [notifications, setNotifications] = useState<ChatNotification[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
+  const { showToast } = useToast();
 
+  // Fetch notifications
+  const fetchNotifications = async () => {
+    try {
+      setIsLoading(true);
+      const response = await api.get('/api/notifications');
+      if (response.data) {
+        setNotifications(response.data);
+        const unreadNotifs = response.data.filter((notif: ChatNotification) => !notif.read);
+        setUnreadCount(unreadNotifs.length);
+      }
+    } catch (error) {
+      console.error('Error fetching notifications:', error);
+      showToast('Failed to load notifications', 'error');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Initial fetch
   useEffect(() => {
+    fetchNotifications();
+  }, []);
+
+  // Socket connection for real-time notifications
+  useEffect(() => {
+    const token = localStorage.getItem('token');
+    if (!token) return;
+
     const socket = io('http://localhost:5001', {
       transports: ['websocket'],
       upgrade: false,
@@ -49,151 +76,76 @@ const NotificationBell = forwardRef<NotificationBellRef, NotificationBellProps>(
       reconnectionDelay: 1000,
       withCredentials: true,
       auth: {
-        token: localStorage.getItem('token')
+        token: token.replace(/['"]+/g, '')
       }
     });
-
-    const user = JSON.parse(localStorage.getItem('user') || '{}');
 
     socket.on('connect', () => {
       console.log('Connected to notification socket');
-      if (user.id) {
-        socket.emit('user_connected', user.id);
-      }
-    });
-
-    socket.on('connect_error', (error) => {
-      console.error('Socket connection error:', error);
-      setError('Failed to connect to notification server');
-    });
-
-    socket.on('disconnect', (reason) => {
-      console.log('Disconnected from notification socket:', reason);
     });
 
     socket.on('new_notification', (notification) => {
-      if (!user.id) return;
-
-      const newNotification: ChatNotification = {
-        notifications_id: Date.now(),
-        sender_id: -1,
-        recipient_id: user.id,
-        content: notification.content,
-        chatroom_id: notification.chatroom_id,
-        read: false,
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-        sender_name: notification.sender_name,
-        chatroom_name: notification.chatroom_name
-      };
-      
-      setNotifications(prev => [newNotification, ...prev]);
+      setNotifications(prev => [notification, ...prev]);
       setUnreadCount(prev => prev + 1);
     });
 
     return () => {
-      socket.off('connect');
-      socket.off('connect_error');
-      socket.off('disconnect');
-      socket.off('new_notification');
       socket.disconnect();
     };
   }, []);
 
-  const fetchNotifications = async () => {
+  // Mark notification as read
+  const handleNotificationClick = async (notification: ChatNotification) => {
     try {
-      setLoading(true);
-      setError(null);
-      const user = JSON.parse(localStorage.getItem('user') || '{}');
-      const response = await api.get(`/api/notifications/user/${user.id}`);
-      if (response.data.success) {
-        setNotifications(response.data.data);
-        const count = response.data.data.filter((notif: ChatNotification) => !notif.read).length;
-        setUnreadCount(count);
+      if (!notification.read) {
+        await api.put(`/api/notifications/${notification.notifications_id}/read`);
+        setNotifications(prev =>
+          prev.map(n =>
+            n.notifications_id === notification.notifications_id
+              ? { ...n, read: true }
+              : n
+          )
+        );
+        setUnreadCount(prev => Math.max(0, prev - 1));
       }
-    } catch (err) {
-      console.error('Error fetching notifications:', err);
-      setError('No new notifications');
-    } finally {
-      setLoading(false);
+      
+      if (notification.chatroom_id) {
+        navigate(`/chatrooms?room=${notification.chatroom_id}`);
+        onToggle();
+      }
+    } catch (error) {
+      console.error('Error marking notification as read:', error);
+      showToast('Failed to update notification', 'error');
     }
   };
 
-  useEffect(() => {
-    fetchNotifications();
-  }, []);
-
-  const markAsRead = async (notificationId?: number) => {
+  // Mark all as read
+  const markAllAsRead = async () => {
     try {
-      if (notificationId) {
-        await api.put(`/api/notifications/${notificationId}/read`);
-        setNotifications(notifications.map(notif => 
-          notif.notifications_id === notificationId ? { ...notif, read: true } : notif
-        ));
-      } else {
-        const user = JSON.parse(localStorage.getItem('user') || '{}');
-        await api.put(`/api/notifications/read-all/${user.id}`);
-        setNotifications(notifications.map(notif => ({ ...notif, read: true })));
-      }
-      updateUnreadCount();
-    } catch (err) {
-      console.error('Error marking notifications as read:', err);
+      await api.put('/api/notifications/read-all');
+      setNotifications(prev => prev.map(n => ({ ...n, read: true })));
+      setUnreadCount(0);
+      onToggle();
+    } catch (error) {
+      console.error('Error marking all notifications as read:', error);
+      showToast('Failed to mark all as read', 'error');
     }
   };
 
-  const handleNotificationClick = (notification: ChatNotification) => {
-    markAsRead(notification.notifications_id);
-    navigate(`/chatrooms?room=${notification.chatroom_id}`);
-    onToggle(); // Close dropdown when navigating
-  };
-
-  const clearNotifications = async () => {
+  // Clear all notifications
+  const clearAllNotifications = async () => {
     try {
-      const user = JSON.parse(localStorage.getItem('user') || '{}');
-      await api.delete(`/api/notifications/clear/${user.id}`);
+      await api.delete('/api/notifications/clear');
       setNotifications([]);
       setUnreadCount(0);
-    } catch (err) {
-      console.error('Error clearing notifications:', err);
+      onToggle();
+    } catch (error) {
+      console.error('Error clearing notifications:', error);
+      showToast('Failed to clear notifications', 'error');
     }
   };
 
-  const updateUnreadCount = () => {
-    const count = notifications.filter(notif => !notif.read).length;
-    setUnreadCount(count);
-  };
-
-  useEffect(() => {
-    updateUnreadCount();
-  }, [notifications]);
-
-  useImperativeHandle(ref, () => ({
-    addNotification: async (data: {
-      sender_id: number;
-      content: string;
-      chatroom_id: number;
-    }) => {
-      const user = JSON.parse(localStorage.getItem('user') || '{}');
-      const newNotification: ChatNotification = {
-        notifications_id: Date.now(),
-        sender_id: data.sender_id,
-        recipient_id: user.id,
-        content: data.content,
-        chatroom_id: data.chatroom_id,
-        read: false,
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString()
-      };
-      setNotifications(prev => [newNotification, ...prev]);
-    }
-  }));
-
-  useEffect(() => {
-    if (isOpen && unreadCount > 0) {
-      markAsRead();
-    }
-  }, [isOpen]);
-
+  // Format timestamp
   const formatTime = (timestamp: string) => {
     const date = new Date(timestamp);
     const now = new Date();
@@ -209,9 +161,41 @@ const NotificationBell = forwardRef<NotificationBellRef, NotificationBellProps>(
     return date.toLocaleDateString();
   };
 
+  // Get notification icon based on content
+  const getNotificationIcon = (notification: ChatNotification) => {
+    if (notification.content.includes('friend request')) {
+      return <FaUserPlus />;
+    } else if (notification.content.includes('accepted your friend request')) {
+      return <FaUserFriends />;
+    } else {
+      return <FaComment />;
+    }
+  };
+
+  // Expose addNotification method
+  useImperativeHandle(ref, () => ({
+    addNotification: (data) => {
+      const newNotification: ChatNotification = {
+        notifications_id: Date.now(),
+        sender_id: data.sender_id,
+        recipient_id: parseInt(localStorage.getItem('userId') || '0'),
+        content: data.content,
+        chatroom_id: data.chatroom_id,
+        read: false,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      };
+      setNotifications(prev => [newNotification, ...prev]);
+      setUnreadCount(prev => prev + 1);
+    }
+  }));
+
   return (
     <div className="notification-bell-container">
-      <button className="notification-bell" onClick={onToggle}>
+      <button 
+        className={`notification-bell ${isOpen ? 'active' : ''}`} 
+        onClick={onToggle}
+      >
         <FaBell />
         {unreadCount > 0 && (
           <span className="notification-badge">{unreadCount}</span>
@@ -221,41 +205,45 @@ const NotificationBell = forwardRef<NotificationBellRef, NotificationBellProps>(
       {isOpen && (
         <div className="notification-dropdown">
           <div className="notification-header">
-            <h3>Messages</h3>
+            <h3>Notifications</h3>
             {notifications.length > 0 && (
-              <button 
-                className="clear-all"
-                onClick={clearNotifications}
-              >
-                Clear all
-              </button>
+              <div className="notification-actions">
+                <button 
+                  className="icon-button"
+                  onClick={markAllAsRead} 
+                  title="Mark all as read"
+                >
+                  <FaEye />
+                </button>
+                <button 
+                  className="icon-button"
+                  onClick={clearAllNotifications}
+                  title="Clear all notifications"
+                >
+                  <FaTrash />
+                </button>
+              </div>
             )}
           </div>
           <div className="notification-list">
-            {loading ? (
+            {isLoading ? (
               <div className="notification-loading">Loading...</div>
-            ) : error ? (
-              <div className="notification-message">{error}</div>
             ) : notifications.length === 0 ? (
               <div className="no-notifications">
-                No new messages
+                No notifications
               </div>
             ) : (
               notifications.map(notification => (
                 <div 
-                  key={notification.notifications_id} 
+                  key={notification.notifications_id}
                   className={`notification-item ${!notification.read ? 'unread' : ''}`}
                   onClick={() => handleNotificationClick(notification)}
                 >
                   <div className="notification-icon">
-                    <FaComment className="notification-type-icon" />
+                    {getNotificationIcon(notification)}
                   </div>
                   <div className="notification-content">
-                    <div className="notification-message">
-                      <strong>{notification.sender_name || 'User'}</strong> in{' '}
-                      <strong>{notification.chatroom_name || 'Chat'}</strong>
-                    </div>
-                    <p>{notification.content}</p>
+                    <p className="notification-message">{notification.content}</p>
                     <span className="notification-time">
                       {formatTime(notification.created_at)}
                     </span>

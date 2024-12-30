@@ -1,5 +1,24 @@
-.search-section {
+.page-container {
+  padding: 2rem;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.page-header {
   margin-bottom: 2rem;
+}
+
+.page-title {
+  font-size: 2rem;
+  color: #333;
+  margin: 0;
+}
+
+.search-section {
+  background: white;
+  padding: 1.5rem;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
 }
 
 .search-bar {
@@ -10,66 +29,57 @@
 
 .search-bar input {
   flex: 1;
-  padding: 0.75rem 1rem;
-  border: 2px solid #e0e0e0;
+  padding: 12px 16px;
+  border: 1px solid #e0e0e0;
   border-radius: 8px;
-  font-size: 1rem;
-  transition: border-color 0.2s;
+  font-size: 0.95rem;
+  transition: all 0.2s ease;
 }
 
 .search-bar input:focus {
   border-color: #512da8;
+  box-shadow: 0 0 0 3px rgba(81, 45, 168, 0.1);
   outline: none;
 }
 
 .search-bar button {
-  padding: 0.75rem 1.5rem;
-  background-color: #512da8;
+  padding: 0 1.5rem;
+  background: #512da8;
   color: white;
   border: none;
   border-radius: 8px;
   cursor: pointer;
+  transition: all 0.2s ease;
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  transition: background-color 0.2s;
-  min-width: 120px;
-  justify-content: center;
 }
 
 .search-bar button:hover:not(:disabled) {
-  background-color: #4527a0;
+  background: #4527a0;
+  transform: translateY(-1px);
 }
 
 .search-bar button:disabled {
-  background-color: #9e9e9e;
+  background: #9e9e9e;
   cursor: not-allowed;
-}
-
-.error-message {
-  padding: 1rem;
-  background-color: #ffebee;
-  color: #c62828;
-  border-radius: 8px;
-  margin-bottom: 1rem;
-  border: 1px solid #ef9a9a;
 }
 
 .user-card {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 1rem;
+  padding: 1.25rem;
   background-color: white;
   border: 1px solid #e0e0e0;
-  border-radius: 8px;
+  border-radius: 12px;
   margin-bottom: 1rem;
-  transition: transform 0.2s, box-shadow 0.2s;
+  transition: all 0.2s ease;
 }
 
 .user-card:hover {
   transform: translateY(-2px);
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
 }
 
 .user-info {
@@ -78,37 +88,41 @@
   gap: 1rem;
 }
 
-.user-avatar {
-  width: 48px;
-  height: 48px;
-  border-radius: 50%;
-  object-fit: cover;
-  background-color: #e0e0e0;
-}
-
 .user-details h3 {
   margin: 0;
   font-size: 1.1rem;
   color: #333;
+  font-weight: 600;
 }
 
 .user-details p {
-  margin: 0.25rem 0 0;
+  margin: 0.25rem 0;
   font-size: 0.9rem;
   color: #666;
 }
 
+.user-details small {
+  font-size: 0.8rem;
+  color: #888;
+  display: block;
+}
+
 .add-friend-btn,
-.accept-friend-btn {
-  padding: 0.5rem 1rem;
+.accept-friend-btn,
+.reject-friend-btn,
+.remove-friend-btn,
+.request-sent-btn,
+.already-friend-btn {
+  padding: 8px 16px;
   border: none;
-  border-radius: 6px;
+  border-radius: 8px;
   cursor: pointer;
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: 8px;
+  font-size: 0.9rem;
   font-weight: 500;
-  transition: background-color 0.2s;
+  transition: all 0.2s ease;
 }
 
 .add-friend-btn {
@@ -118,6 +132,7 @@
 
 .add-friend-btn:hover:not(:disabled) {
   background-color: #4527a0;
+  transform: translateY(-1px);
 }
 
 .accept-friend-btn {
@@ -127,145 +142,110 @@
 
 .accept-friend-btn:hover:not(:disabled) {
   background-color: #43a047;
+  transform: translateY(-1px);
 }
 
-.add-friend-btn:disabled,
-.accept-friend-btn:disabled {
-  background-color: #9e9e9e;
-  cursor: not-allowed;
+.reject-friend-btn {
+  background-color: #ff5252;
+  color: white;
+}
+
+.reject-friend-btn:hover:not(:disabled) {
+  background-color: #ff1744;
+  transform: translateY(-1px);
+}
+
+.remove-friend-btn {
+  background-color: #ff5252;
+  color: white;
+}
+
+.remove-friend-btn:hover:not(:disabled) {
+  background-color: #ff1744;
+  transform: translateY(-1px);
+}
+
+.request-sent-btn,
+.already-friend-btn {
+  background-color: #e0e0e0;
+  color: #666;
+  cursor: default;
+}
+
+.request-sent-btn svg,
+.already-friend-btn svg {
+  color: #4caf50;
 }
 
 .friend-requests-section,
 .friends-section {
   margin-top: 2rem;
+  background: white;
+  padding: 1.5rem;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
 }
 
 .friend-requests-section h3,
 .friends-section h3 {
   font-size: 1.4rem;
   color: #333;
-  margin-bottom: 1rem;
+  margin-bottom: 1.5rem;
+  font-weight: 600;
 }
 
 .friend-requests-list,
 .friends-list {
   display: grid;
   gap: 1rem;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
 }
 
-.no-results {
-  text-align: center;
-  color: #666;
-  padding: 2rem;
+.request-actions {
+  display: flex;
+  gap: 0.5rem;
 }
 
 @media (max-width: 768px) {
+  .page-container {
+    padding: 1rem;
+  }
+
   .search-bar {
     flex-direction: column;
   }
-  
+
   .search-bar button {
     width: 100%;
     justify-content: center;
   }
-  
+
   .user-card {
     flex-direction: column;
     text-align: center;
     gap: 1rem;
   }
-  
+
   .user-info {
     flex-direction: column;
   }
-  
+
   .add-friend-btn,
-  .accept-friend-btn {
+  .accept-friend-btn,
+  .reject-friend-btn,
+  .remove-friend-btn,
+  .request-sent-btn,
+  .already-friend-btn {
     width: 100%;
     justify-content: center;
   }
-}
 
-.request-sent-btn {
-  background-color: #4CAF50;
-  color: white;
-  border: none;
-  padding: 8px 16px;
-  border-radius: 4px;
-  cursor: default;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 14px;
-}
-
-.request-sent-btn svg {
-  font-size: 16px;
-}
-
-.request-actions {
-  display: flex;
-  gap: 8px;
-}
-
-.reject-friend-btn {
-  background-color: #ff4444;
-  color: white;
-  border: none;
-  padding: 8px 16px;
-  border-radius: 4px;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 14px;
-  transition: background-color 0.2s;
-}
-
-.reject-friend-btn:hover {
-  background-color: #cc0000;
-}
-
-.reject-friend-btn:disabled {
-  background-color: #ffaaaa;
-  cursor: not-allowed;
-}
-
-.reject-friend-btn svg {
-  font-size: 16px;
-}
-
-.remove-friend-btn {
-  background-color: #e74c3c;
-  color: white;
-  border: none;
-  padding: 8px 16px;
-  border-radius: 4px;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 14px;
-  transition: all 0.2s ease;
-}
-
-.remove-friend-btn:hover {
-  background-color: #c0392b;
-}
-
-.remove-friend-btn:disabled {
-  background-color: #ffaaaa;
-  cursor: not-allowed;
-}
-
-.remove-friend-btn svg {
-  font-size: 16px;
-}
-
-@media (max-width: 768px) {
-  .remove-friend-btn {
+  .request-actions {
     width: 100%;
-    justify-content: center;
+  }
+
+  .friend-requests-list,
+  .friends-list {
+    grid-template-columns: 1fr;
   }
 } 

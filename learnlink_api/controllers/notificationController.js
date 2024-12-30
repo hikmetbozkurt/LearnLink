@@ -46,6 +46,41 @@ export const markAsRead = asyncHandler(async (req, res) => {
   }
 });
 
+export const markAllAsRead = asyncHandler(async (req, res) => {
+  const userId = req.user.user_id;
+
+  try {
+    const result = await pool.query(
+      `UPDATE notifications 
+       SET read = true, updated_at = CURRENT_TIMESTAMP 
+       WHERE recipient_id = $1 AND read = false
+       RETURNING *`,
+      [userId]
+    );
+
+    res.json({ message: 'All notifications marked as read', notifications: result.rows });
+  } catch (error) {
+    console.error('Error marking all notifications as read:', error);
+    res.status(500).json({ message: 'Error updating notifications' });
+  }
+});
+
+export const clearAllNotifications = asyncHandler(async (req, res) => {
+  const userId = req.user.user_id;
+
+  try {
+    await pool.query(
+      'DELETE FROM notifications WHERE recipient_id = $1',
+      [userId]
+    );
+
+    res.json({ message: 'All notifications cleared' });
+  } catch (error) {
+    console.error('Error clearing notifications:', error);
+    res.status(500).json({ message: 'Error clearing notifications' });
+  }
+});
+
 export const getUnreadCount = asyncHandler(async (req, res) => {
   const userId = req.user.user_id;
 

@@ -1,25 +1,25 @@
 {
   "short_name": "LearnLink",
-  "name": "LearnLink Learning Platform",
+  "name": "LearnLink - Connect, Learn, and Grow Together",
   "icons": [
     {
-      "src": "/assets/images/learnlink-logo.jpeg",
+      "src": "favicon.ico",
       "sizes": "64x64 32x32 24x24 16x16",
-      "type": "image/jpeg"
+      "type": "image/x-icon"
     },
     {
-      "src": "/assets/images/learnlink-logo.jpeg",
-      "type": "image/jpeg",
+      "src": "logo192.png",
+      "type": "image/png",
       "sizes": "192x192"
     },
     {
-      "src": "/assets/images/learnlink-logo.jpeg",
-      "type": "image/jpeg",
+      "src": "logo512.png",
+      "type": "image/png",
       "sizes": "512x512"
     }
   ],
   "start_url": ".",
   "display": "standalone",
-  "theme_color": "#6B4EE6",
+  "theme_color": "#512da8",
   "background_color": "#ffffff"
 } 

@@ -104,7 +104,10 @@ const Header = () => {
             onToggle={() => handleDropdownClick('notifications')}
           />
 
-          <div className="settings-icon" onClick={() => handleDropdownClick('settings')}>
+          <div 
+            className={`settings-icon ${activeDropdown === 'settings' ? 'active' : ''}`}
+            onClick={() => handleDropdownClick('settings')}
+          >
             <FaCog />
             {activeDropdown === 'settings' && renderDropdownContent('settings')}
           </div>

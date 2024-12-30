@@ -131,6 +131,7 @@ class ChatRoom {
           m.id,
           m.content,
           m.created_at,
+          m.updated_at,
           m.sender_id,
           u.name as sender_name,
           u.email as sender_email
@@ -167,7 +168,7 @@ class ChatRoom {
       const result = await client.query(
         `INSERT INTO messages (chatroom_id, sender_id, content) 
          VALUES ($1, $2, $3) 
-         RETURNING id, chatroom_id, sender_id, content, created_at`,
+         RETURNING id, chatroom_id, sender_id, content, created_at, updated_at`,
         [chatroomId, senderId, content]
       );
 

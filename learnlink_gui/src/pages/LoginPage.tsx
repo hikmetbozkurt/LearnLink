@@ -9,6 +9,7 @@ import '../styles/pages/login.css';
 import api from "../api/axiosConfig";
 import axios from "axios";
 import { API_URL } from '../config/config';
+import { useToast } from '../components/ToastProvider';
 
 console.log('Google Client ID:', process.env.REACT_APP_GOOGLE_CLIENT_ID);
 
@@ -24,6 +25,7 @@ const LoginPage = () => {
   const navigate = useNavigate();
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const { showToast } = useToast();
 
   // Toggle between sign-in and sign-up views
   const toggleView = () => {
@@ -85,9 +87,9 @@ const LoginPage = () => {
         console.error('Google login - Invalid response format:', response);
         throw new Error('Invalid response format from server');
       }
-    } catch (error: any) {
+    } catch (error) {
       console.error('Google login error:', error);
-      setError(error.response?.data?.message || error.message || 'Failed to sign in with Google');
+      showToast('Failed to login with Google', 'error');
       
       // Clean up any partial data
       localStorage.removeItem('token');

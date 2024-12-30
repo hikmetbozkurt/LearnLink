@@ -1,6 +1,5 @@
 import React from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
-import Layout from "./components/Layout/Layout";
 import LoginPage from "./pages/LoginPage";
 import ForgotPasswordPage from "./pages/ForgotPasswordPage";
 import ResetPasswordPage from "./pages/ResetPasswordPage";
@@ -12,6 +11,7 @@ import AssignmentsPage from "./pages/AssignmentsPage";
 import EventsPage from "./pages/EventsPage";
 import ProgressPage from "./pages/ProgressPage";
 import SupportPage from "./pages/SupportPage";
+import Layout from "./components/Layout/Layout";
 import RouteGuard from './components/RouteGuard';
 
 const App = () => {
@@ -24,11 +24,7 @@ const App = () => {
         <Route path="/reset-password" element={<ResetPasswordPage />} />
 
         {/* Protected Routes - With Layout */}
-        <Route element={
-          <RouteGuard>
-            <Layout />
-          </RouteGuard>
-        }>
+        <Route element={<RouteGuard><Layout /></RouteGuard>}>
           <Route path="/home" element={<HomePage />} />
           <Route path="/chatrooms" element={<ChatroomsPage />} />
           <Route path="/connections" element={<ConnectionsPage />} />

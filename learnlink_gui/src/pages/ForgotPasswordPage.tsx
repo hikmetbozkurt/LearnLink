@@ -1,82 +1,65 @@
-import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { CircularProgress } from "@mui/material";
-import EmailIcon from "@mui/icons-material/Email";
-import { authService } from "../services/authService";
-import '../styles/pages/login.css';
+import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import api from '../api/axiosConfig';
+import { useToast } from '../components/ToastProvider';
+import '../styles/ForgotPasswordPage.css';
+import { FaEnvelope } from 'react-icons/fa';
 
 const ForgotPasswordPage = () => {
-  const [loading, setLoading] = useState(false);
-  const [email, setEmail] = useState("");
-  const [error, setError] = useState("");
+  const [email, setEmail] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
+  const { showToast } = useToast();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setLoading(true);
-    setError("");
+    setIsLoading(true);
 
     try {
-      const response = await authService.forgotPassword(email);
-
-      if (response.success) {
-        sessionStorage.setItem('resetEmail', email);
-        navigate('/reset-password');
-      }
+      await api.post('/api/auth/forgot-password', { email });
+      navigate('/reset-password');
     } catch (error: any) {
-      if (error.response?.status === 404) {
-        setError('Email is not registered');
-      } else {
-        setError('Failed to process request. Please try again.');
-      }
+      showToast(error.response?.data?.message || 'Failed to send reset code', 'error');
     } finally {
-      setLoading(false);
+      setIsLoading(false);
     }
   };
 
   return (
-    <div className="container">
-      <div className="form-container sign-in">
-        <form onSubmit={handleSubmit}>
-          <h1>Forgot Password</h1>
-          <div className="form-description">
-            Enter your email to reset your password
-          </div>
-
-          {error && (
-            <div className="error-message">
-              {error}
-            </div>
-          )}
-
+    <div className="forgot-password-container">
+      <div className="forgot-password-card">
+        <h1 className="forgot-password-title">Forgot Password</h1>
+        <p className="forgot-password-subtitle">
+          Enter your email to reset your password
+        </p>
+        
+        <form onSubmit={handleSubmit} className="forgot-password-form">
           <div className="input-group">
-            <EmailIcon className="input-icon" />
+            <FaEnvelope className="input-icon" />
             <input
               type="email"
-              placeholder="Email"
               value={email}
-              onChange={(e) => {
-                setEmail(e.target.value);
-                setError("");
-              }}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="Email"
               required
+              className="forgot-password-input"
             />
           </div>
 
-          <button type="submit" disabled={loading}>
-            {loading ? (
-              <CircularProgress size={24} color="inherit" />
-            ) : (
-              "Send Reset Code"
-            )}
+          <button
+            type="submit"
+            disabled={isLoading}
+            className="forgot-password-button"
+          >
+            {isLoading ? 'Sending...' : 'SEND RESET CODE'}
           </button>
 
-          <button 
+          <button
             type="button"
             onClick={() => navigate('/')}
-            className="secondary-button"
+            className="back-to-login-button"
           >
-            Back to Login
+            BACK TO LOGIN
           </button>
         </form>
       </div>

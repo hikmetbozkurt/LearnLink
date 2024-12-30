@@ -1,0 +1,32 @@
+.settings-icon {
+  background: none;
+  border: none;
+  padding: 8px;
+  cursor: pointer;
+  position: relative;
+  color: #512da8;
+  transition: color 0.3s ease, transform 0.3s ease;
+  font-size: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.settings-icon:hover {
+  color: #3f1f8f;
+  transform: scale(1.1);
+}
+
+.settings-icon.active {
+  color: #3f1f8f;
+  animation: settingsRotate 0.3s ease;
+}
+
+@keyframes settingsRotate {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(180deg);
+  }
+} 

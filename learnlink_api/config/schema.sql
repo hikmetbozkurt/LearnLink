@@ -95,7 +95,8 @@ CREATE TABLE messages (
     chatroom_id INTEGER REFERENCES chatrooms(id),
     sender_id INTEGER REFERENCES users(user_id),
     content TEXT NOT NULL,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
 -- Chats tablosu
