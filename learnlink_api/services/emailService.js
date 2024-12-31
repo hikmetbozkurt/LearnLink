@@ -3,7 +3,7 @@ import config from '../config/env.js'
 
 export class EmailService {
   constructor() {
-    this.transporter = nodemailer.createTransport({
+    const smtpConfig = {
       host: process.env.SMTP_HOST,
       port: process.env.SMTP_PORT,
       secure: false,
@@ -11,10 +11,24 @@ export class EmailService {
         user: process.env.SMTP_USER,
         pass: process.env.SMTP_PASS
       }
-    })
+    };
+
+    this.transporter = nodemailer.createTransport(smtpConfig);
   }
 
   async sendVerificationCode(to, code) {
+    console.log('Attempting to send verification code to:', to);
+    
+    if (!process.env.SMTP_HOST || !process.env.SMTP_PORT || !process.env.SMTP_USER || !process.env.SMTP_PASS) {
+      console.error('Missing email configuration:', {
+        host: !!process.env.SMTP_HOST,
+        port: !!process.env.SMTP_PORT,
+        user: !!process.env.SMTP_USER,
+        pass: !!process.env.SMTP_PASS
+      });
+      throw new Error('Email service not configured properly');
+    }
+
     const mailOptions = {
       from: process.env.SMTP_USER,
       to: to,
@@ -23,11 +37,37 @@ export class EmailService {
     };
 
     try {
-      await this.transporter.sendMail(mailOptions);
+      console.log('Verifying SMTP connection...');
+      await this.transporter.verify();
+      
+      console.log('Sending email with options:', {
+        from: mailOptions.from,
+        to: mailOptions.to,
+        subject: mailOptions.subject
+      });
+      
+      const result = await this.transporter.sendMail(mailOptions);
+      console.log('Email sent successfully:', result.messageId);
       return true;
     } catch (error) {
-      console.error('Failed to send verification email:', error);
-      throw new Error('Failed to send verification code');
+      console.error('Failed to send verification email:', {
+        error: error.message,
+        code: error.code,
+        command: error.command,
+        responseCode: error.responseCode
+      });
+      
+      if (error.code === 'EAUTH') {
+        throw new Error('Email authentication failed - check SMTP credentials');
+      } else if (error.code === 'ESOCKET') {
+        throw new Error('Network error while sending email - check SMTP host and port');
+      } else if (error.code === 'EENVELOPE') {
+        throw new Error('Invalid email address format');
+      } else if (error.code === 'ECONNECTION') {
+        throw new Error('Failed to connect to email server - check network and SMTP settings');
+      } else {
+        throw new Error(`Failed to send verification code: ${error.message}`);
+      }
     }
   }
 
@@ -41,11 +81,8 @@ export class EmailService {
             <div style="background-color: #f5f5f5; padding: 20px; text-align: center; margin: 20px 0;">
               <h1 style="color: #6B4EE6; font-size: 32px; letter-spacing: 8px;">${data.code}</h1>
             </div>
-            <p>This code will expire in 10 minutes.</p>
-            <p>If you didn't request this, please ignore this email.</p>
-            <p style="color: #666; font-size: 12px; margin-top: 20px;">
-              This is an automated message, please do not reply.
-            </p>
+            <p style="margin-top: 20px;">If you didn't request this, please ignore this email.</p>
+            <p style="color: #666; margin-top: 20px;">This is an automated message, please do not reply.</p>
           </div>
         `;
       

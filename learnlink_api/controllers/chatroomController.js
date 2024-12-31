@@ -5,9 +5,7 @@ export const chatroomController = {
   // Tüm chat odalarını getir
   getAllChatrooms: async (req, res) => {
     try {
-      console.log('Getting all chatrooms');
       const chatrooms = await ChatRoom.getAll();
-      console.log('Chatrooms before sending:', chatrooms);
 
       // Ensure we're sending an array
       const chatroomsArray = Array.isArray(chatrooms) ? chatrooms : [];

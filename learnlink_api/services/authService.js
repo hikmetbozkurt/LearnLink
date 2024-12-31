@@ -18,7 +18,7 @@ export class AuthService {
 
   async login(email, password) {
     const user = await User.findByEmail(email)
-    if (!user || !(await User.verifyPassword(user.password_hash, password))) {
+    if (!user || !(await User.verifyPassword(user.password, password))) {
       throw new Error('Invalid email or password')
     }
 
@@ -65,7 +65,7 @@ export class AuthService {
       throw new Error('User not found')
     }
 
-    const code = Math.floor(1000 + Math.random() * 9000).toString()
+    const code = String(Math.floor(100000 + Math.random() * 900000))
     const expiry = new Date(Date.now() + 10 * 60 * 1000) // 10 minutes
     
     await User.updateResetToken(email, code, expiry)
@@ -81,5 +81,7 @@ export class AuthService {
     }
 
     await User.updatePassword(email, newPassword)
+    
+    await User.updateResetToken(email, null, null)
   }
 } 

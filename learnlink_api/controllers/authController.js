@@ -162,14 +162,42 @@ export const requestPasswordReset = asyncHandler(async (req, res) => {
   }
 
   try {
+    
+    // First check if user exists
+    const userResult = await pool.query(
+      'SELECT user_id FROM users WHERE email = $1',
+      [email]
+    );
+
+    if (userResult.rows.length === 0) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
     const code = await authService.createResetToken(email);
+    
     await emailService.sendVerificationCode(email, code);
+    
     res.json({ message: 'Reset code sent successfully' });
   } catch (error) {
+    console.error('Password reset request error:', {
+      error: error.message,
+      stack: error.stack,
+      email
+    });
+
     if (error.message === 'User not found') {
-      res.status(404).json({ message: error.message });
+      res.status(404).json({ message: 'User not found' });
+    } else if (error.message.includes('Email service not configured')) {
+      res.status(500).json({ message: 'Email service configuration error' });
+    } else if (error.message.includes('authentication failed')) {
+      res.status(500).json({ message: 'Email service authentication error' });
+    } else if (error.message.includes('Invalid email address')) {
+      res.status(400).json({ message: 'Invalid email address format' });
     } else {
-      res.status(500).json({ message: 'Error sending reset code' });
+      res.status(500).json({ 
+        message: 'Error sending reset code',
+        details: process.env.NODE_ENV === 'development' ? error.message : undefined
+      });
     }
   }
 });

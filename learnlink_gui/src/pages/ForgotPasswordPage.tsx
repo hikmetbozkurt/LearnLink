@@ -16,10 +16,27 @@ const ForgotPasswordPage = () => {
     setIsLoading(true);
 
     try {
-      await api.post('/api/auth/forgot-password', { email });
-      navigate('/reset-password');
+      const response = await api.post('/api/auth/forgot-password', { email });
+      if (response.status === 200) {
+        showToast('Reset code sent successfully! Please check your email.', 'success');
+        navigate('/reset-password', { state: { email } });
+      }
     } catch (error: any) {
-      showToast(error.response?.data?.message || 'Failed to send reset code', 'error');
+      console.error('Password reset error:', error);
+      if (error.response?.status === 404) {
+        showToast('Email address not found. Please check your email.', 'error');
+      } else if (error.response?.status === 429) {
+        showToast('Too many attempts. Please try again later.', 'error');
+      } else if (error.response?.data?.message) {
+        showToast(error.response.data.message, 'error');
+      } else if (error.message.includes('Failed to send verification code')) {
+        showToast('Failed to send verification code. Please try again later.', 'error');
+      } else {
+        showToast(
+          'Unable to process your request. Please try again later.',
+          'error'
+        );
+      }
     } finally {
       setIsLoading(false);
     }

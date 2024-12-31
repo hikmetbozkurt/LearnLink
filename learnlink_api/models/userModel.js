@@ -23,13 +23,13 @@ class User {
 
   static async create(userData) {
     const { name, email, password, role = 'student' } = userData
-    const password_hash = await bcrypt.hash(password, 10)
+    const hashedPassword = await bcrypt.hash(password, 10)
     
     const result = await db.query(
-      `INSERT INTO users (name, email, password_hash, role) 
+      `INSERT INTO users (name, email, password, role) 
        VALUES ($1, $2, $3, $4) 
        RETURNING user_id, name, email, role, created_at`,
-      [name, email, password_hash, role]
+      [name, email, hashedPassword, role]
     )
     return result.rows[0]
   }
@@ -62,15 +62,15 @@ class User {
   }
 
   static async updatePassword(email, password) {
-    const password_hash = await bcrypt.hash(password, 10)
+    const hashedPassword = await bcrypt.hash(password, 10)
     await db.query(
-      'UPDATE users SET password_hash = $1 WHERE email = $2',
-      [password_hash, email]
+      'UPDATE users SET password = $1 WHERE email = $2',
+      [hashedPassword, email]
     )
   }
 
-  static async verifyPassword(stored_password_hash, input_password) {
-    return bcrypt.compare(input_password, stored_password_hash)
+  static async verifyPassword(stored_password, input_password) {
+    return bcrypt.compare(input_password, stored_password)
   }
 
   static async updateLastLogin(userId) {
@@ -96,6 +96,18 @@ class User {
       [userId]
     )
     return result.rows
+  }
+
+  static async updateResetToken(email, code, expiry) {
+    const result = await db.query(
+      `UPDATE users 
+       SET reset_token = $1, 
+           reset_token_expiry = $2 
+       WHERE email = $3 
+       RETURNING user_id`,
+      [code, expiry, email]
+    );
+    return result.rows[0];
   }
 }
 
