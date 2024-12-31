@@ -108,7 +108,11 @@ const ChatArea: React.FC<ChatAreaProps> = ({
             value={newMessage}
             onChange={onNewMessageChange}
           />
-          <button type="submit" disabled={!newMessage.trim()}>
+          <button 
+            type="submit" 
+            className="send-button"
+            disabled={!newMessage.trim()}
+          >
             <RiSendPlaneFill />
           </button>
         </form>

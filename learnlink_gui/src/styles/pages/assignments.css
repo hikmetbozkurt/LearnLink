@@ -2,6 +2,12 @@
   padding: 20px;
 }
 
+.assignments-header h2 {
+  color: #512da8;
+  font-weight: 600;
+  margin: 0;
+}
+
 .assignments-list {
   display: grid;
   gap: 20px;
@@ -10,14 +16,15 @@
 
 .assignment-card {
   background: white;
-  border-radius: 10px;
+  border-radius: 16px;
   padding: 20px;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-  transition: transform 0.2s;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+  transition: all 0.3s ease;
 }
 
 .assignment-card:hover {
-  transform: translateY(-2px);
+  transform: translateY(-3px);
+  box-shadow: 0 8px 24px rgba(0,0,0,0.12);
 }
 
 .assignment-header {

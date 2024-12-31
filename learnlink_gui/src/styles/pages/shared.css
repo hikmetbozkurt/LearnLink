@@ -24,7 +24,11 @@
   font-size: 1.8rem;
   color: #512da8;
   margin: 0;
-  text-transform: uppercase;
+  font-weight: 600;
+}
+
+h1, h2, h3 {
+  color: #512da8;
 }
 
 @media (max-width: 768px) {
