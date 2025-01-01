@@ -1,10 +1,59 @@
+-- Users table
 CREATE TABLE users (
     user_id SERIAL PRIMARY KEY,
-    name VARCHAR(100) NOT NULL,
-    email VARCHAR(150) UNIQUE NOT NULL,
-    role VARCHAR(50) NOT NULL,
+    name VARCHAR(255) NOT NULL,
+    email VARCHAR(255) UNIQUE NOT NULL,
     password VARCHAR(255) NOT NULL,
-    is_active BOOLEAN DEFAULT true
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Chatrooms table
+CREATE TABLE chatrooms (
+    id SERIAL PRIMARY KEY,
+    name VARCHAR(255) NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Chatroom members table (many-to-many relationship between users and chatrooms)
+CREATE TABLE chatroom_members (
+    id SERIAL PRIMARY KEY,
+    chatroom_id INTEGER REFERENCES chatrooms(id) ON DELETE CASCADE,
+    user_id INTEGER REFERENCES users(user_id) ON DELETE CASCADE,
+    joined_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE(chatroom_id, user_id)
+);
+
+-- Messages table (supports both chatroom and direct messages)
+CREATE TABLE messages (
+    id SERIAL PRIMARY KEY,
+    content TEXT NOT NULL,
+    sender_id INTEGER REFERENCES users(user_id) ON DELETE CASCADE,
+    chatroom_id INTEGER REFERENCES chatrooms(id) ON DELETE CASCADE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Direct messages table (for private messages between users)
+CREATE TABLE direct_messages (
+    id SERIAL PRIMARY KEY,
+    sender_id INTEGER REFERENCES users(user_id) ON DELETE CASCADE,
+    recipient_id INTEGER REFERENCES users(user_id) ON DELETE CASCADE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE(sender_id, recipient_id)
+);
+
+-- Notifications table
+CREATE TABLE notifications (
+    notifications_id SERIAL PRIMARY KEY,
+    sender_id INTEGER REFERENCES users(user_id) ON DELETE CASCADE,
+    recipient_id INTEGER REFERENCES users(user_id) ON DELETE CASCADE,
+    content TEXT NOT NULL,
+    type VARCHAR(50) NOT NULL,
+    reference_id INTEGER,
+    read BOOLEAN DEFAULT FALSE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
 CREATE TABLE courses (
@@ -72,33 +121,6 @@ CREATE TABLE enrollments (
     UNIQUE(course_id, user_id)
 );
 
--- Chatrooms tablosu
-CREATE TABLE IF NOT EXISTS chatrooms (
-    id SERIAL PRIMARY KEY,
-    name VARCHAR(100) NOT NULL,
-    description TEXT,
-    created_by INTEGER REFERENCES users(user_id) NOT NULL,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
-
--- Chatroom üyelikleri için tablo
-CREATE TABLE IF NOT EXISTS chatroom_members (
-    chatroom_id INTEGER REFERENCES chatrooms(id) NOT NULL,
-    user_id INTEGER REFERENCES users(user_id) NOT NULL,
-    joined_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    PRIMARY KEY (chatroom_id, user_id)
-);
-
-CREATE TABLE messages (
-    id SERIAL PRIMARY KEY,
-    chatroom_id INTEGER REFERENCES chatrooms(id),
-    sender_id INTEGER REFERENCES users(user_id),
-    content TEXT NOT NULL,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
-
 -- Chats tablosu
 CREATE TABLE IF NOT EXISTS chats (
     id SERIAL PRIMARY KEY,
@@ -123,19 +145,6 @@ CREATE TABLE IF NOT EXISTS chat_messages (
     content TEXT NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
-
-CREATE TABLE IF NOT EXISTS notifications (
-    notifications_id SERIAL PRIMARY KEY,
-    sender_id INTEGER REFERENCES users(user_id) ON DELETE CASCADE,
-    recipient_id INTEGER REFERENCES users(user_id) ON DELETE CASCADE,
-    content TEXT NOT NULL,
-    type VARCHAR(50) NOT NULL,  -- 'friend_request', 'friend_accept', etc.
-    reference_id INTEGER,  -- friend_request_id or friendship_id
-    read BOOLEAN DEFAULT false,
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
-);
-
 -- Friend Requests Table
 CREATE TABLE IF NOT EXISTS friend_requests (
     id SERIAL PRIMARY KEY,

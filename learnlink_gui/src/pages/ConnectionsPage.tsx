@@ -3,8 +3,9 @@ import api from '../api/axiosConfig';
 import { useAuth } from '../hooks/useAuth';
 import '../styles/pages/shared.css';
 import '../styles/pages/connections.css';
-import { FaUserPlus, FaUserCheck, FaSearch, FaCheck, FaTimes, FaUserMinus } from 'react-icons/fa';
+import { FaUserPlus, FaUserCheck, FaSearch, FaCheck, FaTimes, FaUserMinus, FaEnvelope } from 'react-icons/fa';
 import { useToast } from '../components/ToastProvider';
+import { useNavigate } from 'react-router-dom';
 
 interface User {
   id: number;
@@ -33,6 +34,7 @@ const ConnectionsPage = () => {
   const [sentRequests, setSentRequests] = useState<number[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const navigate = useNavigate();
 
   const userId = user?.user_id || user?.id;
 
@@ -141,6 +143,28 @@ const ConnectionsPage = () => {
       const errorMessage = err.response?.data?.message || 'Failed to remove friend';
       showToast(errorMessage, 'error');
       setError(errorMessage);
+    }
+  };
+
+  const handleSendMessage = async (userId: number, userName: string) => {
+    try {
+      // Create or get existing direct message conversation
+      const response = await api.post('/api/direct-messages', {
+        recipientId: userId
+      });
+      
+      // Navigate to the direct messages page with the conversation selected
+      navigate('/direct-messages', { 
+        state: { 
+          selectedChat: {
+            id: String(response.data.id),
+            name: userName
+          }
+        }
+      });
+    } catch (error) {
+      console.error('Error creating direct message:', error);
+      showToast('Failed to start conversation', 'error');
     }
   };
 
@@ -288,14 +312,22 @@ const ConnectionsPage = () => {
                       <small>{friend.role}</small>
                     </div>
                   </div>
-                  <button
-                    onClick={() => removeFriend(friend.id || friend.user_id!)}
-                    className="remove-friend-btn"
-                    title="Remove friend"
-                  >
-                    <FaUserMinus />
-                    Remove Friend
-                  </button>
+                  <div className="user-actions">
+                    <button
+                      onClick={() => handleSendMessage(friend.id || friend.user_id!, friend.name)}
+                      className="send-message-btn"
+                    >
+                      <FaEnvelope />
+                      Send Message
+                    </button>
+                    <button
+                      onClick={() => removeFriend(friend.id || friend.user_id!)}
+                      className="remove-friend-btn"
+                    >
+                      <FaUserMinus />
+                      Remove Friend
+                    </button>
+                  </div>
                 </div>
               ))
             )}

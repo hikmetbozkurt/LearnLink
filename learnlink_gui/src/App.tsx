@@ -13,6 +13,7 @@ import ProgressPage from "./pages/ProgressPage";
 import SupportPage from "./pages/SupportPage";
 import Layout from "./components/Layout/Layout";
 import RouteGuard from './components/RouteGuard';
+import DirectMessagesPage from './pages/DirectMessagesPage';
 
 const App = () => {
   return (
@@ -33,6 +34,7 @@ const App = () => {
           <Route path="/events" element={<EventsPage />} />
           <Route path="/progress" element={<ProgressPage />} />
           <Route path="/support" element={<SupportPage />} />
+          <Route path="/direct-messages" element={<DirectMessagesPage />} />
         </Route>
       </Routes>
     </Router>

@@ -21,9 +21,9 @@ interface Message {
   content: string;
   sender_id: number;
   sender_name: string;
-  chatroom_id: number;
   created_at: string;
-  updated_at: string;
+  chatroom_id?: number;
+  roomId?: number;
 }
 
 const ChatroomsPage = () => {
@@ -41,6 +41,103 @@ const ChatroomsPage = () => {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
   const userId = currentUser.id || currentUser.user_id;
+
+  // Initialize socket connection
+  useEffect(() => {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      setError('Authentication required');
+      return;
+    }
+
+    socketRef.current = io(SOCKET_URL, {
+      transports: ['websocket'],
+      upgrade: false,
+      reconnection: true,
+      reconnectionAttempts: 5,
+      reconnectionDelay: 1000,
+      withCredentials: true,
+      auth: {
+        token: token.replace(/['"]+/g, '')
+      }
+    });
+
+    const socket = socketRef.current;
+
+    socket.on('connect_error', (error: any) => {
+      console.error('Socket connection error:', error);
+      setError('Failed to connect to chat server');
+    });
+
+    socket.on('reconnect', (attemptNumber: number) => {
+      console.log('Reconnected to chat server after', attemptNumber, 'attempts');
+      setError(null);
+    });
+
+    socket.on('disconnect', (reason: string) => {
+      console.log('Disconnected from chat server:', reason);
+      if (reason === 'io server disconnect') {
+        socket.connect();
+      }
+    });
+
+    const user = JSON.parse(localStorage.getItem('user') || '{}');
+
+    socket.on('connect', () => {
+      console.log('Socket connected');
+      setConnected(true);
+      if (user.id || user.user_id) {
+        socket.emit('user_connected', (user.id || user.user_id).toString());
+      }
+    });
+
+    socket.on('new_chatroom', (chatroom: ChatRoom) => {
+      setChatRooms(prev => [...prev, chatroom]);
+    });
+
+    return () => {
+      if (socket) {
+        socket.disconnect();
+      }
+    };
+  }, []);
+
+  // Handle new messages
+  useEffect(() => {
+    if (!socketRef.current || !selectedRoom) return;
+
+    const handleNewMessage = (message: Message) => {
+      // Get the message room ID from either chatroom_id or roomId
+      const messageRoomId = message.chatroom_id?.toString() || message.roomId?.toString();
+      const currentRoomId = selectedRoom.toString();
+
+      if (messageRoomId === currentRoomId) {
+        setMessages(prev => {
+          const exists = prev.some(m => 
+            m.id === message.id || 
+            (m.content === message.content && 
+             m.sender_id === message.sender_id && 
+             Math.abs(new Date(m.created_at).getTime() - new Date(message.created_at).getTime()) < 1000)
+          );
+
+          if (exists) return prev;
+          return [...prev, message];
+        });
+      }
+    };
+
+    socketRef.current.on('receive_message', handleNewMessage);
+    socketRef.current.emit('join_room', selectedRoom.toString());
+    console.log('Joined room:', selectedRoom.toString());
+
+    return () => {
+      if (socketRef.current) {
+        socketRef.current.off('receive_message', handleNewMessage);
+        socketRef.current.emit('leave_room', selectedRoom.toString());
+        console.log('Left room:', selectedRoom.toString());
+      }
+    };
+  }, [selectedRoom]);
 
   // Fetch existing chatrooms
   useEffect(() => {
@@ -128,92 +225,17 @@ const ChatroomsPage = () => {
     room?.name?.toLowerCase().includes(searchQuery.toLowerCase())
   ) || [];
 
-  // Initialize socket connection
-  useEffect(() => {
-    const token = localStorage.getItem('token');
-    if (!token) {
-      setError('Authentication required');
-      return;
-    }
-
-    socketRef.current = io(SOCKET_URL, {
-      transports: ['websocket'],
-      upgrade: false,
-      reconnection: true,
-      reconnectionAttempts: 5,
-      reconnectionDelay: 1000,
-      withCredentials: true,
-      auth: {
-        token: token.replace(/['"]+/g, '')
-      }
-    });
-
-    const socket = socketRef.current;
-
-    socket.on('connect_error', (error: any) => {
-      console.error('Socket connection error:', error);
-      setError('Failed to connect to chat server');
-    });
-
-    socket.on('reconnect', (attemptNumber: number) => {
-      console.log('Reconnected to chat server after', attemptNumber, 'attempts');
-      setError(null);
-    });
-
-    socket.on('disconnect', (reason: string) => {
-      console.log('Disconnected from chat server:', reason);
-      if (reason === 'io server disconnect') {
-        socket.connect();
-      }
-    });
-
-    const user = JSON.parse(localStorage.getItem('user') || '{}');
-
-    socket.on('connect', () => {
-      console.log('Socket connected');
-      setConnected(true);
-      if (user.id || user.user_id) {
-        socket.emit('user_connected', (user.id || user.user_id).toString());
-      }
-    });
-
-    socket.on('new_chatroom', (chatroom: ChatRoom) => {
-      setChatRooms(prev => [...prev, chatroom]);
-    });
-
-    return () => {
-      if (socket) {
-        socket.disconnect();
-      }
-    };
-  }, []);
-
-  // Handle new messages
+  // Handle room selection and joining
   useEffect(() => {
     if (!socketRef.current || !selectedRoom) return;
 
-    const handleNewMessage = (message: Message) => {
-      if (message.chatroom_id.toString() === selectedRoom.toString()) {
-        setMessages(prev => {
-          const exists = prev.some(m => 
-            m.id === message.id || 
-            (m.content === message.content && 
-             m.sender_id === message.sender_id && 
-             Math.abs(new Date(m.created_at).getTime() - new Date(message.created_at).getTime()) < 1000)
-          );
-
-          if (exists) return prev;
-          return [...prev, message];
-        });
-      }
-    };
-
-    socketRef.current.on('receive_message', handleNewMessage);
+    // Join the room when selected
+    socketRef.current.emit('join_room', selectedRoom.toString());
+    console.log('Joined room:', selectedRoom.toString());
 
     return () => {
-      if (socketRef.current) {
-        socketRef.current.off('receive_message', handleNewMessage);
-      }
+      socketRef.current?.emit('leave_room', selectedRoom.toString());
+      console.log('Left room:', selectedRoom.toString());
     };
   }, [selectedRoom]);
 
@@ -223,9 +245,7 @@ const ChatroomsPage = () => {
       const fetchMessages = async () => {
         try {
           const response = await api.get(`/api/chatrooms/${selectedRoom}/messages`);
-          const messagesData = Array.isArray(response.data) ? response.data : 
-                             response.data.messages ? response.data.messages : 
-                             response.data.data ? response.data.data : [];
+          const messagesData = response.data.data || [];
           setMessages(messagesData);
         } catch (err) {
           console.error('Error fetching messages:', err);
@@ -283,29 +303,17 @@ const ChatroomsPage = () => {
     if (!selectedRoom || !newMessage.trim() || !socketRef.current) return;
 
     try {
-      const messageToServer = {
-        roomId: selectedRoom.toString(),
+      const messageData = {
+        roomId: parseInt(selectedRoom),
         message: newMessage.trim(),
-        userId: userId.toString()
+        userId: parseInt(userId)
       };
 
-      const localMessage: Message = {
-        id: Date.now(),
-        content: newMessage.trim(),
-        sender_id: parseInt(userId),
-        sender_name: currentUser.name,
-        chatroom_id: parseInt(selectedRoom.toString()),
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString()
-      };
-
-      setMessages(prev => [...prev, localMessage]);
-      setNewMessage('');
-      
-      socketRef.current.emit('send_message', messageToServer);
+      console.log('Sending message:', messageData);
+      socketRef.current.emit('send_message', messageData);
+      setNewMessage(''); // Clear input immediately
     } catch (error) {
       console.error('Error sending message:', error);
-      // Create notification for error
       await api.post('/api/notifications', {
         recipient_id: userId,
         content: 'Failed to send message',

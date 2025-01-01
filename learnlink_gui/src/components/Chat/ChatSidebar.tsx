@@ -54,7 +54,6 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({
               <h3>{room.name}</h3>
               <p>{room.lastMessage}</p>
             </div>
-            <span className="timestamp">{room.createdAt}</span>
             <button 
               className="delete-room-btn"
               onClick={(e) => {

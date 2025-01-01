@@ -8,7 +8,8 @@ import {
   FaTasks, 
   FaChartLine,
   FaUsers,
-  FaQuestionCircle
+  FaQuestionCircle,
+  FaEnvelope
 } from 'react-icons/fa';
 import './Sidebar.css';
 import logo from '../../assets/images/learnlink-logo.png';
@@ -22,6 +23,7 @@ const Sidebar = () => {
       items: [
         { path: '/home', icon: <FaHome />, label: 'Home' },
         { path: '/chatrooms', icon: <FaComments />, label: 'Chatrooms' },
+        { path: '/direct-messages', icon: <FaEnvelope />, label: 'Direct Messages' },
         { path: '/connections', icon: <FaUsers />, label: 'Connections' }
       ]
     },
@@ -45,6 +47,17 @@ const Sidebar = () => {
         { path: '/support', icon: <FaQuestionCircle />, label: 'Support Center' }
       ]
     }
+  ];
+
+  const menuItems = [
+    { path: '/home', icon: <FaHome />, text: 'Home' },
+    { path: '/courses', icon: <FaBook />, text: 'Courses' },
+    { path: '/assignments', icon: <FaTasks />, text: 'Assignments' },
+    { path: '/connections', icon: <FaUsers />, text: 'Connections' },
+    { path: '/chatrooms', icon: <FaComments />, text: 'Chatrooms' },
+    { path: '/direct-messages', icon: <FaEnvelope />, text: 'Direct Messages' },
+    { path: '/progress', icon: <FaChartLine />, text: 'Progress' },
+    { path: '/support', icon: <FaQuestionCircle />, text: 'Support' },
   ];
 
   return (

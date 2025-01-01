@@ -10,6 +10,8 @@ interface Message {
   sender_id: number;
   sender_name: string;
   created_at: string;
+  chatroom_id?: number;
+  direct_message_id?: number;
 }
 
 interface ChatAreaProps {
@@ -20,6 +22,7 @@ interface ChatAreaProps {
   onNewMessageChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   onSendMessage: () => void;
   formatMessageTime: (timestamp: string) => string;
+  type?: 'chatroom' | 'direct';
 }
 
 const ChatArea: React.FC<ChatAreaProps> = ({
@@ -29,7 +32,8 @@ const ChatArea: React.FC<ChatAreaProps> = ({
   newMessage,
   onNewMessageChange,
   onSendMessage,
-  formatMessageTime
+  formatMessageTime,
+  type = 'chatroom'
 }) => {
   const messagesContainerRef = useRef<HTMLDivElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -47,13 +51,9 @@ const ChatArea: React.FC<ChatAreaProps> = ({
   const handleFileClick = async () => {
     try {
       // File sharing functionality will be implemented later
-      await api.post('/api/notifications', {
-        recipient_id: currentUserId,
-        content: 'File sharing will be available soon',
-        type: 'info'
-      });
+      console.log('File sharing will be available soon');
     } catch (error) {
-      console.error('Error creating notification:', error);
+      console.error('Error:', error);
     }
   };
 

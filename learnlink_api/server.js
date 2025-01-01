@@ -49,13 +49,15 @@ io.on('connection', (socket) => {
   });
 
   socket.on('join_room', (roomId) => {
-    socket.join(roomId);
-    console.log('User joined room:', roomId);
+    console.log('User joining room:', roomId);
+    socket.join(roomId.toString());
+    console.log('Room members after join:', io.sockets.adapter.rooms.get(roomId.toString())?.size);
   });
 
   socket.on('leave_room', (roomId) => {
-    socket.leave(roomId);
-    console.log('User left room:', roomId);
+    console.log('User leaving room:', roomId);
+    socket.leave(roomId.toString());
+    console.log('Room members after leave:', io.sockets.adapter.rooms.get(roomId.toString())?.size);
   });
 
   socket.on('send_message', async (data) => {
@@ -67,9 +69,9 @@ io.on('connection', (socket) => {
       
       // Save message to database
       const messageQuery = `
-        INSERT INTO messages (chatroom_id, sender_id, content, created_at, updated_at)
-        VALUES ($1, $2, $3, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
-        RETURNING id, content, sender_id, chatroom_id, created_at, updated_at
+        INSERT INTO messages (chatroom_id, sender_id, content, created_at)
+        VALUES ($1, $2, $3, CURRENT_TIMESTAMP)
+        RETURNING id, content, sender_id, chatroom_id, created_at
       `;
       const messageResult = await pool.query(messageQuery, [roomId, userId, message]);
       const savedMessage = messageResult.rows[0];
@@ -85,11 +87,13 @@ io.on('connection', (socket) => {
         sender_name: senderName
       };
       
-      console.log('Broadcasting message to room:', roomId);
+      const roomIdStr = roomId.toString();
+      console.log('Broadcasting message to room:', roomIdStr);
+      console.log('Room members:', io.sockets.adapter.rooms.get(roomIdStr)?.size);
       console.log('Message data:', completeMessage);
       
-      // Broadcast message to room
-      io.to(roomId.toString()).emit('receive_message', completeMessage);
+      // Broadcast to everyone in the room
+      io.to(roomIdStr).emit('receive_message', completeMessage);
 
       // Get chatroom members for notifications
       const membersQuery = `
@@ -102,7 +106,7 @@ io.on('connection', (socket) => {
       // Get chatroom name
       const chatroomQuery = 'SELECT name FROM chatrooms WHERE id = $1';
       const chatroomResult = await pool.query(chatroomQuery, [roomId]);
-      const chatroomName = chatroomResult.rows[0].name;
+      const chatroomName = chatroomResult.rows[0]?.name;
 
       // Create notifications for all members except sender
       for (const member of membersResult.rows) {
@@ -145,6 +149,73 @@ io.on('connection', (socket) => {
     } catch (error) {
       console.error('Error sending message:', error);
       socket.emit('error', { message: 'Failed to send message' });
+    }
+  });
+
+  socket.on('chatroom:message', async (data) => {
+    try {
+      console.log('Received chatroom message:', data);
+      
+      // Broadcast message to room
+      io.to(data.chatroom_id.toString()).emit('receive_message', {
+        ...data,
+        chatroom_id: data.chatroom_id // Ensure chatroom_id is included
+      });
+
+      // Get chatroom members for notifications
+      const membersQuery = `
+        SELECT user_id 
+        FROM chatroom_members 
+        WHERE chatroom_id = $1 AND user_id != $2
+      `;
+      const membersResult = await pool.query(membersQuery, [data.chatroom_id, data.sender_id]);
+      
+      // Get chatroom name
+      const chatroomQuery = 'SELECT name FROM chatrooms WHERE id = $1';
+      const chatroomResult = await pool.query(chatroomQuery, [data.chatroom_id]);
+      const chatroomName = chatroomResult.rows[0]?.name;
+
+      // Create notifications for all members except sender
+      for (const member of membersResult.rows) {
+        const notificationQuery = `
+          INSERT INTO notifications (
+            sender_id,
+            recipient_id,
+            content,
+            type,
+            reference_id,
+            read,
+            created_at,
+            updated_at
+          )
+          VALUES ($1, $2, $3, $4, $5, false, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+          RETURNING *
+        `;
+        
+        const notificationValues = [
+          data.sender_id,
+          member.user_id,
+          data.content,
+          'chat_message',
+          data.id
+        ];
+        
+        await pool.query(notificationQuery, notificationValues);
+        
+        // Send real-time notification if recipient is online
+        const recipientSocketId = connectedUsers.get(member.user_id.toString());
+        if (recipientSocketId) {
+          io.to(recipientSocketId).emit('new_notification', {
+            sender_name: data.sender_name,
+            chatroom_name: chatroomName,
+            content: data.content,
+            chatroom_id: data.chatroom_id
+          });
+        }
+      }
+    } catch (error) {
+      console.error('Error handling chatroom message:', error);
+      socket.emit('error', { message: 'Error handling message' });
     }
   });
 

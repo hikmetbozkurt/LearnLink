@@ -7,12 +7,17 @@ import {
   deleteMessage,
   getAllMessages
 } from '../controllers/messageController.js';
+import { sendDirectMessage } from '../controllers/directMessageController.js';
 
 const router = express.Router();
 
 // All routes require authentication
 router.use(authenticateToken);
 
+// Direct message routes
+router.post('/direct/:id/messages', sendDirectMessage);
+
+// Regular message routes
 router.route('/')
   .get(getAllMessages)
   .post(createMessage);

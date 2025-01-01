@@ -1,5 +1,6 @@
 import ChatRoom from '../models/chatroomModel.js';
 import { io } from '../server.js';
+import pool from '../config/database.js';
 
 export const chatroomController = {
   // Tüm chat odalarını getir
@@ -121,11 +122,24 @@ export const chatroomController = {
       const { chatroomId } = req.params;
       console.log('Getting messages for chatroom:', chatroomId);
       
-      const messages = await ChatRoom.getMessages(chatroomId);
-      console.log('Retrieved messages:', messages);
+      const query = `
+        SELECT 
+          m.id,
+          m.content,
+          m.sender_id,
+          m.created_at,
+          u.name as sender_name
+        FROM messages m
+        JOIN users u ON m.sender_id = u.user_id
+        WHERE m.chatroom_id = $1
+        ORDER BY m.created_at ASC
+      `;
+      
+      const result = await pool.query(query, [chatroomId]);
+      console.log('Retrieved messages:', result.rows);
 
       // Ensure we're sending an array
-      const messagesArray = Array.isArray(messages) ? messages : [];
+      const messagesArray = Array.isArray(result.rows) ? result.rows : [];
       
       res.json({
         success: true,
@@ -158,11 +172,23 @@ export const chatroomController = {
         });
       }
 
-      const message = await ChatRoom.createMessage({
-        chatroomId,
-        senderId: userId,
-        content: content.trim()
-      });
+      // Insert the message
+      const query = `
+        INSERT INTO messages (content, sender_id, chatroom_id)
+        VALUES ($1, $2, $3)
+        RETURNING id, content, sender_id, created_at
+      `;
+      
+      const result = await pool.query(query, [content.trim(), userId, chatroomId]);
+      
+      // Get sender's name
+      const userQuery = 'SELECT name FROM users WHERE user_id = $1';
+      const userResult = await pool.query(userQuery, [userId]);
+      
+      const message = {
+        ...result.rows[0],
+        sender_name: userResult.rows[0].name
+      };
 
       // Emit socket event for real-time update
       io.to(chatroomId).emit('chatroom:message', message);

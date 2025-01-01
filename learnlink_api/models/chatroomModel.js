@@ -126,21 +126,19 @@ class ChatRoom {
 
   static async getMessages(chatroomId) {
     try {
-      const result = await db.query(
-        `SELECT 
+      const result = await db.query(`
+        SELECT 
           m.id,
           m.content,
-          m.created_at,
-          m.updated_at,
           m.sender_id,
-          u.name as sender_name,
-          u.email as sender_email
+          m.created_at,
+          u.name as sender_name
         FROM messages m
         JOIN users u ON m.sender_id = u.user_id
         WHERE m.chatroom_id = $1
-        ORDER BY m.created_at ASC`,
-        [chatroomId]
-      );
+        ORDER BY m.created_at ASC
+      `, [chatroomId]);
+
       return result.rows;
     } catch (error) {
       console.error('Error in getMessages:', error);

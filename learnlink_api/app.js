@@ -7,6 +7,7 @@ import chatroomRoutes from './routes/chatroomRoutes.js';
 import courseRoutes from './routes/courseRoutes.js';
 import assignmentRoutes from './routes/assignmentRoutes.js';
 import notificationRoutes from './routes/notificationRoutes.js';
+import directMessageRoutes from './routes/directMessageRoutes.js';
 import { errorHandler } from './middleware/errorMiddleware.js';
 
 const app = express();
@@ -22,6 +23,7 @@ app.use('/api/chatrooms', chatroomRoutes);
 app.use('/api/courses', courseRoutes);
 app.use('/api/assignments', assignmentRoutes);
 app.use('/api/notifications', notificationRoutes);
+app.use('/api/direct-messages', directMessageRoutes);
 
 // Error handling
 app.use(errorHandler);
