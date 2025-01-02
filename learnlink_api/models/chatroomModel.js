@@ -32,9 +32,6 @@ class ChatRoom {
         GROUP BY c.id, u.user_id, u.name
         ORDER BY c.created_at DESC
       `);
-      
-      console.log('Raw database result:', result);
-      console.log('Fetched chatrooms:', result.rows);
 
       // Ensure we return an array
       return result.rows || [];

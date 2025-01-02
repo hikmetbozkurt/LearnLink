@@ -72,6 +72,7 @@
   overflow: hidden;
   cursor: pointer;
   transition: transform 0.2s ease;
+  margin-top: 18px;
 }
 
 .profile-avatar:hover {
@@ -99,7 +100,6 @@
 
 .settings-icon:hover {
   color: #3f1f8f;
-  transform: scale(1.1);
 }
 
 .settings-icon svg {

@@ -5,7 +5,8 @@ import {
   getDirectMessages,
   getDirectMessageById,
   getDirectMessageMessages,
-  sendDirectMessage
+  sendDirectMessage,
+  deleteDirectMessage
 } from '../controllers/directMessageController.js';
 
 const router = express.Router();
@@ -27,5 +28,8 @@ router.get('/:id/messages', getDirectMessageMessages);
 
 // Send a message in a direct message conversation
 router.post('/:id/messages', sendDirectMessage);
+
+// Delete a direct message conversation
+router.delete('/:id', deleteDirectMessage);
 
 export default router; 

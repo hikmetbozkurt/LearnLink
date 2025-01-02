@@ -57,6 +57,15 @@ const ChatArea: React.FC<ChatAreaProps> = ({
     }
   };
 
+  const shouldShowTimestamp = (currentMsg: Message, nextMsg: Message | undefined) => {
+    if (!nextMsg) return true; // Always show for last message
+    
+    const currentTime = formatMessageTime(currentMsg.created_at);
+    const nextTime = formatMessageTime(nextMsg.created_at);
+    
+    return currentTime !== nextTime || currentMsg.sender_id !== nextMsg.sender_id;
+  };
+
   return (
     <div className="chat-area">
       <div className="chat-header">
@@ -69,20 +78,26 @@ const ChatArea: React.FC<ChatAreaProps> = ({
       <div className="messages-container" ref={messagesContainerRef}>
         {messages.map((message, index) => {
           const isSelf = message.sender_id === currentUserId;
+          const nextMessage = messages[index + 1];
+          const showTimestamp = shouldShowTimestamp(message, nextMessage);
           
           return (
             <div
               key={message.id || index}
               className={`message ${isSelf ? 'message-self' : 'message-other'}`}
             >
-              <div className="message-sender">
-                {isSelf ? 'You' : message.sender_name}
-              </div>
               <div className="message-content">
-                {message.content}
-              </div>
-              <div className="message-timestamp">
-                {formatMessageTime(message.created_at)}
+                <div className="message-sender">
+                  {isSelf ? 'You' : message.sender_name}
+                </div>
+                <div className="message-text">
+                  {message.content}
+                </div>
+                {showTimestamp && (
+                  <div className="message-timestamp">
+                    {formatMessageTime(message.created_at)}
+                  </div>
+                )}
               </div>
             </div>
           );

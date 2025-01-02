@@ -7,6 +7,8 @@ import {
   FaUser
 } from 'react-icons/fa';
 import NotificationBell from '../NotificationBell';
+import ProfileCard from '../Profile/ProfileCard';
+import { useAuth } from '../../hooks/useAuth';
 import './Header.css';
 import defaultAvatar from '../../assets/images/default-avatar.png';
 import { authService } from '../../services/authService';
@@ -15,8 +17,10 @@ type DropdownType = 'settings' | 'notifications' | null;
 
 const Header = () => {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [activeDropdown, setActiveDropdown] = useState<DropdownType>(null);
   const [searchQuery, setSearchQuery] = useState('');
+  const [showProfileCard, setShowProfileCard] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const notificationRef = useRef<any>(null);
 
@@ -56,10 +60,6 @@ const Header = () => {
           <div className="dropdown-menu settings">
             <div className="dropdown-header">Settings</div>
             <div className="menu-item">
-              <FaUser />
-              <span>Profile</span>
-            </div>
-            <div className="menu-item">
               <FaCog />
               <span>Settings</span>
             </div>
@@ -94,7 +94,7 @@ const Header = () => {
         </div>
 
         <div className="header-actions" ref={dropdownRef}>
-          <div className="profile-avatar">
+          <div className="profile-avatar" onClick={() => setShowProfileCard(true)}>
             <img src={defaultAvatar} alt="Profile" />
           </div>
 
@@ -113,6 +113,13 @@ const Header = () => {
           </div>
         </div>
       </div>
+
+      {showProfileCard && user && (
+        <ProfileCard 
+          user={user}
+          onClose={() => setShowProfileCard(false)} 
+        />
+      )}
     </header>
   );
 };

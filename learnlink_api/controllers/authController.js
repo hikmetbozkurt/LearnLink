@@ -254,7 +254,7 @@ export const googleLogin = asyncHandler(async (req, res) => {
     if (result.rows.length === 0) {
       // Create new user if doesn't exist
       result = await pool.query(
-        'INSERT INTO users (email, name, profile_picture, role) VALUES ($1, $2, $3, $4) RETURNING user_id, name, email, role',
+        'INSERT INTO users (email, name, role) VALUES ($1, $2, $3, $4) RETURNING user_id, name, email, role',
         [email, name, picture, 'student']
       );
     }

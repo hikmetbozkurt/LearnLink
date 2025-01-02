@@ -255,89 +255,54 @@ const ChatroomsPage = () => {
       };
 
       fetchMessages();
+      const interval = setInterval(fetchMessages, 1000);
+      return () => clearInterval(interval);
     } else {
       setMessages([]);
     }
   }, [selectedRoom]);
 
-  // Handle room creation
-  const handleCreateRoom = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsLoading(true);
-    setError(null);
-
-    try {
-      const response = await api.post('/api/chatrooms', {
-        name: formData.roomName
-      });
-
-      if (response.data) {
-        setChatRooms(prev => [...prev, response.data.data]);
-        setFormData({ roomName: '' });
-        setShowCreateRoom(false);
-      }
-    } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to create chat room');
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  // Handle joining a room
-  const handleJoinRoom = async (roomId: string) => {
-    try {
-      await api.post(`/api/chatrooms/${roomId}/join`);
-      setSelectedRoom(roomId);
-      
-      if (socketRef.current) {
-        socketRef.current.emit('join_room', roomId.toString());
-      }
-    } catch (err) {
-      console.error('Error joining room:', err);
-      setError('Failed to join room');
-    }
-  };
-
-  // Handle sending a message
   const handleSendMessage = async () => {
-    if (!selectedRoom || !newMessage.trim() || !socketRef.current) return;
+    if (!selectedRoom || !newMessage.trim()) return;
 
     try {
       const messageData = {
-        roomId: parseInt(selectedRoom),
-        message: newMessage.trim(),
-        userId: parseInt(userId)
+        content: newMessage.trim()
       };
 
-      console.log('Sending message:', messageData);
-      socketRef.current.emit('send_message', messageData);
-      setNewMessage(''); // Clear input immediately
+      const response = await api.post(`/api/chatrooms/${selectedRoom}/messages`, messageData);
+      
+      // Add the message to the local state immediately
+      setMessages(prev => [...prev, response.data]);
+      setNewMessage('');
+      
+      // Emit the message through socket for real-time update
+      if (socketRef.current) {
+        socketRef.current.emit('chatroom_message', response.data);
+      }
     } catch (error) {
       console.error('Error sending message:', error);
-      await api.post('/api/notifications', {
-        recipient_id: userId,
-        content: 'Failed to send message',
-        type: 'error'
-      });
     }
   };
 
-  // Handle deleting a room
-  const handleDeleteRoom = async (roomId: string) => {
+  const handleCreateRoom = async () => {
+    if (!formData.roomName.trim()) return;
+
+    setIsLoading(true);
     try {
-      await api.delete(`/api/chatrooms/${roomId}`);
-      setChatRooms(prev => prev.filter(room => room.id !== roomId));
-      if (selectedRoom === roomId) {
-        setSelectedRoom(null);
-      }
-    } catch (err) {
-      console.error('Error deleting room:', err);
-      // Create notification for error
-      await api.post('/api/notifications', {
-        recipient_id: userId,
-        content: 'Failed to delete room',
-        type: 'error'
+      const response = await api.post('/api/chatrooms', {
+        name: formData.roomName.trim()
       });
+
+      setChatRooms(prev => [...prev, response.data]);
+      setFormData({ roomName: '' });
+      setShowCreateRoom(false);
+      setError(null);
+    } catch (err) {
+      console.error('Error creating chatroom:', err);
+      setError('Failed to create chatroom');
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -349,28 +314,28 @@ const ChatroomsPage = () => {
           selectedRoom={selectedRoom || undefined}
           searchQuery={searchQuery}
           onSearchChange={handleSearchChange}
-          onJoinRoom={handleJoinRoom}
+          onJoinRoom={setSelectedRoom}
           onCreateRoom={() => setShowCreateRoom(true)}
-          onDeleteRoom={handleDeleteRoom}
+          onDeleteRoom={() => {}}
         />
-
-        <div className="chat-main">
-          {selectedRoom ? (
-            <ChatArea
-              messages={messages}
-              currentUserId={userId}
-              roomName={chatRooms.find(room => room.id === selectedRoom)?.name}
-              newMessage={newMessage}
-              onNewMessageChange={(e) => setNewMessage(e.target.value)}
-              onSendMessage={handleSendMessage}
-              formatMessageTime={formatMessageTime}
-            />
-          ) : (
+        {selectedRoom ? (
+          <ChatArea
+            messages={messages}
+            currentUserId={userId}
+            roomName={chatRooms.find(room => room.id === selectedRoom)?.name}
+            newMessage={newMessage}
+            onNewMessageChange={(e) => setNewMessage(e.target.value)}
+            onSendMessage={handleSendMessage}
+            formatMessageTime={formatMessageTime}
+            type="chatroom"
+          />
+        ) : (
+          <div className="chat-main">
             <div className="no-chat-selected">
-              <h2>Select a chat room or create a new one</h2>
+              <h2>Select a chat room to start messaging</h2>
             </div>
-          )}
-        </div>
+          </div>
+        )}
       </div>
 
       {showCreateRoom && (

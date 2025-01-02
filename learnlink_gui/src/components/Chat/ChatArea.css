@@ -32,30 +32,42 @@
   padding: 20px;
   display: flex;
   flex-direction: column;
-  gap: 15px;
+  gap: 2px;
   position: relative;
   margin-bottom: 0;
 }
 
 .message {
-  max-width: 70%;
-  padding: 10px 15px;
-  border-radius: 15px;
-  position: relative;
   display: flex;
-  flex-direction: column;
-  gap: 4px;
+  max-width: 70%;
+  margin-bottom: 2px;
+}
+
+.message:last-child {
+  margin-bottom: 10px;
 }
 
 .message-self {
-  align-self: flex-end;
+  margin-left: auto;
+}
+
+.message-other {
+  margin-right: auto;
+}
+
+.message-content {
+  padding: 10px 15px;
+  border-radius: 15px;
+  position: relative;
+}
+
+.message-self .message-content {
   background-color: #512da8;
   color: white;
   border-bottom-right-radius: 5px;
 }
 
-.message-other {
-  align-self: flex-start;
+.message-other .message-content {
   background-color: #f0f0f0;
   color: #333;
   border-bottom-left-radius: 5px;
@@ -64,44 +76,30 @@
 .message-sender {
   font-size: 0.85rem;
   font-weight: 500;
-  margin-bottom: 2px;
+  margin-bottom: 4px;
 }
 
-.message-content {
+.message-text {
   word-break: break-word;
   line-height: 1.4;
 }
 
 .message-timestamp {
   font-size: 0.75rem;
-  opacity: 0.7;
-  margin-top: 2px;
+  margin-top: 4px;
 }
 
 .message-self .message-timestamp {
   color: rgba(255, 255, 255, 0.8);
-  align-self: flex-start;
 }
 
 .message-other .message-timestamp {
   color: #666;
-  align-self: flex-end;
 }
 
-.message-info {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 5px;
-  font-size: 0.8rem;
-}
-
-.message-self .message-info {
-  color: rgba(255, 255, 255, 0.8);
-}
-
-.message-other .message-info {
-  color: #666;
+/* Add spacing after messages with timestamps */
+.message:has(.message-timestamp) {
+  margin-bottom: 12px;
 }
 
 .chat-input-area {
@@ -169,6 +167,12 @@
 .send-button:hover {
   background-color: #5B3DD4;
   transform: translateY(-2px);
+}
+
+.send-button:disabled {
+  background-color: #ccc;
+  cursor: not-allowed;
+  transform: none;
 }
 
 .scroll-anchor {

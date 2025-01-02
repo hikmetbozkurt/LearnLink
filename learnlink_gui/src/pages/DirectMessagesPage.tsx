@@ -15,7 +15,8 @@ interface Message {
   sender_id: number;
   sender_name: string;
   created_at: string;
-  direct_message_id?: number;
+  dm_id?: number;
+  chatroom_id?: number;
 }
 
 interface DirectMessage {
@@ -79,8 +80,9 @@ const DirectMessagesPage = () => {
 
     // Handle both new_direct_message and direct_message events
     const handleNewMessage = (message: Message) => {
-      if (selectedChat && message.direct_message_id === parseInt(selectedChat.id)) {
+      if (selectedChat && message.dm_id === parseInt(selectedChat.id)) {
         setMessages(prev => {
+          // Check if message already exists to prevent duplicates
           const exists = prev.some(m => 
             m.id === message.id || 
             (m.content === message.content && 
@@ -114,8 +116,68 @@ const DirectMessagesPage = () => {
 
   useEffect(() => {
     if (selectedChat) {
-      fetchMessages(selectedChat.id);
+      const fetchMessages = async () => {
+        try {
+          const response = await api.get(`/api/direct-messages/${selectedChat.id}/messages`);
+          const messagesData = response.data.data || [];
+          setMessages(messagesData);
+        } catch (error) {
+          console.error('Error fetching messages:', error);
+          setMessages([]);
+        }
+      };
+
+      fetchMessages();
+      const interval = setInterval(fetchMessages, 1000);
+      return () => clearInterval(interval);
+    } else {
+      setMessages([]);
     }
+  }, [selectedChat]);
+
+  // Handle joining/leaving DM rooms when chat is selected
+  useEffect(() => {
+    if (!socketRef.current || !selectedChat) return;
+
+    // Join the DM room when selected
+    socketRef.current.emit('join_dm', selectedChat.id);
+    console.log('Joined DM:', selectedChat.id);
+
+    return () => {
+      socketRef.current?.emit('leave_dm', selectedChat.id);
+      console.log('Left DM:', selectedChat.id);
+    };
+  }, [selectedChat]);
+
+  // Handle new messages
+  useEffect(() => {
+    if (!socketRef.current) return;
+
+    const handleNewMessage = (message: Message) => {
+      console.log('New message received:', message);
+      if (selectedChat && message.dm_id === parseInt(selectedChat.id)) {
+        setMessages(prev => {
+          // Check if message already exists to prevent duplicates
+          const exists = prev.some(m => 
+            m.id === message.id || 
+            (m.content === message.content && 
+             m.sender_id === message.sender_id && 
+             Math.abs(new Date(m.created_at).getTime() - new Date(message.created_at).getTime()) < 1000)
+          );
+
+          if (exists) return prev;
+          return [...prev, message];
+        });
+        // Refresh direct messages list to update last message
+        fetchDirectMessages();
+      }
+    };
+
+    socketRef.current.on('new_direct_message', handleNewMessage);
+
+    return () => {
+      socketRef.current?.off('new_direct_message', handleNewMessage);
+    };
   }, [selectedChat]);
 
   const fetchDirectMessages = async () => {
@@ -135,36 +197,27 @@ const DirectMessagesPage = () => {
     }
   };
 
-  const fetchMessages = async (chatId: string) => {
-    try {
-      const response = await api.get(`/api/direct-messages/${chatId}/messages`);
-      const messagesData = response.data.data || [];
-      setMessages(messagesData);
-    } catch (error) {
-      console.error('Error fetching messages:', error);
-      setMessages([]);
-    }
-  };
-
   const handleSendMessage = async () => {
     if (!selectedChat || !newMessage.trim()) return;
 
     try {
-      const response = await api.post(`/api/messages/direct/${selectedChat.id}/messages`, {
-        content: newMessage
-      });
+      const messageData = {
+        content: newMessage.trim()
+      };
 
-      // Emit the message through socket
-      if (socketRef.current) {
-        socketRef.current.emit('direct_message', {
-          ...response.data,
-          direct_message_id: parseInt(selectedChat.id)
-        });
-      }
-
+      const response = await api.post(`/api/direct-messages/${selectedChat.id}/messages`, messageData);
+      
+      // Add the message to the local state immediately
       setMessages(prev => [...prev, response.data]);
       setNewMessage('');
-      fetchDirectMessages(); // Refresh chat list to update last message
+      
+      // Emit the message through socket for real-time update
+      if (socketRef.current) {
+        socketRef.current.emit('direct_message', response.data);
+      }
+
+      // Refresh direct messages list to update last message
+      fetchDirectMessages();
     } catch (error) {
       console.error('Error sending message:', error);
     }
@@ -177,6 +230,18 @@ const DirectMessagesPage = () => {
 
   // Ensure user ID is always a number
   const currentUserId = user?.user_id || user?.id || 0;
+
+  const handleDeleteConversation = async (id: string) => {
+    try {
+      await api.delete(`/api/direct-messages/${id}`);
+      setDirectMessages(prev => prev.filter(dm => dm.id !== id));
+      if (selectedChat?.id === id) {
+        setSelectedChat(null);
+      }
+    } catch (error) {
+      console.error('Error deleting conversation:', error);
+    }
+  };
 
   return (
     <div className="chat-page">
@@ -191,7 +256,8 @@ const DirectMessagesPage = () => {
             if (chat) setSelectedChat(chat);
           }}
           onCreateRoom={() => {}}
-          onDeleteRoom={() => {}}
+          onDeleteRoom={handleDeleteConversation}
+          hideCreateButton={true}
         />
         {selectedChat ? (
           <ChatArea

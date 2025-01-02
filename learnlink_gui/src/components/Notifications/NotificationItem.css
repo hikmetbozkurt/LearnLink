@@ -1,0 +1,89 @@
+.notification-item {
+  display: flex;
+  align-items: flex-start;
+  padding: 12px;
+  border-bottom: 1px solid #eee;
+  background-color: #fff;
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+
+.notification-item:hover {
+  background-color: #f8f9fa;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+
+.notification-item.unread {
+  background-color: #f0f7ff;
+}
+
+.notification-item.unread:hover {
+  background-color: #e5f1ff;
+}
+
+.notification-icon-container {
+  margin-right: 12px;
+  padding-top: 3px;
+}
+
+.notification-icon {
+  font-size: 1.2rem;
+  color: #6c757d;
+}
+
+/* Icon-specific colors */
+.notification-icon.private-message {
+  color: #007bff;
+}
+
+.notification-icon.chatroom-message {
+  color: #28a745;
+}
+
+.notification-icon.friend-request {
+  color: #6f42c1;
+}
+
+.notification-icon.course-update {
+  color: #fd7e14;
+}
+
+.notification-icon.request-accepted {
+  color: #28a745;
+}
+
+.notification-icon.request-rejected {
+  color: #dc3545;
+}
+
+.notification-content {
+  flex: 1;
+}
+
+.notification-content p {
+  margin: 0;
+  color: #212529;
+}
+
+.notification-content small {
+  color: #6c757d;
+  font-size: 0.85em;
+}
+
+.mark-read-button {
+  padding: 4px 8px;
+  font-size: 0.85em;
+  color: #6c757d;
+  background: none;
+  border: 1px solid #6c757d;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.2s;
+  z-index: 1;
+}
+
+.mark-read-button:hover {
+  color: #fff;
+  background-color: #6c757d;
+} 

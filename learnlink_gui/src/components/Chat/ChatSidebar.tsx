@@ -17,6 +17,7 @@ interface ChatSidebarProps {
   onJoinRoom: (roomId: string) => void;
   onCreateRoom: () => void;
   onDeleteRoom: (roomId: string) => void;
+  hideCreateButton?: boolean;
 }
 
 const ChatSidebar: React.FC<ChatSidebarProps> = ({
@@ -26,7 +27,8 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({
   onSearchChange,
   onJoinRoom,
   onCreateRoom,
-  onDeleteRoom
+  onDeleteRoom,
+  hideCreateButton = false
 }) => {
   return (
     <div className="chat-sidebar">
@@ -67,14 +69,16 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({
         ))}
       </div>
 
-      <div 
-        className="create-room-button" 
-        onClick={onCreateRoom}
-        role="button"
-        tabIndex={0}
-      >
-        <FaPlus />
-      </div>
+      {!hideCreateButton && (
+        <div 
+          className="create-room-button" 
+          onClick={onCreateRoom}
+          role="button"
+          tabIndex={0}
+        >
+          <FaPlus />
+        </div>
+      )}
     </div>
   );
 };

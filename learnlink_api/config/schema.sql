@@ -1,3 +1,4 @@
+--ÇALIŞMIYOR ŞİMDİLİK
 -- Users table
 CREATE TABLE users (
     user_id SERIAL PRIMARY KEY,
@@ -31,6 +32,7 @@ CREATE TABLE messages (
     content TEXT NOT NULL,
     sender_id INTEGER REFERENCES users(user_id) ON DELETE CASCADE,
     chatroom_id INTEGER REFERENCES chatrooms(id) ON DELETE CASCADE,
+	dm_id INTEGER REFERENCES direct_messages(id) ON DELETE CASCADE,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
@@ -122,7 +124,7 @@ CREATE TABLE enrollments (
 );
 
 -- Chats tablosu
-CREATE TABLE IF NOT EXISTS chats (
+CREATE TABLE IF NOT EXISTS chatrooms (
     id SERIAL PRIMARY KEY,
     title VARCHAR(100),
     created_by INTEGER REFERENCES users(user_id),

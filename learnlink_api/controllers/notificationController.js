@@ -46,8 +46,8 @@ export const markAsRead = async (req, res) => {
     
     const query = `
       UPDATE notifications
-      SET read = true
-      WHERE id = $1 AND recipient_id = $2
+      SET read = true, updated_at = CURRENT_TIMESTAMP
+      WHERE notifications_id = $1 AND recipient_id = $2
       RETURNING *
     `;
     

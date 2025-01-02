@@ -120,7 +120,6 @@ export const chatroomController = {
   getChatroomMessages: async (req, res) => {
     try {
       const { chatroomId } = req.params;
-      console.log('Getting messages for chatroom:', chatroomId);
       
       const query = `
         SELECT 
@@ -136,7 +135,6 @@ export const chatroomController = {
       `;
       
       const result = await pool.query(query, [chatroomId]);
-      console.log('Retrieved messages:', result.rows);
 
       // Ensure we're sending an array
       const messagesArray = Array.isArray(result.rows) ? result.rows : [];
