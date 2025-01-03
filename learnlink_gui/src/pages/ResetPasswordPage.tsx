@@ -12,6 +12,7 @@ const ResetPasswordPage = () => {
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [passwordVisible, setPasswordVisible] = useState(false);
   const navigate = useNavigate();
   const { showToast } = useToast();
 
@@ -21,6 +22,11 @@ const ResetPasswordPage = () => {
       navigate('/forgot-password');
     }
   }, [email, navigate, showToast]);
+
+  // Toggle password visibility for both fields
+  const togglePasswordVisibility = () => {
+    setPasswordVisible(!passwordVisible);
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -32,8 +38,10 @@ const ResetPasswordPage = () => {
       return;
     }
 
-    if (newPassword.length < 6) {
-      showToast('Password must be at least 6 characters long', 'error');
+    // Password validation
+    const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$/;
+    if (!passwordRegex.test(newPassword)) {
+      showToast('Password must be at least 8 characters long and contain at least 1 lowercase letter, 1 uppercase letter, and 1 number', 'error');
       setIsLoading(false);
       return;
     }
@@ -80,27 +88,41 @@ const ResetPasswordPage = () => {
           <div className="input-group">
             <FaLock className="input-icon" />
             <input
-              type="password"
+              type={passwordVisible ? "text" : "password"}
               value={newPassword}
               onChange={(e) => setNewPassword(e.target.value)}
               placeholder="New Password"
               required
-              minLength={6}
+              minLength={8}
+              title="Password must be at least 8 characters long and contain at least 1 lowercase letter, 1 uppercase letter, and 1 number"
               className="reset-password-input"
             />
+            <i
+              className={`fa-solid ${passwordVisible ? "fa-eye" : "fa-eye-slash"}`}
+              onClick={togglePasswordVisibility}
+              id="togglePassword"
+              style={{ cursor: "pointer" }}
+            ></i>
           </div>
 
           <div className="input-group">
             <FaLock className="input-icon" />
             <input
-              type="password"
+              type={passwordVisible ? "text" : "password"}
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
               placeholder="Confirm New Password"
               required
-              minLength={6}
+              minLength={8}
+              title="Password must be at least 8 characters long and contain at least 1 lowercase letter, 1 uppercase letter, and 1 number"
               className="reset-password-input"
             />
+            <i
+              className={`fa-solid ${passwordVisible ? "fa-eye" : "fa-eye-slash"}`}
+              onClick={togglePasswordVisibility}
+              id="toggleConfirmPassword"
+              style={{ cursor: "pointer" }}
+            ></i>
           </div>
 
           <button

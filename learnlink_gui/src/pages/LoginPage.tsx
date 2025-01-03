@@ -22,6 +22,7 @@ const LoginPage = () => {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [passwordVisible, setPasswordVisible] = useState(false);
+  const [confirmPasswordVisible, setConfirmPasswordVisible] = useState(false);
   const navigate = useNavigate();
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
@@ -36,9 +37,10 @@ const LoginPage = () => {
     navigate("/forgot-password");
   };
 
-  // Toggle password visibility
+  // Toggle password visibility for both fields
   const togglePasswordVisibility = () => {
     setPasswordVisible(!passwordVisible);
+    setConfirmPasswordVisible(!passwordVisible);
   };
 
   const handleGoogleSuccess = async (credentialResponse: any) => {
@@ -98,12 +100,11 @@ const LoginPage = () => {
   };
 
   const handleGoogleError = () => {
-    setError('Google sign-in was unsuccessful. Please try again.');
+    showToast('Google sign-in was unsuccessful. Please try again.', 'error');
   };
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError('');
     setLoading(true);
     
     try {
@@ -121,48 +122,50 @@ const LoginPage = () => {
       // Store user data
       localStorage.setItem('user', JSON.stringify(user));
       
+      showToast('Logged in successfully!', 'success');
       navigate('/home');
     } catch (error: any) {
       console.error('Login error:', error);
-      setError(error.response?.data?.message || 'Failed to login');
+      showToast(error.response?.data?.message || 'Failed to login', 'error');
     } finally {
       setLoading(false);
     }
   };
 
-  const handleSignUp = async (e: React.FormEvent) => {
+  const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError('');
     setLoading(true);
-    
+
     if (password !== confirmPassword) {
-      setError("Passwords do not match!");
+      showToast('Passwords do not match', 'error');
+      setLoading(false);
+      return;
+    }
+
+    // Password validation
+    const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$/;
+    if (!passwordRegex.test(password)) {
+      showToast('Password must be at least 8 characters long and contain at least 1 lowercase letter, 1 uppercase letter, and 1 number', 'error');
       setLoading(false);
       return;
     }
 
     try {
-      const response = await api.post('/api/auth/register', {
-        name: username,
+      const response = await authService.signup({
+        username,
         email,
-        password,
-        role: 'student'
+        password
       });
 
-      // The response directly contains token and user
-      const { token, user } = response.data;
-      
-      // Store token without quotes
-      localStorage.setItem('token', token.replace(/['"]+/g, ''));
-      
-      // Store user data
-      localStorage.setItem('user', JSON.stringify(user));
-      
-      // Navigate to home page
-      navigate('/home');
+      if (response.success) {
+        const { token, user } = response.data;
+        localStorage.setItem('token', token);
+        localStorage.setItem('user', JSON.stringify(user));
+        showToast('Account created successfully!', 'success');
+        navigate('/home');
+      }
     } catch (error: any) {
-      console.error('Signup error:', error);
-      setError(error.response?.data?.message || "An error occurred during signup");
+      showToast(error.response?.data?.message || 'Failed to sign up', 'error');
     } finally {
       setLoading(false);
     }
@@ -172,13 +175,31 @@ const LoginPage = () => {
     <GoogleOAuthProvider clientId={GOOGLE_CLIENT_ID}>
       <div className={`container ${isSignUp ? "active" : ""}`} id="container">
         <div className="form-container sign-up">
-          <form id="signUpForm" onSubmit={handleSignUp}>
+          <form onSubmit={handleSignup}>
             <h1>Create Account</h1>
+
+            <div className="social-icons">
+              <GoogleLogin
+                onSuccess={handleGoogleSuccess}
+                onError={handleGoogleError}
+                theme="outline"
+                size="large"
+                text="signup_with"
+                shape="rectangular"
+                useOneTap={false}
+                ux_mode="popup"
+              />
+            </div>
+
+            <div className="divider">
+              <span>or use your email for registration</span>
+            </div>
+
             <div className="input-group">
               <PersonIcon className="input-icon" />
               <input
                 type="text"
-                placeholder="Username"
+                placeholder="Name"
                 required
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
@@ -200,13 +221,13 @@ const LoginPage = () => {
                 type={passwordVisible ? "text" : "password"}
                 placeholder="Password"
                 required
+                minLength={8}
+                title="Password must be at least 8 characters long and contain at least 1 lowercase letter, 1 uppercase letter, and 1 number"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
               />
               <i
-                className={`fa-solid ${
-                  passwordVisible ? "fa-eye" : "fa-eye-slash"
-                }`}
+                className={`fa-solid ${passwordVisible ? "fa-eye" : "fa-eye-slash"}`}
                 onClick={togglePasswordVisibility}
                 id="togglePassword"
                 style={{ cursor: "pointer" }}
@@ -218,26 +239,26 @@ const LoginPage = () => {
                 type={passwordVisible ? "text" : "password"}
                 placeholder="Confirm Password"
                 required
+                minLength={8}
+                title="Password must be at least 8 characters long and contain at least 1 lowercase letter, 1 uppercase letter, and 1 number"
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
               />
+              <i
+                className={`fa-solid ${passwordVisible ? "fa-eye" : "fa-eye-slash"}`}
+                onClick={togglePasswordVisibility}
+                id="toggleConfirmPassword"
+                style={{ cursor: "pointer" }}
+              ></i>
             </div>
-            <button type="submit">Sign Up</button>
+            <button type="submit" disabled={loading}>
+              {loading ? 'Signing up...' : 'Sign Up'}
+            </button>
           </form>
         </div>
         <div className="form-container sign-in">
           <form onSubmit={handleLogin}>
             <h1>Sign In</h1>
-            
-            {error && (
-              <div className="error-message" style={{ 
-                color: '#ff3333',
-                marginBottom: '1rem',
-                fontSize: '0.9rem'
-              }}>
-                {error}
-              </div>
-            )}
 
             <div className="social-icons">
               <GoogleLogin
@@ -262,10 +283,7 @@ const LoginPage = () => {
                 type="email"
                 placeholder="Email"
                 value={email}
-                onChange={(e) => {
-                  setEmail(e.target.value);
-                  setError('');
-                }}
+                onChange={(e) => setEmail(e.target.value)}
                 required
               />
             </div>
@@ -279,9 +297,7 @@ const LoginPage = () => {
                 onChange={(e) => setPassword(e.target.value)}
               />
               <i
-                className={`fa-solid ${
-                  passwordVisible ? "fa-eye" : "fa-eye-slash"
-                }`}
+                className={`fa-solid ${passwordVisible ? "fa-eye" : "fa-eye-slash"}`}
                 onClick={togglePasswordVisibility}
                 id="togglePassword"
                 style={{ cursor: "pointer" }}
@@ -290,9 +306,12 @@ const LoginPage = () => {
             <div className="forgot">
               <span onClick={handleForgotPasswordClick} className="forgot-link">
                 Forget Your Password?
+                <i className="fa-solid fa-fish"></i>
               </span>
             </div>
-            <button type="submit">SIGN IN</button>
+            <button type="submit" disabled={loading}>
+              {loading ? 'Signing in...' : 'SIGN IN'}
+            </button>
           </form>
         </div>
         <div className="toggle-container">

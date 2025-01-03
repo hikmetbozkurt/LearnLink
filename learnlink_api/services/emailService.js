@@ -93,9 +93,9 @@ export class EmailService {
             <p>Hi ${data.name},</p>
             <p>Thank you for joining LearnLink. We're excited to have you as part of our learning community.</p>
             <div style="margin: 20px 0;">
-              <a href="http://localhost:3000/dashboard" 
+              <a href="http://localhost:3000/home" 
                  style="background-color: #6B4EE6; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px;">
-                Go to Dashboard
+                Go to Home
               </a>
             </div>
             <p>Best regards,<br>The LearnLink Team</p>
