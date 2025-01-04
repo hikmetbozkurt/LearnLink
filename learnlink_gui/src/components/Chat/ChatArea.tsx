@@ -23,6 +23,9 @@ interface ChatAreaProps {
   onSendMessage: () => void;
   formatMessageTime: (timestamp: string) => string;
   type?: 'chatroom' | 'direct';
+  messagesEndRef?: React.RefObject<HTMLDivElement | null>;
+  messagesContainerRef?: React.RefObject<HTMLDivElement | null>;
+  onScroll?: () => void;
 }
 
 const ChatArea: React.FC<ChatAreaProps> = ({
@@ -33,21 +36,11 @@ const ChatArea: React.FC<ChatAreaProps> = ({
   onNewMessageChange,
   onSendMessage,
   formatMessageTime,
-  type = 'chatroom'
+  type = 'chatroom',
+  messagesEndRef,
+  messagesContainerRef,
+  onScroll
 }) => {
-  const messagesContainerRef = useRef<HTMLDivElement>(null);
-  const messagesEndRef = useRef<HTMLDivElement>(null);
-
-  const scrollToBottom = () => {
-    if (messagesEndRef.current) {
-      messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
-    }
-  };
-
-  useEffect(() => {
-    scrollToBottom();
-  }, [messages]);
-
   const handleFileClick = async () => {
     try {
       // File sharing functionality will be implemented later
@@ -75,7 +68,11 @@ const ChatArea: React.FC<ChatAreaProps> = ({
         </button>
       </div>
       
-      <div className="messages-container" ref={messagesContainerRef}>
+      <div 
+        className="messages-container" 
+        ref={messagesContainerRef}
+        onScroll={onScroll}
+      >
         {messages.map((message, index) => {
           const isSelf = message.sender_id === currentUserId;
           const nextMessage = messages[index + 1];

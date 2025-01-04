@@ -41,6 +41,34 @@ const ChatroomsPage = () => {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
   const userId = currentUser.id || currentUser.user_id;
+  const [shouldScrollToBottom, setShouldScrollToBottom] = useState(true);
+  const messagesContainerRef = useRef<HTMLDivElement>(null);
+  const [isInitialLoad, setIsInitialLoad] = useState(true);
+
+  const scrollToBottom = () => {
+    if (messagesEndRef.current && (shouldScrollToBottom || isInitialLoad)) {
+      messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
+      setIsInitialLoad(false);
+    }
+  };
+
+  const handleScroll = () => {
+    if (messagesContainerRef.current) {
+      const { scrollTop, scrollHeight, clientHeight } = messagesContainerRef.current;
+      const isNearBottom = scrollHeight - (scrollTop + clientHeight) < 100;
+      setShouldScrollToBottom(isNearBottom);
+    }
+  };
+
+  useEffect(() => {
+    if (isInitialLoad || shouldScrollToBottom) {
+      scrollToBottom();
+    }
+  }, [messages]);
+
+  useEffect(() => {
+    setIsInitialLoad(true);
+  }, [selectedRoom]);
 
   // Initialize socket connection
   useEffect(() => {
@@ -69,13 +97,7 @@ const ChatroomsPage = () => {
       setError('Failed to connect to chat server');
     });
 
-    socket.on('reconnect', (attemptNumber: number) => {
-      console.log('Reconnected to chat server after', attemptNumber, 'attempts');
-      setError(null);
-    });
-
     socket.on('disconnect', (reason: string) => {
-      console.log('Disconnected from chat server:', reason);
       if (reason === 'io server disconnect') {
         socket.connect();
       }
@@ -84,7 +106,6 @@ const ChatroomsPage = () => {
     const user = JSON.parse(localStorage.getItem('user') || '{}');
 
     socket.on('connect', () => {
-      console.log('Socket connected');
       setConnected(true);
       if (user.id || user.user_id) {
         socket.emit('user_connected', (user.id || user.user_id).toString());
@@ -107,7 +128,6 @@ const ChatroomsPage = () => {
     if (!socketRef.current || !selectedRoom) return;
 
     const handleNewMessage = (message: Message) => {
-      // Get the message room ID from either chatroom_id or roomId
       const messageRoomId = message.chatroom_id?.toString() || message.roomId?.toString();
       const currentRoomId = selectedRoom.toString();
 
@@ -128,13 +148,11 @@ const ChatroomsPage = () => {
 
     socketRef.current.on('receive_message', handleNewMessage);
     socketRef.current.emit('join_room', selectedRoom.toString());
-    console.log('Joined room:', selectedRoom.toString());
 
     return () => {
       if (socketRef.current) {
         socketRef.current.off('receive_message', handleNewMessage);
         socketRef.current.emit('leave_room', selectedRoom.toString());
-        console.log('Left room:', selectedRoom.toString());
       }
     };
   }, [selectedRoom]);
@@ -149,7 +167,6 @@ const ChatroomsPage = () => {
         setChatRooms(roomsData);
       } catch (err) {
         console.error('Error fetching chat rooms:', err);
-        // Create notification for error
         await api.post('/api/notifications', {
           recipient_id: userId,
           content: 'Failed to load chat rooms',
@@ -161,84 +178,6 @@ const ChatroomsPage = () => {
     fetchChatRooms();
   }, [userId]);
 
-  // Format message timestamp
-  const formatMessageTime = (timestamp: string) => {
-    const messageDate = new Date(timestamp);
-    const now = new Date();
-    const diffInMilliseconds = now.getTime() - messageDate.getTime();
-    const diffInMinutes = Math.floor(diffInMilliseconds / (1000 * 60));
-    const diffInHours = Math.floor(diffInMinutes / 60);
-    const diffInDays = Math.floor(diffInHours / 24);
-
-    // Same day formatting
-    if (diffInDays === 0) {
-      return messageDate.toLocaleTimeString('en-US', {
-        hour: '2-digit',
-        minute: '2-digit',
-        hour12: false
-      });
-    }
-
-    // Yesterday
-    if (diffInDays === 1) {
-      return `Yesterday ${messageDate.toLocaleTimeString('en-US', {
-        hour: '2-digit',
-        minute: '2-digit',
-        hour12: false
-      })}`;
-    }
-
-    // Within last 7 days
-    if (diffInDays < 7) {
-      const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
-      return `${days[messageDate.getDay()]} ${messageDate.toLocaleTimeString('en-US', {
-        hour: '2-digit',
-        minute: '2-digit',
-        hour12: false
-      })}`;
-    }
-
-    // Older messages
-    return messageDate.toLocaleDateString('en-US', {
-      day: '2-digit',
-      month: '2-digit',
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-      hour12: false
-    }).replace(',', '');
-  };
-
-  // Handle input changes for create room form
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
-  };
-
-  // Handle search input changes
-  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setSearchQuery(e.target.value);
-  };
-
-  // Filter rooms based on search query
-  const filteredRooms = chatRooms?.filter(room => 
-    room?.name?.toLowerCase().includes(searchQuery.toLowerCase())
-  ) || [];
-
-  // Handle room selection and joining
-  useEffect(() => {
-    if (!socketRef.current || !selectedRoom) return;
-
-    // Join the room when selected
-    socketRef.current.emit('join_room', selectedRoom.toString());
-    console.log('Joined room:', selectedRoom.toString());
-
-    return () => {
-      socketRef.current?.emit('leave_room', selectedRoom.toString());
-      console.log('Left room:', selectedRoom.toString());
-    };
-  }, [selectedRoom]);
-
   // Load messages when room is selected
   useEffect(() => {
     if (selectedRoom) {
@@ -246,15 +185,36 @@ const ChatroomsPage = () => {
         try {
           const response = await api.get(`/api/chatrooms/${selectedRoom}/messages`);
           const messagesData = response.data.data || [];
-          setMessages(messagesData);
+          
+          // Only update messages if there are new ones
+          setMessages(prev => {
+            const newMessages = messagesData.filter((msg: Message) => 
+              !prev.some(existingMsg => existingMsg.id === msg.id)
+            );
+            
+            if (newMessages.length === 0) return prev;
+            return [...prev, ...newMessages];
+          });
         } catch (err) {
           console.error('Error fetching messages:', err);
           setError('Failed to load messages');
+        }
+      };
+
+      // Initial fetch
+      const initialFetch = async () => {
+        try {
+          const response = await api.get(`/api/chatrooms/${selectedRoom}/messages`);
+          const messagesData = response.data.data || [];
+          setMessages(messagesData);
+          setShouldScrollToBottom(true);
+        } catch (err) {
+          console.error('Error in initial fetch:', err);
           setMessages([]);
         }
       };
 
-      fetchMessages();
+      initialFetch();
       const interval = setInterval(fetchMessages, 1000);
       return () => clearInterval(interval);
     } else {
@@ -270,13 +230,10 @@ const ChatroomsPage = () => {
         content: newMessage.trim()
       };
 
+      setNewMessage(''); // Clear input immediately
       const response = await api.post(`/api/chatrooms/${selectedRoom}/messages`, messageData);
       
-      // Add the message to the local state immediately
-      setMessages(prev => [...prev, response.data]);
-      setNewMessage('');
-      
-      // Emit the message through socket for real-time update
+      // Only emit socket event, let the socket handler manage the messages state
       if (socketRef.current) {
         socketRef.current.emit('chatroom_message', response.data);
       }
@@ -284,6 +241,25 @@ const ChatroomsPage = () => {
       console.error('Error sending message:', error);
     }
   };
+
+  const formatMessageTime = (timestamp: string) => {
+    if (!timestamp) return '';
+    const date = new Date(timestamp);
+    return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  };
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({ ...prev, [name]: value }));
+  };
+
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchQuery(e.target.value);
+  };
+
+  const filteredRooms = chatRooms?.filter(room => 
+    room?.name?.toLowerCase().includes(searchQuery.toLowerCase())
+  ) || [];
 
   const handleCreateRoom = async () => {
     if (!formData.roomName.trim()) return;
@@ -321,13 +297,16 @@ const ChatroomsPage = () => {
         {selectedRoom ? (
           <ChatArea
             messages={messages}
-            currentUserId={userId}
-            roomName={chatRooms.find(room => room.id === selectedRoom)?.name}
+            currentUserId={Number(userId)}
+            roomName={chatRooms.find(room => room.id === selectedRoom)?.name || ''}
             newMessage={newMessage}
             onNewMessageChange={(e) => setNewMessage(e.target.value)}
             onSendMessage={handleSendMessage}
             formatMessageTime={formatMessageTime}
             type="chatroom"
+            messagesEndRef={messagesEndRef}
+            messagesContainerRef={messagesContainerRef}
+            onScroll={handleScroll}
           />
         ) : (
           <div className="chat-main">

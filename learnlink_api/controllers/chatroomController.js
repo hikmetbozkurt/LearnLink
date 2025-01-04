@@ -1,6 +1,7 @@
 import ChatRoom from '../models/chatroomModel.js';
 import { io } from '../server.js';
 import pool from '../config/database.js';
+import { encrypt, decrypt } from '../utils/encryption.js';
 
 export const chatroomController = {
   // Tüm chat odalarını getir
@@ -136,8 +137,11 @@ export const chatroomController = {
       
       const result = await pool.query(query, [chatroomId]);
 
-      // Ensure we're sending an array
-      const messagesArray = Array.isArray(result.rows) ? result.rows : [];
+      // Decrypt all message contents
+      const messagesArray = result.rows.map(msg => ({
+        ...msg,
+        content: decrypt(msg.content)
+      }));
       
       res.json({
         success: true,
@@ -170,21 +174,26 @@ export const chatroomController = {
         });
       }
 
-      // Insert the message
+      // Encrypt the message content
+      const encryptedContent = encrypt(content.trim());
+
+      // Insert the encrypted message
       const query = `
         INSERT INTO messages (content, sender_id, chatroom_id)
         VALUES ($1, $2, $3)
         RETURNING id, content, sender_id, created_at
       `;
       
-      const result = await pool.query(query, [content.trim(), userId, chatroomId]);
+      const result = await pool.query(query, [encryptedContent, userId, chatroomId]);
       
       // Get sender's name
       const userQuery = 'SELECT name FROM users WHERE user_id = $1';
       const userResult = await pool.query(userQuery, [userId]);
       
+      // Decrypt the message for the response
       const message = {
         ...result.rows[0],
+        content: decrypt(result.rows[0].content),
         sender_name: userResult.rows[0].name
       };
 

@@ -3,7 +3,15 @@ import api from '../api/axiosConfig';
 import { useAuth } from '../hooks/useAuth';
 import '../styles/pages/shared.css';
 import '../styles/pages/connections.css';
-import { FaUserPlus, FaUserCheck, FaSearch, FaCheck, FaTimes, FaUserMinus, FaEnvelope } from 'react-icons/fa';
+import { 
+  FaUserPlus, 
+  FaUserCheck, 
+  FaSearch, 
+  FaCheck, 
+  FaTimes, 
+  FaUserMinus, 
+  FaEnvelope 
+} from 'react-icons/fa';
 import { useToast } from '../components/ToastProvider';
 import { useNavigate } from 'react-router-dom';
 
@@ -27,6 +35,7 @@ interface FriendRequest {
 const ConnectionsPage = () => {
   const { user, loading: authLoading } = useAuth();
   const { showToast } = useToast();
+  const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState<User[]>([]);
   const [friends, setFriends] = useState<User[]>([]);
@@ -34,7 +43,6 @@ const ConnectionsPage = () => {
   const [sentRequests, setSentRequests] = useState<number[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const navigate = useNavigate();
 
   const userId = user?.user_id || user?.id;
 
@@ -93,54 +101,31 @@ const ConnectionsPage = () => {
     }
   };
 
-  const sendFriendRequest = async (targetUserId: number) => {
+  const handleFriendAction = async (action: string, targetId: number, requestId?: number) => {
     try {
       setError(null);
-      await api.post(`/api/users/friend-request/${targetUserId}`);
-      setSentRequests(prev => [...prev, targetUserId]);
+      switch (action) {
+        case 'send':
+          await api.post(`/api/users/friend-request/${targetId}`);
+          setSentRequests(prev => [...prev, targetId]);
+          break;
+        case 'accept':
+          await api.put(`/api/users/friend-request/${requestId}/accept`);
+          fetchFriendRequests();
+          fetchFriends();
+          break;
+        case 'reject':
+          await api.delete(`/api/users/friend-request/${requestId}`);
+          fetchFriendRequests();
+          break;
+        case 'remove':
+          await api.delete(`/api/users/friends/${targetId}`);
+          fetchFriends();
+          break;
+      }
     } catch (err: any) {
-      console.error('Error sending friend request:', err);
-      const errorMessage = err.response?.data?.message || 'Failed to send friend request';
-      showToast(errorMessage, 'error');
-      setError(errorMessage);
-    }
-  };
-
-  const acceptFriendRequest = async (requestId: number) => {
-    try {
-      setError(null);
-      await api.put(`/api/users/friend-request/${requestId}/accept`);
-      fetchFriendRequests();
-      fetchFriends();
-    } catch (err: any) {
-      console.error('Error accepting friend request:', err);
-      const errorMessage = err.response?.data?.message || 'Failed to accept friend request';
-      showToast(errorMessage, 'error');
-      setError(errorMessage);
-    }
-  };
-
-  const rejectFriendRequest = async (requestId: number) => {
-    try {
-      setError(null);
-      await api.delete(`/api/users/friend-request/${requestId}`);
-      fetchFriendRequests();
-    } catch (err: any) {
-      console.error('Error rejecting friend request:', err);
-      const errorMessage = err.response?.data?.message || 'Failed to reject friend request';
-      showToast(errorMessage, 'error');
-      setError(errorMessage);
-    }
-  };
-
-  const removeFriend = async (friendId: number) => {
-    try {
-      setError(null);
-      await api.delete(`/api/users/friends/${friendId}`);
-      fetchFriends();
-    } catch (err: any) {
-      console.error('Error removing friend:', err);
-      const errorMessage = err.response?.data?.message || 'Failed to remove friend';
+      console.error(`Error ${action}ing friend:`, err);
+      const errorMessage = err.response?.data?.message || `Failed to ${action} friend`;
       showToast(errorMessage, 'error');
       setError(errorMessage);
     }
@@ -148,12 +133,10 @@ const ConnectionsPage = () => {
 
   const handleSendMessage = async (userId: number, userName: string) => {
     try {
-      // Create or get existing direct message conversation
       const response = await api.post('/api/direct-messages', {
         recipientId: userId
       });
       
-      // Navigate to the direct messages page with the conversation selected
       navigate('/direct-messages', { 
         state: { 
           selectedChat: {
@@ -197,7 +180,6 @@ const ConnectionsPage = () => {
 
         {error && <div className="error-message">{error}</div>}
 
-        {/* Search Section */}
         <div className="search-section">
           <div className="search-bar">
             <input
@@ -212,7 +194,6 @@ const ConnectionsPage = () => {
             </button>
           </div>
 
-          {/* Search Results */}
           {searchResults.length > 0 && (
             <div className="search-results">
               <h3>Search Results</h3>
@@ -243,7 +224,7 @@ const ConnectionsPage = () => {
                       </button>
                     ) : (
                       <button
-                        onClick={() => sendFriendRequest(result.id || result.user_id!)}
+                        onClick={() => handleFriendAction('send', result.id || result.user_id!)}
                         className="add-friend-btn"
                         disabled={loading}
                       >
@@ -258,7 +239,6 @@ const ConnectionsPage = () => {
           )}
         </div>
 
-        {/* Friend Requests Section */}
         {friendRequests.length > 0 && (
           <div className="friend-requests-section">
             <h3>Friend Requests</h3>
@@ -274,7 +254,7 @@ const ConnectionsPage = () => {
                   </div>
                   <div className="request-actions">
                     <button
-                      onClick={() => acceptFriendRequest(request.id)}
+                      onClick={() => handleFriendAction('accept', request.sender_id, request.id)}
                       className="accept-friend-btn"
                       disabled={loading}
                     >
@@ -282,7 +262,7 @@ const ConnectionsPage = () => {
                       Accept
                     </button>
                     <button
-                      onClick={() => rejectFriendRequest(request.id)}
+                      onClick={() => handleFriendAction('reject', request.sender_id, request.id)}
                       className="reject-friend-btn"
                       disabled={loading}
                     >
@@ -296,7 +276,6 @@ const ConnectionsPage = () => {
           </div>
         )}
 
-        {/* Friends List Section */}
         <div className="friends-section">
           <h3>My Friends</h3>
           <div className="friends-list">
@@ -321,7 +300,7 @@ const ConnectionsPage = () => {
                       Send Message
                     </button>
                     <button
-                      onClick={() => removeFriend(friend.id || friend.user_id!)}
+                      onClick={() => handleFriendAction('remove', friend.id || friend.user_id!)}
                       className="remove-friend-btn"
                     >
                       <FaUserMinus />

@@ -48,18 +48,6 @@ const Sidebar = () => {
       ]
     }
   ];
-
-  const menuItems = [
-    { path: '/home', icon: <FaHome />, text: 'Home' },
-    { path: '/courses', icon: <FaBook />, text: 'Courses' },
-    { path: '/assignments', icon: <FaTasks />, text: 'Assignments' },
-    { path: '/connections', icon: <FaUsers />, text: 'Connections' },
-    { path: '/chatrooms', icon: <FaComments />, text: 'Chatrooms' },
-    { path: '/direct-messages', icon: <FaEnvelope />, text: 'Direct Messages' },
-    { path: '/progress', icon: <FaChartLine />, text: 'Progress' },
-    { path: '/support', icon: <FaQuestionCircle />, text: 'Support' },
-  ];
-
   return (
     <div className="sidebar">
       <div className="logo-container">

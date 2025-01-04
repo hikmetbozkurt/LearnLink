@@ -36,9 +36,41 @@ const DirectMessagesPage = () => {
   const [newMessage, setNewMessage] = useState('');
   const [loading, setLoading] = useState(true);
   const socketRef = useRef<any>(null);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const messagesContainerRef = useRef<HTMLDivElement>(null);
+  const [shouldScrollToBottom, setShouldScrollToBottom] = useState(true);
+  const [isInitialLoad, setIsInitialLoad] = useState(true);
 
+  const scrollToBottom = () => {
+    if (messagesEndRef.current && (shouldScrollToBottom || isInitialLoad)) {
+      messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
+      setIsInitialLoad(false);
+    }
+  };
+
+  // Handle scroll events to determine if we should auto-scroll
+  const handleScroll = () => {
+    if (messagesContainerRef.current) {
+      const { scrollTop, scrollHeight, clientHeight } = messagesContainerRef.current;
+      const isNearBottom = scrollHeight - (scrollTop + clientHeight) < 100;
+      setShouldScrollToBottom(isNearBottom);
+    }
+  };
+
+  // Only scroll on initial load and when sending messages
   useEffect(() => {
-    // Initialize socket connection
+    if (isInitialLoad || shouldScrollToBottom) {
+      scrollToBottom();
+    }
+  }, [messages]);
+
+  // Reset isInitialLoad when changing chats
+  useEffect(() => {
+    setIsInitialLoad(true);
+  }, [selectedChat]);
+
+  // Initialize socket connection
+  useEffect(() => {
     const token = localStorage.getItem('token');
     if (!token) return;
 
@@ -57,7 +89,6 @@ const DirectMessagesPage = () => {
     const socket = socketRef.current;
 
     socket.on('connect', () => {
-      console.log('Socket connected');
       if (user?.user_id) {
         socket.emit('user_connected', user.user_id.toString());
       }
@@ -67,22 +98,16 @@ const DirectMessagesPage = () => {
       console.error('Socket connection error:', error);
     });
 
-    socket.on('reconnect', (attemptNumber: number) => {
-      console.log('Reconnected to chat server after', attemptNumber, 'attempts');
-    });
-
     socket.on('disconnect', (reason: string) => {
-      console.log('Disconnected from chat server:', reason);
       if (reason === 'io server disconnect') {
         socket.connect();
       }
     });
 
-    // Handle both new_direct_message and direct_message events
+    // Handle new messages
     const handleNewMessage = (message: Message) => {
       if (selectedChat && message.dm_id === parseInt(selectedChat.id)) {
         setMessages(prev => {
-          // Check if message already exists to prevent duplicates
           const exists = prev.some(m => 
             m.id === message.id || 
             (m.content === message.content && 
@@ -93,9 +118,8 @@ const DirectMessagesPage = () => {
           if (exists) return prev;
           return [...prev, message];
         });
+        fetchDirectMessages();
       }
-      // Refresh direct messages list to update last message
-      fetchDirectMessages();
     };
 
     socket.on('new_direct_message', handleNewMessage);
@@ -110,24 +134,54 @@ const DirectMessagesPage = () => {
     };
   }, [user?.user_id, selectedChat]);
 
+  // Handle joining/leaving DM rooms when chat is selected
   useEffect(() => {
-    fetchDirectMessages();
-  }, []);
+    if (!socketRef.current || !selectedChat) return;
 
+    socketRef.current.emit('join_dm', selectedChat.id);
+
+    return () => {
+      socketRef.current?.emit('leave_dm', selectedChat.id);
+    };
+  }, [selectedChat]);
+
+  // Fetch messages for selected chat
   useEffect(() => {
     if (selectedChat) {
       const fetchMessages = async () => {
         try {
           const response = await api.get(`/api/direct-messages/${selectedChat.id}/messages`);
           const messagesData = response.data.data || [];
-          setMessages(messagesData);
+          
+          // Only update messages if there are new ones
+          setMessages(prev => {
+            const newMessages = messagesData.filter((msg: Message) => 
+              !prev.some(existingMsg => existingMsg.id === msg.id)
+            );
+            
+            if (newMessages.length === 0) return prev;
+            return [...prev, ...newMessages];
+          });
         } catch (error) {
           console.error('Error fetching messages:', error);
           setMessages([]);
         }
       };
 
-      fetchMessages();
+      // Initial fetch
+      const initialFetch = async () => {
+        try {
+          const response = await api.get(`/api/direct-messages/${selectedChat.id}/messages`);
+          const messagesData = response.data.data || [];
+          setMessages(messagesData);
+          setShouldScrollToBottom(true);
+        } catch (error) {
+          console.error('Error in initial fetch:', error);
+          setMessages([]);
+        }
+      };
+
+      initialFetch();
       const interval = setInterval(fetchMessages, 1000);
       return () => clearInterval(interval);
     } else {
@@ -135,50 +189,10 @@ const DirectMessagesPage = () => {
     }
   }, [selectedChat]);
 
-  // Handle joining/leaving DM rooms when chat is selected
+  // Fetch direct messages list
   useEffect(() => {
-    if (!socketRef.current || !selectedChat) return;
-
-    // Join the DM room when selected
-    socketRef.current.emit('join_dm', selectedChat.id);
-    console.log('Joined DM:', selectedChat.id);
-
-    return () => {
-      socketRef.current?.emit('leave_dm', selectedChat.id);
-      console.log('Left DM:', selectedChat.id);
-    };
-  }, [selectedChat]);
-
-  // Handle new messages
-  useEffect(() => {
-    if (!socketRef.current) return;
-
-    const handleNewMessage = (message: Message) => {
-      console.log('New message received:', message);
-      if (selectedChat && message.dm_id === parseInt(selectedChat.id)) {
-        setMessages(prev => {
-          // Check if message already exists to prevent duplicates
-          const exists = prev.some(m => 
-            m.id === message.id || 
-            (m.content === message.content && 
-             m.sender_id === message.sender_id && 
-             Math.abs(new Date(m.created_at).getTime() - new Date(message.created_at).getTime()) < 1000)
-          );
-
-          if (exists) return prev;
-          return [...prev, message];
-        });
-        // Refresh direct messages list to update last message
-        fetchDirectMessages();
-      }
-    };
-
-    socketRef.current.on('new_direct_message', handleNewMessage);
-
-    return () => {
-      socketRef.current?.off('new_direct_message', handleNewMessage);
-    };
-  }, [selectedChat]);
+    fetchDirectMessages();
+  }, []);
 
   const fetchDirectMessages = async () => {
     try {
@@ -205,19 +219,13 @@ const DirectMessagesPage = () => {
         content: newMessage.trim()
       };
 
+      setNewMessage(''); // Clear input immediately
       const response = await api.post(`/api/direct-messages/${selectedChat.id}/messages`, messageData);
       
-      // Add the message to the local state immediately
-      setMessages(prev => [...prev, response.data]);
-      setNewMessage('');
-      
-      // Emit the message through socket for real-time update
+      // Only emit socket event, let the socket handler manage the messages state
       if (socketRef.current) {
         socketRef.current.emit('direct_message', response.data);
       }
-
-      // Refresh direct messages list to update last message
-      fetchDirectMessages();
     } catch (error) {
       console.error('Error sending message:', error);
     }
@@ -227,9 +235,6 @@ const DirectMessagesPage = () => {
     const date = new Date(timestamp);
     return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
   };
-
-  // Ensure user ID is always a number
-  const currentUserId = user?.user_id || user?.id || 0;
 
   const handleDeleteConversation = async (id: string) => {
     try {
@@ -242,6 +247,9 @@ const DirectMessagesPage = () => {
       console.error('Error deleting conversation:', error);
     }
   };
+
+  // Ensure user ID is always a number
+  const currentUserId = user?.user_id || user?.id || 0;
 
   return (
     <div className="chat-page">
@@ -269,6 +277,9 @@ const DirectMessagesPage = () => {
             onSendMessage={handleSendMessage}
             formatMessageTime={formatMessageTime}
             type="direct"
+            messagesEndRef={messagesEndRef}
+            messagesContainerRef={messagesContainerRef}
+            onScroll={handleScroll}
           />
         ) : (
           <div className="chat-main">

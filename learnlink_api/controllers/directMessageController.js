@@ -1,4 +1,5 @@
 import pool from '../config/database.js';
+import { encrypt, decrypt } from '../utils/encryption.js';
 
 // Get all direct messages for the current user
 export const getDirectMessages = async (req, res) => {
@@ -148,8 +149,11 @@ export const getDirectMessageMessages = async (req, res) => {
     `;
     const result = await pool.query(query, [id]);
     
-    // Ensure we're sending an array
-    const messagesArray = Array.isArray(result.rows) ? result.rows : [];
+    // Ensure we're sending an array and decrypt all messages
+    const messagesArray = Array.isArray(result.rows) ? result.rows.map(msg => ({
+      ...msg,
+      content: decrypt(msg.content)
+    })) : [];
     
     res.json({
       success: true,
@@ -198,6 +202,9 @@ export const sendDirectMessage = async (req, res) => {
       ? conversationResult.rows[0].user2_id 
       : conversationResult.rows[0].user1_id;
 
+    // Encrypt the message content
+    const encryptedContent = encrypt(content.trim());
+
     // Insert the message
     const query = `
       INSERT INTO messages (content, sender_id, dm_id)
@@ -205,14 +212,16 @@ export const sendDirectMessage = async (req, res) => {
       RETURNING id, content, sender_id, created_at
     `;
     
-    const result = await pool.query(query, [content.trim(), userId, id]);
+    const result = await pool.query(query, [encryptedContent, userId, id]);
     
     // Get sender's name
     const userQuery = 'SELECT name FROM users WHERE user_id = $1';
     const userResult = await pool.query(userQuery, [userId]);
     
+    // Decrypt the message for the response
     const message = {
       ...result.rows[0],
+      content: decrypt(result.rows[0].content),
       sender_name: userResult.rows[0].name,
       dm_id: parseInt(id)
     };
@@ -284,6 +293,90 @@ export const deleteDirectMessage = async (req, res) => {
       success: false,
       error: 'Failed to delete conversation',
       message: error.message 
+    });
+  }
+};
+
+export const sendMessage = async (req, res) => {
+  try {
+    const { dmId } = req.params;
+    const { content } = req.body;
+    const userId = req.user.user_id;
+
+    if (!content || content.trim().length === 0) {
+      return res.status(400).json({
+        success: false,
+        error: 'VALIDATION_ERROR',
+        message: 'Message content is required'
+      });
+    }
+
+    // Encrypt the message content
+    const encryptedContent = encrypt(content.trim());
+
+    const query = `
+      INSERT INTO messages (content, sender_id, dm_id)
+      VALUES ($1, $2, $3)
+      RETURNING id, content, sender_id, created_at, dm_id
+    `;
+
+    const result = await pool.query(query, [encryptedContent, userId, dmId]);
+
+    // Get sender's name
+    const userQuery = 'SELECT name FROM users WHERE user_id = $1';
+    const userResult = await pool.query(userQuery, [userId]);
+
+    // Decrypt the message for the response
+    const message = {
+      ...result.rows[0],
+      content: decrypt(result.rows[0].content),
+      sender_name: userResult.rows[0].name
+    };
+
+    res.status(201).json(message);
+  } catch (error) {
+    console.error('Error sending message:', error);
+    res.status(500).json({ message: 'Failed to send message' });
+  }
+};
+
+export const getMessages = async (req, res) => {
+  try {
+    const { dmId } = req.params;
+    const userId = req.user.user_id;
+
+    const query = `
+      SELECT 
+        m.id,
+        m.content,
+        m.sender_id,
+        m.created_at,
+        u.name as sender_name,
+        m.dm_id
+      FROM messages m
+      JOIN users u ON m.sender_id = u.user_id
+      WHERE m.dm_id = $1
+      ORDER BY m.created_at ASC
+    `;
+
+    const result = await pool.query(query, [dmId]);
+
+    // Decrypt all message contents
+    const messages = result.rows.map(msg => ({
+      ...msg,
+      content: decrypt(msg.content)
+    }));
+
+    res.json({
+      success: true,
+      data: messages
+    });
+  } catch (error) {
+    console.error('Error fetching messages:', error);
+    res.status(500).json({ 
+      success: false,
+      message: 'Failed to fetch messages',
+      data: []
     });
   }
 }; 
