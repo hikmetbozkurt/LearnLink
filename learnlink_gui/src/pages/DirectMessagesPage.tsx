@@ -40,6 +40,7 @@ const DirectMessagesPage = () => {
   const messagesContainerRef = useRef<HTMLDivElement>(null);
   const [shouldScrollToBottom, setShouldScrollToBottom] = useState(true);
   const [isInitialLoad, setIsInitialLoad] = useState(true);
+  const [searchQuery, setSearchQuery] = useState('');
 
   const scrollToBottom = () => {
     if (messagesEndRef.current && (shouldScrollToBottom || isInitialLoad)) {
@@ -251,14 +252,22 @@ const DirectMessagesPage = () => {
   // Ensure user ID is always a number
   const currentUserId = user?.user_id || user?.id || 0;
 
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchQuery(e.target.value);
+  };
+
+  const filteredDirectMessages = directMessages.filter(dm =>
+    dm.name.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
   return (
     <div className="chat-page">
       <div className="chat-container">
         <ChatSidebar
-          rooms={directMessages}
+          rooms={filteredDirectMessages}
           selectedRoom={selectedChat?.id}
-          searchQuery=""
-          onSearchChange={() => {}}
+          searchQuery={searchQuery}
+          onSearchChange={handleSearchChange}
           onJoinRoom={(id) => {
             const chat = directMessages.find(dm => dm.id === id);
             if (chat) setSelectedChat(chat);

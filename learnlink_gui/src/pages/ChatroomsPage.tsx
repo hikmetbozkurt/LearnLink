@@ -282,6 +282,19 @@ const ChatroomsPage = () => {
     }
   };
 
+  const handleDeleteRoom = async (roomId: string) => {
+    try {
+      await api.delete(`/api/chatrooms/${roomId}`);
+      setChatRooms(prev => prev.filter(room => room.id !== roomId));
+      if (selectedRoom === roomId) {
+        setSelectedRoom(null);
+        setMessages([]);
+      }
+    } catch (error) {
+      console.error('Error deleting chatroom:', error);
+    }
+  };
+
   return (
     <div className="chat-page">
       <div className="chat-container">
@@ -292,7 +305,7 @@ const ChatroomsPage = () => {
           onSearchChange={handleSearchChange}
           onJoinRoom={setSelectedRoom}
           onCreateRoom={() => setShowCreateRoom(true)}
-          onDeleteRoom={() => {}}
+          onDeleteRoom={handleDeleteRoom}
         />
         {selectedRoom ? (
           <ChatArea
