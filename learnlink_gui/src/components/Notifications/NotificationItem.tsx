@@ -1,6 +1,6 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { FaBell, FaEnvelope, FaUsers, FaUserFriends, FaBook, FaCheckCircle, FaTimesCircle } from 'react-icons/fa';
+import { FaBell, FaEnvelope, FaUsers, FaUserFriends } from 'react-icons/fa';
 import { formatDistanceToNow } from 'date-fns';
 import api from '../../api/axiosConfig';
 import './NotificationItem.css';
@@ -23,7 +23,7 @@ const NotificationItem: React.FC<NotificationItemProps> = ({ notification, onMar
   const navigate = useNavigate();
 
   const handleMarkAsRead = async (e: React.MouseEvent) => {
-    e.stopPropagation(); // Prevent triggering the parent div's click
+    e.stopPropagation();
     try {
       await api.put(`/api/notifications/${notification.notifications_id}/read`);
       onMarkAsRead(notification.notifications_id);
@@ -33,7 +33,9 @@ const NotificationItem: React.FC<NotificationItemProps> = ({ notification, onMar
   };
 
   const handleClick = async () => {
-    // Mark as read if not already read
+    console.log('Notification clicked:', notification);
+
+    // Mark as read first
     if (!notification.read) {
       try {
         await api.put(`/api/notifications/${notification.notifications_id}/read`);
@@ -43,36 +45,30 @@ const NotificationItem: React.FC<NotificationItemProps> = ({ notification, onMar
       }
     }
 
-    // Navigate based on notification type
-    switch (notification.type) {
-      case 'private_message':
-        // Get or create DM conversation and navigate to it
-        try {
+    // Handle navigation based on type
+    try {
+      switch (notification.type) {
+        case 'friend_request':
+          console.log('Navigating to connections page');
+          window.location.href = '/connections';
+          break;
+
+        case 'private_message':
           const response = await api.post('/api/direct-messages', {
             recipientId: notification.sender_id
           });
-          navigate('/direct-messages', {
-            state: {
-              selectedChat: {
-                id: String(response.data.id),
-                name: notification.sender_name
-              }
-            }
-          });
-        } catch (error) {
-          console.error('Error navigating to direct message:', error);
-        }
-        break;
+          window.location.href = '/direct-messages';
+          break;
 
-      case 'chatroom_message':
-        navigate('/chatrooms', {
-          state: { selectedRoom: String(notification.reference_id) }
-        });
-        break;
+        case 'chat_message':
+          window.location.href = '/chatrooms';
+          break;
 
-      // Add other cases as needed
-      default:
-        break;
+        default:
+          console.log('Unknown notification type:', notification.type);
+      }
+    } catch (error) {
+      console.error('Error handling notification click:', error);
     }
   };
 
@@ -80,16 +76,10 @@ const NotificationItem: React.FC<NotificationItemProps> = ({ notification, onMar
     switch (type) {
       case 'private_message':
         return <FaEnvelope className="notification-icon private-message" />;
-      case 'chatroom_message':
+      case 'chat_message':
         return <FaUsers className="notification-icon chatroom-message" />;
       case 'friend_request':
         return <FaUserFriends className="notification-icon friend-request" />;
-      case 'course_update':
-        return <FaBook className="notification-icon course-update" />;
-      case 'request_accepted':
-        return <FaCheckCircle className="notification-icon request-accepted" />;
-      case 'request_rejected':
-        return <FaTimesCircle className="notification-icon request-rejected" />;
       default:
         return <FaBell className="notification-icon" />;
     }
@@ -117,4 +107,6 @@ const NotificationItem: React.FC<NotificationItemProps> = ({ notification, onMar
       )}
     </div>
   );
-}; 
+};
+
+export default NotificationItem; 

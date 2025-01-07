@@ -43,6 +43,7 @@ const ConnectionsPage = () => {
   const [sentRequests, setSentRequests] = useState<number[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [isSearching, setIsSearching] = useState(false);
 
   const userId = user?.user_id || user?.id;
 
@@ -86,18 +87,30 @@ const ConnectionsPage = () => {
   };
 
   const handleSearch = async () => {
-    if (!searchQuery.trim()) return;
-    
-    setLoading(true);
-    setError(null);
+    if (!searchQuery.trim()) {
+      setSearchResults([]);
+      return;
+    }
+
+    setIsSearching(true);
     try {
       const response = await api.get(`/api/users/search/${encodeURIComponent(searchQuery)}`);
       setSearchResults(response.data);
-    } catch (err) {
-      console.error('Error searching users:', err);
-      setError('Failed to search users');
+    } catch (error) {
+      console.error('Error searching users:', error);
+      setSearchResults([]);
     } finally {
-      setLoading(false);
+      setIsSearching(false);
+    }
+  };
+
+  const handleSearchInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    setSearchQuery(value);
+    
+    // Clear results if input is empty
+    if (!value.trim()) {
+      setSearchResults([]);
     }
   };
 
@@ -186,7 +199,7 @@ const ConnectionsPage = () => {
               type="text"
               placeholder="Search users by name..."
               value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
+              onChange={handleSearchInputChange}
               onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
             />
             <button onClick={handleSearch} disabled={loading}>
