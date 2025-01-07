@@ -4,7 +4,7 @@
   "type": "module",
   "scripts": {
     "start": "node server.js",
-    "dev": "nodemon server.js",
+    "dev": "nodemon server.js --no-deprecation server.js",
     "setup": "bash setup.sh",
     "db:setup": "psql -U postgres -d learnlink -f config/schema.sql"
   },

@@ -5,6 +5,7 @@ import pool from '../config/database.js';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import { OAuth2Client } from 'google-auth-library';
+import crypto from 'crypto';
 
 const authService = new AuthService();
 const emailService = new EmailService();
@@ -69,9 +70,11 @@ export const login = asyncHandler(async (req, res) => {
 });
 
 export const register = asyncHandler(async (req, res) => {
+  console.log('Register request received:', req.body);
   const { email, password, name, role } = req.body;
 
   if (!email || !password || !name) {
+    console.log('Missing required fields:', { email: !!email, password: !!password, name: !!name });
     return res.status(400).json({ message: 'All fields are required' });
   }
 
@@ -81,6 +84,7 @@ export const register = asyncHandler(async (req, res) => {
       'SELECT * FROM users WHERE email = $1',
       [email]
     );
+    console.log('User exists check result:', { exists: userExists.rows.length > 0 });
 
     if (userExists.rows.length > 0) {
       return res.status(409).json({ message: 'User already exists' });
@@ -90,13 +94,17 @@ export const register = asyncHandler(async (req, res) => {
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
 
-    // Create user
+    // Create user - Modified query to let PostgreSQL handle user_id
+    console.log('Attempting to create user with:', { email, name, role: role || 'student' });
     const result = await pool.query(
-      'INSERT INTO users (email, password, name, role) VALUES ($1, $2, $3, $4) RETURNING user_id, name, email, role',
-      [email, hashedPassword, name, role || 'student']
+      `INSERT INTO users (name, email, password, role, is_active) 
+       VALUES ($1, $2, $3, $4, true) 
+       RETURNING user_id, name, email, role`,
+      [name, email, hashedPassword, role || 'student']
     );
 
     const user = result.rows[0];
+    console.log('User created successfully:', { userId: user.user_id });
 
     // Generate token
     const token = jwt.sign(
@@ -117,8 +125,13 @@ export const register = asyncHandler(async (req, res) => {
       }
     });
   } catch (error) {
-    console.error('Registration error:', error);
-    res.status(500).json({ message: 'Error creating user' });
+    console.error('Registration error details:', {
+      error: error.message,
+      stack: error.stack,
+      email,
+      name
+    });
+    res.status(500).json({ message: 'Error creating user', details: error.message });
   }
 });
 
@@ -253,9 +266,15 @@ export const googleLogin = asyncHandler(async (req, res) => {
 
     if (result.rows.length === 0) {
       // Create new user if doesn't exist
+      // Generate a random password for Google users since our DB requires it
+      const randomPassword = crypto.randomBytes(32).toString('hex');
+      const hashedPassword = await bcrypt.hash(randomPassword, 10);
+      
       result = await pool.query(
-        'INSERT INTO users (email, name, role) VALUES ($1, $2, $3, $4) RETURNING user_id, name, email, role',
-        [email, name, picture, 'student']
+        `INSERT INTO users (name, email, password, role, is_active) 
+         VALUES ($1, $2, $3, $4, true) 
+         RETURNING user_id, name, email, role`,
+        [name, email, hashedPassword, 'student']
       );
     }
 
