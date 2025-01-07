@@ -9,7 +9,7 @@
 }
 
 .page-title {
-  font-size: 2.2rem;
+  font-size: 1.8rem;
   color: #512da8;
   margin: 0;
   font-weight: 600;
@@ -21,6 +21,8 @@
   border-radius: 16px;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
   transition: transform 0.3s ease;
+  max-width: 600px;
+  margin: 0 auto 2rem auto;
 }
 
 .search-section:hover {
@@ -30,15 +32,15 @@
 .search-bar {
   display: flex;
   gap: 1rem;
-  margin-bottom: 2rem;
+  margin-bottom: 1rem;
 }
 
 .search-bar input {
   flex: 1;
-  padding: 14px 20px;
+  padding: 12px 16px;
   border: 2px solid #e0e0e0;
   border-radius: 12px;
-  font-size: 1rem;
+  font-size: 0.95rem;
   transition: all 0.3s ease;
   background-color: #f8f9fa;
 }
@@ -51,7 +53,7 @@
 }
 
 .search-bar button {
-  padding: 0 1.8rem;
+  padding: 0 1.5rem;
   background: #512da8;
   color: white;
   border: none;
@@ -62,7 +64,7 @@
   align-items: center;
   gap: 0.5rem;
   font-weight: 500;
-  font-size: 1rem;
+  font-size: 0.95rem;
 }
 
 .search-bar button:hover:not(:disabled) {
@@ -78,43 +80,41 @@
 }
 
 .search-results {
-  margin-top: 1.5rem;
+  margin-top: 1rem;
 }
 
 .search-results h3 {
-  margin-bottom: 1.5rem;
+  margin-bottom: 1rem;
   padding-bottom: 0.5rem;
   border-bottom: 1px solid #e0e0e0;
-}
-
-.search-results .user-card:first-child {
-  margin-top: 1rem;
+  font-size: 1.1rem;
 }
 
 .user-card {
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  padding: 2rem;
+  padding: 1rem 1.5rem;
   background-color: white;
   border: 1px solid #e8e8e8;
-  border-radius: 24px;
-  margin-bottom: 1rem;
+  border-radius: 10px;
   transition: all 0.3s ease;
   gap: 1.5rem;
+  margin-bottom: 8px;
+}
+
+.user-card:last-child {
+  margin-bottom: 0;
 }
 
 .user-card:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+  background-color: #f8f7ff;
   border-color: #e0e0e0;
 }
 
 .user-info {
   display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 0.5rem;
+  align-items: center;
+  gap: 1rem;
   flex: 1;
 }
 
@@ -124,19 +124,20 @@
 
 .user-details h3 {
   margin: 0;
-  font-size: 1.4rem;
+  font-size: 1.1rem;
   color: #512da8;
   font-weight: 600;
+  border: none;
 }
 
 .user-details p {
   margin: 0.2rem 0;
-  font-size: 1rem;
+  font-size: 0.9rem;
   color: #666;
 }
 
 .user-details small {
-  font-size: 0.9rem;
+  font-size: 0.85rem;
   color: #888;
   display: block;
   margin-top: 0.2rem;
@@ -145,8 +146,7 @@
 
 .user-actions {
   display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
+  gap: 0.8rem;
   flex-shrink: 0;
 }
 
@@ -159,17 +159,16 @@
 .send-message-btn {
   padding: 8px 16px;
   border: none;
-  border-radius: 50px;
+  border-radius: 8px;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;
-  font-size: 0.9rem;
+  gap: 6px;
+  font-size: 0.85rem;
   font-weight: 500;
   transition: all 0.3s ease;
   white-space: nowrap;
-  min-width: 120px;
 }
 
 .add-friend-btn {
@@ -179,8 +178,6 @@
 
 .add-friend-btn:hover:not(:disabled) {
   background-color: #4527a0;
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(81, 45, 168, 0.2);
 }
 
 .accept-friend-btn {
@@ -190,8 +187,6 @@
 
 .accept-friend-btn:hover:not(:disabled) {
   background-color: #43a047;
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(76, 175, 80, 0.2);
 }
 
 .reject-friend-btn,
@@ -203,8 +198,6 @@
 .reject-friend-btn:hover:not(:disabled),
 .remove-friend-btn:hover:not(:disabled) {
   background-color: #ff1744;
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(255, 82, 82, 0.2);
 }
 
 .request-sent-btn,
@@ -224,63 +217,32 @@
   color: white;
 }
 
-.send-message-btn svg {
-  font-size: 1rem;
-}
-
 .send-message-btn:hover:not(:disabled) {
   background-color: #4527a0;
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(81, 45, 168, 0.15);
-}
-
-.remove-friend-btn {
-  background-color: #ff5252;
-  color: white;
-}
-
-.remove-friend-btn svg {
-  font-size: 1rem;
-}
-
-.remove-friend-btn:hover:not(:disabled) {
-  background-color: #ff1744;
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(255, 82, 82, 0.15);
 }
 
 .friend-requests-section,
 .friends-section {
-  margin-top: 2.5rem;
+  margin-top: 2rem;
   background: white;
-  padding: 2rem;
+  padding: 1.5rem;
   border-radius: 16px;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
-  transition: transform 0.3s ease;
-}
-
-.friend-requests-section:hover,
-.friends-section:hover {
-  transform: translateY(-2px);
 }
 
 .friend-requests-section h3,
 .friends-section h3 {
-  margin-bottom: 1.8rem;
+  margin-bottom: 1.5rem;
   padding-bottom: 0.5rem;
   border-bottom: 1px solid #e0e0e0;
-}
-
-.friend-requests-section h3::after,
-.friends-section h3::after {
-  display: none;
+  font-size: 1.2rem;
 }
 
 .friend-requests-list,
 .friends-list {
-  display: grid;
-  gap: 1.2rem;
-  grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
 }
 
 .request-actions {
@@ -291,6 +253,10 @@
 @media (max-width: 768px) {
   .page-container {
     padding: 1rem;
+  }
+
+  .search-section {
+    padding: 1.5rem;
   }
 
   .search-bar {
@@ -306,8 +272,8 @@
   .user-card {
     flex-direction: column;
     text-align: center;
-    gap: 1.2rem;
-    padding: 1.2rem;
+    gap: 1rem;
+    padding: 1rem;
   }
 
   .user-info {
@@ -317,43 +283,18 @@
 
   .user-actions {
     width: 100%;
-    gap: 0.5rem;
+    justify-content: center;
+    flex-wrap: wrap;
   }
 
-  .add-friend-btn,
-  .accept-friend-btn,
-  .reject-friend-btn,
-  .remove-friend-btn,
-  .request-sent-btn,
-  .already-friend-btn,
-  .send-message-btn {
-    width: 100%;
-    justify-content: center;
-    padding: 10px;
-    min-width: unset;
+  .friend-requests-section,
+  .friends-section {
+    padding: 1rem;
   }
 
   .request-actions {
     width: 100%;
-    flex-direction: column;
-    gap: 0.8rem;
-  }
-
-  .friend-requests-list,
-  .friends-list {
-    grid-template-columns: 1fr;
-  }
-
-  .friend-requests-section,
-  .friends-section,
-  .search-section {
-    padding: 1.5rem;
-  }
-
-  .send-message-btn,
-  .remove-friend-btn {
-    width: 100%;
-    padding: 14px;
-    min-width: unset;
+    justify-content: center;
+    flex-wrap: wrap;
   }
 } 

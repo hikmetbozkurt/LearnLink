@@ -18,6 +18,8 @@ interface ChatSidebarProps {
   onCreateRoom: () => void;
   onDeleteRoom: (roomId: string) => void;
   hideCreateButton?: boolean;
+  title?: string;
+  searchPlaceholder?: string;
 }
 
 const ChatSidebar: React.FC<ChatSidebarProps> = ({
@@ -28,17 +30,19 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({
   onJoinRoom,
   onCreateRoom,
   onDeleteRoom,
-  hideCreateButton = false
+  hideCreateButton = false,
+  title = 'Chat Rooms',
+  searchPlaceholder = 'Search rooms...'
 }) => {
   return (
     <div className="chat-sidebar">
       <div className="chat-sidebar-header">
-        <h2>Chat Rooms</h2>
+        <h2>{title}</h2>
         <div className="search-box">
           <FaSearch className="search-icon" />
           <input
             type="text"
-            placeholder="Search rooms..."
+            placeholder={searchPlaceholder}
             value={searchQuery}
             onChange={onSearchChange}
           />

@@ -306,6 +306,8 @@ const ChatroomsPage = () => {
           onJoinRoom={setSelectedRoom}
           onCreateRoom={() => setShowCreateRoom(true)}
           onDeleteRoom={handleDeleteRoom}
+          title="Chat Rooms"
+          searchPlaceholder="Search rooms..."
         />
         {selectedRoom ? (
           <ChatArea

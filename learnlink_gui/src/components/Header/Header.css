@@ -27,6 +27,7 @@
 .search-wrapper {
   position: relative;
   width: 100%;
+  margin-left: 57%;
 }
 
 .search-wrapper input {
@@ -157,5 +158,18 @@
   to {
     opacity: 1;
     transform: translateY(0);
+  }
+}
+
+@media (max-width: 1200px) {
+  .search-wrapper {
+    margin-left: calc(25% - 50px);
+  }
+}
+
+@media (max-width: 768px) {
+  .search-wrapper {
+    margin-left: 20px;
+    width: 60%;
   }
 } 

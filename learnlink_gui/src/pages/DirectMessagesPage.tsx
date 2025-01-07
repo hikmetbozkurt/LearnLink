@@ -275,6 +275,8 @@ const DirectMessagesPage = () => {
           onCreateRoom={() => {}}
           onDeleteRoom={handleDeleteConversation}
           hideCreateButton={true}
+          title="Direct Messages"
+          searchPlaceholder="Search messages..."
         />
         {selectedChat ? (
           <ChatArea
