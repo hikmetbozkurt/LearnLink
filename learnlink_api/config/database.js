@@ -1,5 +1,5 @@
-import pg from 'pg'
-import config from './env.js'
+import pg from "pg";
+import config from "./env.js";
 
 const pool = new pg.Pool({
   user: config.DB_USER,
@@ -7,10 +7,13 @@ const pool = new pg.Pool({
   database: config.DB_NAME,
   password: config.DB_PASSWORD,
   port: config.DB_PORT,
+  ssl: {
+    rejectUnauthorized: false,
+  },
 });
 
-pool.on('error', (err) => {
-  console.error('Unexpected error on idle client', err);
+pool.on("error", (err) => {
+  console.error("Unexpected error on idle client", err);
   process.exit(-1);
 });
 
@@ -18,13 +21,13 @@ pool.on('error', (err) => {
 const testConnection = async () => {
   try {
     const client = await pool.connect();
-    console.log('Database connected successfully');
+    console.log("Database connected successfully");
     client.release();
   } catch (err) {
-    console.error('Database connection error:', err);
+    console.error("Database connection error:", err);
   }
 };
 
 testConnection();
 
-export default pool; 
+export default pool;
