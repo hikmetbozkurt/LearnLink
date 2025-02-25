@@ -1,0 +1,138 @@
+.create-post-modal {
+  max-width: 600px;
+  width: 90%;
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-bottom: 16px;
+  border-bottom: 1px solid #eee;
+  margin-bottom: 20px;
+}
+
+.modal-header h2 {
+  margin: 0;
+  font-size: 1.5rem;
+  color: #333;
+}
+
+.close-button {
+  background: none;
+  border: none;
+  font-size: 1.2rem;
+  color: #666;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 50%;
+  transition: background-color 0.2s;
+}
+
+.close-button:hover {
+  background-color: #f0f0f0;
+}
+
+.post-type-selector {
+  display: flex;
+  gap: 12px;
+  margin-top: 8px;
+}
+
+.type-button {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  background: white;
+  color: #666;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.type-button.active {
+  background: #512da8;
+  color: white;
+  border-color: #512da8;
+}
+
+.type-button:hover:not(.active) {
+  background: #f0f0f0;
+}
+
+.form-group {
+  margin-bottom: 20px;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: 500;
+  color: #333;
+}
+
+.form-group textarea {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  resize: vertical;
+  font-size: 1rem;
+}
+
+.form-group input[type="file"] {
+  width: 100%;
+  padding: 8px;
+  border: 1px dashed #ddd;
+  border-radius: 8px;
+  background: #f8f9fa;
+}
+
+.error-message {
+  color: #dc3545;
+  margin-bottom: 16px;
+  font-size: 0.9rem;
+}
+
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 24px;
+}
+
+.cancel-button,
+.submit-button {
+  padding: 10px 20px;
+  border-radius: 6px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.cancel-button {
+  background: none;
+  border: 1px solid #ddd;
+  color: #666;
+}
+
+.submit-button {
+  background: #512da8;
+  border: none;
+  color: white;
+}
+
+.submit-button:disabled {
+  background: #ccc;
+  cursor: not-allowed;
+}
+
+.cancel-button:hover {
+  background: #f0f0f0;
+}
+
+.submit-button:hover:not(:disabled) {
+  background: #4527a0;
+} 

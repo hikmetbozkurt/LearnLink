@@ -273,13 +273,16 @@ ALTER SEQUENCE public.course_contents_content_id_seq OWNED BY public.course_cont
 -- Name: courses; Type: TABLE; Schema: public; Owner: keremtegiz
 --
 
-CREATE TABLE public.courses (
-    course_id integer NOT NULL,
-    title character varying(255) NOT NULL,
-    description text,
-    instructor_id integer,
-    category character varying(100),
-    created_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP
+DROP TABLE IF EXISTS courses CASCADE;
+
+CREATE TABLE courses (
+    course_id SERIAL PRIMARY KEY,
+    title VARCHAR(100) NOT NULL,
+    description TEXT,
+    instructor_id INTEGER REFERENCES users(user_id),
+    max_students INTEGER DEFAULT 30,
+    student_count INTEGER DEFAULT 0,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
 
@@ -1309,4 +1312,51 @@ ALTER TABLE ONLY public.user_courses
 --
 -- PostgreSQL database dump complete
 --
+
+CREATE TABLE posts (
+    post_id SERIAL PRIMARY KEY,
+    course_id INTEGER REFERENCES courses(course_id),
+    author_id INTEGER REFERENCES users(user_id),
+    content TEXT NOT NULL,
+    type VARCHAR(10) CHECK (type IN ('text', 'pdf', 'video')),
+    file_url TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE comments (
+    comment_id SERIAL PRIMARY KEY,
+    post_id INTEGER REFERENCES posts(post_id),
+    author_id INTEGER REFERENCES users(user_id),
+    content TEXT NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE OR REPLACE FUNCTION update_updated_at_column()
+RETURNS TRIGGER AS $$
+BEGIN
+    NEW.updated_at = CURRENT_TIMESTAMP;
+    RETURN NEW;
+END;
+$$ language 'plpgsql';
+
+CREATE TRIGGER update_posts_updated_at
+    BEFORE UPDATE ON posts
+    FOR EACH ROW
+    EXECUTE FUNCTION update_updated_at_column();
+
+CREATE TRIGGER update_comments_updated_at
+    BEFORE UPDATE ON comments
+    FOR EACH ROW
+    EXECUTE FUNCTION update_updated_at_column();
+
+CREATE TABLE course_enrollments (
+    enrollment_id SERIAL PRIMARY KEY,
+    course_id INTEGER REFERENCES courses(course_id) ON DELETE CASCADE,
+    user_id INTEGER REFERENCES users(user_id) ON DELETE CASCADE,
+    role VARCHAR(20) DEFAULT 'student' CHECK (role IN ('student', 'admin')),
+    enrolled_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE(course_id, user_id)
+);
 

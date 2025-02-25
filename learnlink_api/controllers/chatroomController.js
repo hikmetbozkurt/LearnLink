@@ -1,94 +1,41 @@
-import ChatRoom from '../models/chatroomModel.js';
-import { io } from '../server.js';
-import pool from '../config/database.js';
-import { encrypt, decrypt } from '../utils/encryption.js';
+import ChatRoom from "../models/chatroomModel.js";
+import { io } from "../server.js";
+import pool from "../config/database.js";
+import { encrypt, decrypt } from "../utils/encryption.js";
 
 export const chatroomController = {
   // Tüm chat odalarını getir
   getAllChatrooms: async (req, res) => {
     try {
-      const chatrooms = await ChatRoom.getAll();
-
-      // Ensure we're sending an array
-      const chatroomsArray = Array.isArray(chatrooms) ? chatrooms : [];
-      
-      res.json({
-        success: true,
-        data: chatroomsArray,
-        message: chatroomsArray.length ? 'Chatrooms fetched successfully' : 'No chatrooms found'
-      });
+      const result = await pool.query(`
+        SELECT c.*, 
+          COALESCE(json_agg(DISTINCT cm.user_id) FILTER (WHERE cm.user_id IS NOT NULL)) as members
+        FROM chatrooms c
+        LEFT JOIN chatroom_members cm ON c.id = cm.chatroom_id
+        GROUP BY c.id
+        ORDER BY c.last_message_at DESC
+      `);
+      res.json(result.rows);
     } catch (error) {
-      console.error('Error in getAllChatrooms:', error);
-      res.status(500).json({ 
-        success: false,
-        error: 'Failed to fetch chatrooms',
-        message: error.message,
-        data: [] // Return empty array on error
-      });
+      console.error("Error getting chatrooms:", error);
+      res.status(500).json({ message: "Failed to get chatrooms" });
     }
   },
 
   // Yeni chat odası oluştur
   createChatroom: async (req, res) => {
-    console.log('=== Create Chatroom Request Started ===');
+    const { name, description } = req.body;
+    const userId = req.user.id;
+
     try {
-      const { name, description } = req.body;
-      console.log('Request Body:', { name, description });
-      console.log('Auth User:', req.user);
-
-      // Validate required fields
-      if (!req.user?.user_id) {
-        console.error('No user_id found in token');
-        return res.status(401).json({ 
-          success: false,
-          error: 'UNAUTHORIZED',
-          message: 'User ID not found in token' 
-        });
-      }
-
-      if (!name || name.trim().length === 0) {
-        console.error('No room name provided');
-        return res.status(400).json({ 
-          success: false,
-          error: 'VALIDATION_ERROR',
-          message: 'Room name is required' 
-        });
-      }
-
-      const chatroomData = {
-        name: name.trim(),
-        description: description?.trim() || '',
-        createdBy: req.user.user_id
-      };
-
-      console.log('Creating chatroom with params:', chatroomData);
-
-      const newChatroom = await ChatRoom.create(chatroomData);
-
-      if (!newChatroom) {
-        throw new Error('Failed to create chatroom in database');
-      }
-
-      console.log('Chatroom created:', newChatroom);
-      console.log('=== Create Chatroom Request Completed ===');
-
-      // Emit socket event for real-time update
-      io.emit('chatroom:created', newChatroom);
-
-      res.status(201).json({
-        success: true,
-        data: newChatroom
-      });
+      const result = await pool.query(
+        "INSERT INTO chatrooms (name, description, created_by) VALUES ($1, $2, $3) RETURNING *",
+        [name, description, userId]
+      );
+      res.status(201).json(result.rows[0]);
     } catch (error) {
-      console.error('=== Create Chatroom Error ===');
-      console.error('Error details:', error);
-      console.error('Stack trace:', error.stack);
-      
-      res.status(500).json({ 
-        success: false,
-        error: 'SERVER_ERROR',
-        message: 'Failed to create chatroom: ' + error.message
-      });
+      console.error("Error creating chatroom:", error);
+      res.status(500).json({ message: "Failed to create chatroom" });
     }
   },
 
@@ -99,20 +46,20 @@ export const chatroomController = {
       const userId = req.user.user_id;
 
       await ChatRoom.addMember(chatroomId, userId);
-      
+
       // Emit socket event for real-time update
-      io.to(chatroomId).emit('chatroom:joined', { userId, chatroomId });
-      
-      res.json({ 
+      io.to(chatroomId).emit("chatroom:joined", { userId, chatroomId });
+
+      res.json({
         success: true,
-        message: 'Successfully joined chatroom'
+        message: "Successfully joined chatroom",
       });
     } catch (error) {
-      console.error('Error in joinChatroom:', error);
-      res.status(500).json({ 
+      console.error("Error in joinChatroom:", error);
+      res.status(500).json({
         success: false,
-        error: 'Failed to join chatroom',
-        message: error.message 
+        error: "Failed to join chatroom",
+        message: error.message,
       });
     }
   },
@@ -121,7 +68,7 @@ export const chatroomController = {
   getChatroomMessages: async (req, res) => {
     try {
       const { chatroomId } = req.params;
-      
+
       const query = `
         SELECT 
           m.id,
@@ -134,27 +81,29 @@ export const chatroomController = {
         WHERE m.chatroom_id = $1
         ORDER BY m.created_at ASC
       `;
-      
+
       const result = await pool.query(query, [chatroomId]);
 
       // Decrypt all message contents
-      const messagesArray = result.rows.map(msg => ({
+      const messagesArray = result.rows.map((msg) => ({
         ...msg,
-        content: decrypt(msg.content)
+        content: decrypt(msg.content),
       }));
-      
+
       res.json({
         success: true,
         data: messagesArray,
-        message: messagesArray.length ? 'Messages fetched successfully' : 'No messages found'
+        message: messagesArray.length
+          ? "Messages fetched successfully"
+          : "No messages found",
       });
     } catch (error) {
-      console.error('Error in getChatroomMessages:', error);
-      res.status(500).json({ 
+      console.error("Error in getChatroomMessages:", error);
+      res.status(500).json({
         success: false,
-        error: 'Failed to fetch messages',
+        error: "Failed to fetch messages",
         message: error.message,
-        data: [] // Return empty array on error
+        data: [], // Return empty array on error
       });
     }
   },
@@ -169,8 +118,8 @@ export const chatroomController = {
       if (!content || content.trim().length === 0) {
         return res.status(400).json({
           success: false,
-          error: 'VALIDATION_ERROR',
-          message: 'Message content is required'
+          error: "VALIDATION_ERROR",
+          message: "Message content is required",
         });
       }
 
@@ -183,33 +132,37 @@ export const chatroomController = {
         VALUES ($1, $2, $3)
         RETURNING id, content, sender_id, created_at
       `;
-      
-      const result = await pool.query(query, [encryptedContent, userId, chatroomId]);
-      
+
+      const result = await pool.query(query, [
+        encryptedContent,
+        userId,
+        chatroomId,
+      ]);
+
       // Get sender's name
-      const userQuery = 'SELECT name FROM users WHERE user_id = $1';
+      const userQuery = "SELECT name FROM users WHERE user_id = $1";
       const userResult = await pool.query(userQuery, [userId]);
-      
+
       // Decrypt the message for the response
       const message = {
         ...result.rows[0],
         content: decrypt(result.rows[0].content),
-        sender_name: userResult.rows[0].name
+        sender_name: userResult.rows[0].name,
       };
 
       // Emit socket event for real-time update
-      io.to(chatroomId).emit('chatroom:message', message);
+      io.to(chatroomId).emit("chatroom:message", message);
 
       res.status(201).json({
         success: true,
-        data: message
+        data: message,
       });
     } catch (error) {
-      console.error('Error in sendMessage:', error);
-      res.status(500).json({ 
+      console.error("Error in sendMessage:", error);
+      res.status(500).json({
         success: false,
-        error: 'Failed to send message',
-        message: error.message 
+        error: "Failed to send message",
+        message: error.message,
       });
     }
   },
@@ -218,33 +171,33 @@ export const chatroomController = {
   deleteChatroom: async (req, res) => {
     try {
       const { chatroomId } = req.params;
-      console.log('Deleting chatroom:', chatroomId);
+      console.log("Deleting chatroom:", chatroomId);
 
       const deletedChatroom = await ChatRoom.delete(chatroomId);
 
       if (!deletedChatroom) {
         return res.status(404).json({
           success: false,
-          error: 'CHATROOM_NOT_FOUND',
-          message: 'Chatroom not found'
+          error: "CHATROOM_NOT_FOUND",
+          message: "Chatroom not found",
         });
       }
 
       // Emit socket event for real-time update
-      io.emit('chatroom:deleted', { chatroomId });
+      io.emit("chatroom:deleted", { chatroomId });
 
       res.json({
         success: true,
-        message: 'Chatroom deleted successfully',
-        data: deletedChatroom
+        message: "Chatroom deleted successfully",
+        data: deletedChatroom,
       });
     } catch (error) {
-      console.error('Error in deleteChatroom:', error);
+      console.error("Error in deleteChatroom:", error);
       res.status(500).json({
         success: false,
-        error: 'Failed to delete chatroom',
-        message: error.message
+        error: "Failed to delete chatroom",
+        message: error.message,
       });
     }
-  }
-}; 
+  },
+};

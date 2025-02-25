@@ -1,25 +1,24 @@
-import express from 'express';
+import { Router } from 'express';
 import { authenticateToken } from '../middleware/authMiddleware.js';
-import { 
-  createCourse,
-  getCourse,
-  updateCourse,
-  deleteCourse,
-  getAllCourses
-} from '../controllers/courseController.js';
+import * as courseController from '../controllers/courseController.js';
 
-const router = express.Router();
+const router = Router();
 
 // All routes require authentication
 router.use(authenticateToken);
 
+// Özel route'ları önce tanımla
+router.get('/my-courses', courseController.getMyCourses);
+router.post('/:courseId/join', courseController.joinCourse);
+
+// Genel route'lar
 router.route('/')
-  .get(getAllCourses)
-  .post(createCourse);
+  .get(courseController.getAllCourses)
+  .post(courseController.createCourse);
 
 router.route('/:id')
-  .get(getCourse)
-  .put(updateCourse)
-  .delete(deleteCourse);
+  .get(courseController.getCourse)
+  .put(courseController.updateCourse)
+  .delete(courseController.deleteCourse);
 
 export default router;

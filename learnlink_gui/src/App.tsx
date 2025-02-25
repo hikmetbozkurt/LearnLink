@@ -14,6 +14,9 @@ import SupportPage from "./pages/SupportPage";
 import Layout from "./components/Layout/Layout";
 import RouteGuard from './components/RouteGuard';
 import DirectMessagesPage from './pages/DirectMessagesPage';
+import CourseDetailPage from './pages/CourseDetailPage';
+import CourseArea from './components/Course/CourseArea';
+import CourseAreaWrapper from './components/Course/CourseAreaWrapper';
 
 const App = () => {
   return (
@@ -29,7 +32,10 @@ const App = () => {
           <Route path="/home" element={<HomePage />} />
           <Route path="/chatrooms" element={<ChatroomsPage />} />
           <Route path="/connections" element={<ConnectionsPage />} />
-          <Route path="/courses" element={<CoursesPage />} />
+          <Route path="/courses" element={<CoursesPage />}>
+            <Route index element={<CourseAreaWrapper />} />
+            <Route path=":courseId" element={<CourseDetailPage />} />
+          </Route>
           <Route path="/assignments" element={<AssignmentsPage />} />
           <Route path="/events" element={<EventsPage />} />
           <Route path="/progress" element={<ProgressPage />} />

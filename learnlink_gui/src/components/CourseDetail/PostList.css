@@ -1,0 +1,175 @@
+.post-list {
+  padding: 24px;
+  overflow-y: auto;
+}
+
+.post-card {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  margin-bottom: 24px;
+  padding: 20px;
+}
+
+.post-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.post-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.author {
+  font-weight: 500;
+  color: #333;
+}
+
+.date {
+  color: #666;
+  font-size: 0.9rem;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.icon {
+  font-size: 1rem;
+  color: #666;
+}
+
+.post-content {
+  margin-bottom: 20px;
+  font-size: 1rem;
+  line-height: 1.6;
+  color: #333;
+}
+
+.file-content {
+  margin: 16px 0;
+}
+
+.file-link {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #512da8;
+  text-decoration: none;
+  padding: 12px;
+  background: #f8f9fa;
+  border-radius: 8px;
+  transition: background-color 0.2s;
+}
+
+.file-link:hover {
+  background: #f0f0f0;
+}
+
+.video-container {
+  width: 100%;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.video-container video {
+  width: 100%;
+  max-height: 400px;
+}
+
+.post-actions {
+  display: flex;
+  gap: 16px;
+  padding: 12px 0;
+  border-top: 1px solid #eee;
+}
+
+.comment-button {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: none;
+  border: none;
+  color: #666;
+  cursor: pointer;
+  padding: 6px 12px;
+  border-radius: 4px;
+  transition: background-color 0.2s;
+}
+
+.comment-button:hover {
+  background: #f0f0f0;
+}
+
+.comments-section {
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid #eee;
+}
+
+.comment {
+  margin-bottom: 16px;
+  padding: 12px;
+  background: #f8f9fa;
+  border-radius: 8px;
+}
+
+.comment-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.comment-author {
+  font-weight: 500;
+  color: #333;
+}
+
+.comment-date {
+  font-size: 0.85rem;
+  color: #666;
+}
+
+.comment-content {
+  margin: 0;
+  color: #444;
+}
+
+.add-comment {
+  margin-top: 16px;
+  display: flex;
+  gap: 12px;
+}
+
+.add-comment textarea {
+  flex: 1;
+  padding: 12px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  resize: vertical;
+  min-height: 60px;
+}
+
+.add-comment button {
+  align-self: flex-start;
+  padding: 8px 16px;
+  background: #512da8;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.add-comment button:hover {
+  background: #4527a0;
+}
+
+.add-comment button:disabled {
+  background: #ccc;
+  cursor: not-allowed;
+} 
