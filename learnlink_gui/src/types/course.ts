@@ -2,7 +2,8 @@ export interface Course {
   course_id: string;
   title: string;
   description: string;
-  instructor_id: number;
+  admin_id: string;
+  instructor_id: string;
   instructor_name: string;
   is_admin: boolean;
   is_enrolled: boolean;

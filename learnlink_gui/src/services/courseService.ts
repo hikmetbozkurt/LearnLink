@@ -102,12 +102,17 @@ export const courseService = {
     }
   },
 
-  getCoursePosts: async (courseId: string): Promise<Post[]> => {
+  getCoursePosts: async (courseId: string) => {
     try {
       const response = await api.get(`/api/courses/${courseId}/posts`);
-      return response.data;
-    } catch (error: any) {
-      throw new Error(error.response?.data?.message || 'Failed to fetch posts');
+      return response.data; // { success, data: Post[], message }
+    } catch (error) {
+      console.error('Error fetching posts:', error);
+      return {
+        success: false,
+        data: [],
+        message: 'Failed to fetch posts'
+      };
     }
   },
 
@@ -121,9 +126,9 @@ export const courseService = {
 
   createPost: async (courseId: string, data: {
     content: string;
-    type: 'text' | 'pdf' | 'video';
+    type: string;
     file?: File;
-  }): Promise<Post> => {
+  }) => {
     try {
       const formData = new FormData();
       formData.append('content', data.content);
@@ -139,8 +144,27 @@ export const courseService = {
       });
 
       return response.data;
-    } catch (error: any) {
-      throw new Error(error.response?.data?.message || 'Failed to create post');
+    } catch (error) {
+      console.error('Error creating post:', error);
+      throw error;
     }
   },
+
+  deletePost: async (postId: string): Promise<void> => {
+    try {
+      await api.delete(`/api/posts/${postId}`);
+    } catch (error) {
+      console.error('Error deleting post:', error);
+      throw error;
+    }
+  },
+
+  deleteComment: async (commentId: string): Promise<void> => {
+    try {
+      await api.delete(`/api/comments/${commentId}`);
+    } catch (error) {
+      console.error('Error deleting comment:', error);
+      throw error;
+    }
+  }
 }; 

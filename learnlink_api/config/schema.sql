@@ -1307,6 +1307,26 @@ ALTER TABLE ONLY public.user_courses
 
 
 --
+-- Posts tablosu
+--
+
+CREATE TABLE IF NOT EXISTS posts (
+    post_id SERIAL PRIMARY KEY,
+    course_id INTEGER REFERENCES courses(course_id) ON DELETE CASCADE,
+    author_id INTEGER REFERENCES users(user_id) ON DELETE CASCADE,
+    content TEXT NOT NULL,
+    type VARCHAR(50) NOT NULL, -- 'text', 'pdf', 'video' gibi
+    file_url TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Posts için indeksler
+CREATE INDEX IF NOT EXISTS idx_posts_course_id ON posts(course_id);
+CREATE INDEX IF NOT EXISTS idx_posts_author_id ON posts(author_id);
+
+
+--
 -- PostgreSQL database dump complete
 --
 

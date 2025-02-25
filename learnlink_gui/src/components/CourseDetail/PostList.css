@@ -121,7 +121,12 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 8px;
+}
+
+.comment-info {
+  display: flex;
+  gap: 10px;
+  align-items: center;
 }
 
 .comment-author {
@@ -172,4 +177,29 @@
 .add-comment button:disabled {
   background: #ccc;
   cursor: not-allowed;
+}
+
+.delete-button {
+  background: none;
+  border: none;
+  color: #dc3545;
+  cursor: pointer;
+  padding: 5px;
+  display: flex;
+  align-items: center;
+  transition: color 0.2s;
+  margin-left: auto;
+}
+
+.delete-button:hover {
+  color: #c82333;
+}
+
+.delete-button.small {
+  padding: 3px;
+  font-size: 0.9em;
+}
+
+.delete-button .icon {
+  font-size: 1.2em;
 } 

@@ -17,33 +17,36 @@ import DirectMessagesPage from './pages/DirectMessagesPage';
 import CourseDetailPage from './pages/CourseDetailPage';
 import CourseArea from './components/Course/CourseArea';
 import CourseAreaWrapper from './components/Course/CourseAreaWrapper';
+import { AuthProvider } from './contexts/AuthContext';
 
 const App = () => {
   return (
-    <Router>
-      <Routes>
-        {/* Auth Routes - No Layout */}
-        <Route path="/" element={<LoginPage />} />
-        <Route path="/forgot-password" element={<ForgotPasswordPage />} />
-        <Route path="/reset-password" element={<ResetPasswordPage />} />
+    <AuthProvider>
+      <Router>
+        <Routes>
+          {/* Auth Routes - No Layout */}
+          <Route path="/" element={<LoginPage />} />
+          <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+          <Route path="/reset-password" element={<ResetPasswordPage />} />
 
-        {/* Protected Routes - With Layout */}
-        <Route element={<RouteGuard><Layout /></RouteGuard>}>
-          <Route path="/home" element={<HomePage />} />
-          <Route path="/chatrooms" element={<ChatroomsPage />} />
-          <Route path="/connections" element={<ConnectionsPage />} />
-          <Route path="/courses" element={<CoursesPage />}>
-            <Route index element={<CourseAreaWrapper />} />
-            <Route path=":courseId" element={<CourseDetailPage />} />
+          {/* Protected Routes - With Layout */}
+          <Route element={<RouteGuard><Layout /></RouteGuard>}>
+            <Route path="/home" element={<HomePage />} />
+            <Route path="/chatrooms" element={<ChatroomsPage />} />
+            <Route path="/connections" element={<ConnectionsPage />} />
+            <Route path="/courses" element={<CoursesPage />}>
+              <Route index element={<CourseAreaWrapper />} />
+              <Route path=":courseId" element={<CourseDetailPage />} />
+            </Route>
+            <Route path="/assignments" element={<AssignmentsPage />} />
+            <Route path="/events" element={<EventsPage />} />
+            <Route path="/progress" element={<ProgressPage />} />
+            <Route path="/support" element={<SupportPage />} />
+            <Route path="/direct-messages" element={<DirectMessagesPage />} />
           </Route>
-          <Route path="/assignments" element={<AssignmentsPage />} />
-          <Route path="/events" element={<EventsPage />} />
-          <Route path="/progress" element={<ProgressPage />} />
-          <Route path="/support" element={<SupportPage />} />
-          <Route path="/direct-messages" element={<DirectMessagesPage />} />
-        </Route>
-      </Routes>
-    </Router>
+        </Routes>
+      </Router>
+    </AuthProvider>
   );
 };
 
