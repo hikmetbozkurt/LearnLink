@@ -43,21 +43,10 @@ export const courseService = {
         description: courseData.description
       });
 
-      const formData = new FormData();
-      formData.append('title', courseData.title);
-      formData.append('description', courseData.description);
-      if (courseData.category) {
-        formData.append('category', courseData.category);
-      }
-      if (courseData.image) {
-        formData.append('image', courseData.image);
-      }
-
-      // Request headers'ı kontrol et
-      const response = await api.post('/api/courses', formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data',
-        }
+      const response = await api.post('/api/courses', {
+        title: courseData.title,
+        description: courseData.description,
+        category: courseData.category
       });
 
       console.log('Response:', response.data);
