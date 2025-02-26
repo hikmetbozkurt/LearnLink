@@ -1,24 +1,26 @@
 .calendar-container {
-  width: 65%;
+  width: 100%;
   max-width: 1000px;
-  margin: 1rem auto;
+  margin: 0 auto;
   background: #fff;
   border-radius: 12px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-  padding: 1.25rem;
+  padding: 1rem;
   height: fit-content;
+  display: flex;
+  flex-direction: column;
 }
 
 .calendar-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 1.25rem;
-  padding: 0 0.75rem;
+  margin-bottom: 1rem;
+  padding: 0 0.5rem;
 }
 
 .calendar-header h2 {
-  font-size: 1.3rem;
+  font-size: 1.2rem;
   color: #333;
   margin: 0;
 }
@@ -42,6 +44,8 @@
 
 .calendar-grid {
   width: 100%;
+  flex: 1;
+  min-height: 0;
 }
 
 .calendar-weekdays {
@@ -54,12 +58,12 @@
 }
 
 .weekday {
-  padding: 0.6rem;
+  padding: 0.5rem;
   text-align: center;
   font-weight: 600;
   color: #512da8;
   background: #fff;
-  font-size: 0.9rem;
+  font-size: 0.85rem;
 }
 
 .calendar-days {
@@ -72,7 +76,6 @@
 }
 
 .calendar-day {
-  aspect-ratio: 1;
   background: #fff;
   padding: 0.4rem;
   cursor: pointer;
@@ -81,6 +84,7 @@
   flex-direction: column;
   transition: all 0.2s ease;
   min-height: 80px;
+  max-height: 120px;
 }
 
 .calendar-day:hover {
@@ -97,7 +101,7 @@
 }
 
 .day-number {
-  font-size: 0.9rem;
+  font-size: 0.85rem;
   font-weight: 500;
   color: #333;
   margin-bottom: 4px;
@@ -148,16 +152,14 @@
   font-weight: 600;
 }
 
-@media (max-width: 1200px) {
-  .calendar-container {
-    width: 75%;
-  }
-}
-
 @media (max-width: 768px) {
   .calendar-container {
-    width: 90%;
     padding: 0.75rem;
+  }
+
+  .calendar-day {
+    min-height: 60px;
+    max-height: 100px;
   }
 
   .weekday {

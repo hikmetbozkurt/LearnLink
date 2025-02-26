@@ -15,36 +15,17 @@ const EventsPage: React.FC = () => {
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [selectedEvents, setSelectedEvents] = useState<Event[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
-
-  // Dummy events data
-  const events: Event[] = [
-    {
-      id: 1,
-      title: 'Mathematics Exam',
-      description: 'Final exam for Calculus II',
-      date: new Date(2024, 1, 15),
-      type: 'exam'
-    },
-    {
-      id: 2,
-      title: 'Physics Assignment Due',
-      description: 'Submit Chapter 5 homework',
-      date: new Date(2024, 1, 15),
-      type: 'assignment'
-    },
-    {
-      id: 3,
-      title: 'Study Group Meeting',
-      description: 'Chemistry study group',
-      date: new Date(2024, 1, 20),
-      type: 'meeting'
-    }
-  ];
+  const [events, setEvents] = useState<Event[]>([]); // Boş events array'i
 
   const handleDayClick = (date: Date, dayEvents: Event[]) => {
     setSelectedDate(date);
     setSelectedEvents(dayEvents);
     setIsModalOpen(true);
+  };
+
+  const handleAddEvent = (newEvent: Event) => {
+    setEvents(prevEvents => [...prevEvents, { ...newEvent, id: Date.now() }]);
+    setSelectedEvents(prevEvents => [...prevEvents, { ...newEvent, id: Date.now() }]);
   };
 
   return (
@@ -60,6 +41,7 @@ const EventsPage: React.FC = () => {
           selectedDate={selectedDate}
           events={selectedEvents}
           onClose={() => setIsModalOpen(false)}
+          onAddEvent={handleAddEvent}
         />
       )}
     </div>
