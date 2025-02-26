@@ -33,44 +33,28 @@ export const courseService = {
   createCourse: async (courseData: {
     title: string;
     description: string;
-    category?: string;
-    image?: File;
   }): Promise<CreateCourseResponse> => {
     try {
       // Debug için request detaylarını logla
-      console.log('Request Data:', {
-        title: courseData.title,
-        description: courseData.description
-      });
+      console.log('Creating course with data:', courseData);
 
       const formData = new FormData();
       formData.append('title', courseData.title);
       formData.append('description', courseData.description);
-      if (courseData.category) {
-        formData.append('category', courseData.category);
-      }
-      if (courseData.image) {
-        formData.append('image', courseData.image);
-      }
 
       // Request headers'ı kontrol et
       const response = await api.post('/api/courses', formData, {
         headers: {
-          'Content-Type': 'multipart/form-data',
+          'Content-Type': 'application/json' // FormData yerine JSON gönderelim
         }
       });
 
-      console.log('Response:', response.data);
       return {
         success: true,
         course: response.data
       };
     } catch (error: any) {
-      console.error('Create Course Error:', {
-        status: error.response?.status,
-        data: error.response?.data,
-        message: error.message
-      });
+      console.error('Error in createCourse:', error.response?.data || error);
       return {
         success: false,
         error: error.response?.data?.message || 'Failed to create course'

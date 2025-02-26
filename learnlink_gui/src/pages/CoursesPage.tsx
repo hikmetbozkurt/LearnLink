@@ -15,8 +15,10 @@ const CoursesPage = () => {
     "dashboard"
   );
   const [showCreateModal, setShowCreateModal] = useState(false);
-  const [courseName, setCourseName] = useState("");
-  const [courseDescription, setCourseDescription] = useState("");
+  const [formData, setFormData] = useState({
+    title: '',
+    description: ''
+  });
   const [courseAvatar, setCourseAvatar] = useState<File | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [courses, setCourses] = useState<Course[]>([]);
@@ -51,31 +53,42 @@ const CoursesPage = () => {
     }
   };
 
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
+
   const handleCreateCourse = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
+
     try {
-      const result = await courseService.createCourse({
-        title: courseName,
-        description: courseDescription,
-        image: courseAvatar || undefined,
+      const response = await courseService.createCourse({
+        title: formData.title,
+        description: formData.description
       });
 
-      if (result.success) {
+      if (response.success) {
+        showNotification('Course created successfully', 'success');
         setShowCreateModal(false);
-        setCourseName("");
-        setCourseDescription("");
-        setCourseAvatar(null);
+        // Kursları yeniden yükle
         loadCourses();
-        showNotification("Course created successfully!", "success");
       } else {
-        showNotification(result.error || "Failed to create course", "error");
+        showNotification(response.error || 'Failed to create course', 'error');
       }
     } catch (error) {
-      console.error("Error creating course:", error);
-      showNotification("An unexpected error occurred", "error");
+      console.error('Error creating course:', error);
+      showNotification('Failed to create course', 'error');
     } finally {
       setIsLoading(false);
+      // Form verilerini sıfırla
+      setFormData({
+        title: '',
+        description: ''
+      });
     }
   };
 
@@ -140,13 +153,13 @@ const CoursesPage = () => {
 
       {showCreateModal && (
         <CreateCourseModal
-          courseName={courseName}
-          courseDescription={courseDescription}
-          onNameChange={(e) => setCourseName(e.target.value)}
-          onDescriptionChange={(e) => setCourseDescription(e.target.value)}
-          onFileChange={handleFileChange}
+          formData={formData}
+          onInputChange={handleInputChange}
           onSubmit={handleCreateCourse}
-          onClose={() => setShowCreateModal(false)}
+          onClose={() => {
+            setShowCreateModal(false);
+            setFormData({ title: '', description: '' }); // Modal kapanınca formu sıfırla
+          }}
           isLoading={isLoading}
         />
       )}

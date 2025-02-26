@@ -38,8 +38,7 @@ export const createCourse = asyncHandler(async (req, res) => {
   try {
     // Debug için request body'i logla
     console.log('Request body:', req.body);
-    console.log('User:', req.user);
-    console.log('Headers:', req.headers);
+    console.log('Content-Type:', req.headers['content-type']);
 
     const { title, description } = req.body;
 
@@ -51,72 +50,23 @@ export const createCourse = asyncHandler(async (req, res) => {
       });
     }
 
-    if (!req.user?.user_id) {
-      console.log('Authentication failed:', req.user);
-      return res.status(401).json({ 
-        message: 'User not authenticated' 
-      });
-    }
+    // Course oluştur
+    const result = await pool.query(
+      'INSERT INTO courses (title, description, instructor_id) VALUES ($1, $2, $3) RETURNING *',
+      [title, description, req.user.user_id]
+    );
 
-    try {
-      // Önce instructor_id'nin geçerli bir user olduğunu kontrol et
-      const userCheck = await pool.query(
-        'SELECT user_id FROM users WHERE user_id = $1',
-        [req.user.user_id]
-      );
-
-      console.log('User check result:', userCheck.rows);
-
-      if (userCheck.rows.length === 0) {
-        return res.status(400).json({ 
-          message: 'Invalid instructor ID' 
-        });
-      }
-
-      // Kursu oluştur
-      const result = await pool.query(
-        `INSERT INTO courses (title, description, instructor_id) 
-         VALUES ($1, $2, $3) 
-         RETURNING *`,
-        [title, description, req.user.user_id]
-      );
-
-      // Oluşturan kişiyi otomatik olarak enrollment yap
-      await pool.query(
-        `INSERT INTO enrollments (course_id, user_id) 
-         VALUES ($1, $2)`,
-        [result.rows[0].course_id, req.user.user_id]
-      );
-
-      // Kursu instructor bilgisiyle döndür
-      const courseWithInstructor = await pool.query(
-        `SELECT c.*, u.name as instructor_name,
-          true as is_admin
-         FROM courses c 
-         JOIN users u ON c.instructor_id = u.user_id 
-         WHERE c.course_id = $1`,
-        [result.rows[0].course_id]
-      );
-
-      res.status(201).json(courseWithInstructor.rows[0]);
-    } catch (dbError) {
-      console.error('Database operation error:', {
-        error: dbError,
-        stack: dbError.stack,
-        query: dbError.query
-      });
-      throw dbError;
-    }
-  } catch (error) {
-    console.error('Create course error:', {
-      error: error,
-      stack: error.stack,
-      message: error.message
+    res.status(201).json({
+      success: true,
+      course: result.rows[0]
     });
+
+  } catch (error) {
+    console.error('Error creating course:', error);
     res.status(500).json({ 
+      success: false,
       message: 'Failed to create course',
-      error: error.message,
-      details: process.env.NODE_ENV === 'development' ? error.stack : undefined
+      error: error.message 
     });
   }
 });
