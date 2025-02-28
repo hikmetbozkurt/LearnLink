@@ -1,11 +1,13 @@
-import React, { useState, useEffect, useContext } from 'react';
+import React, { useState, useEffect, useContext, useRef } from 'react';
 import Calendar from '../components/Calendar/Calendar';
 import EventModal from '../components/Calendar/EventModal';
 import eventService, { Event } from '../services/eventService';
 import { NotificationContext } from '../contexts/NotificationContext';
-import { format, isToday, startOfDay, isSameDay, parseISO } from 'date-fns';
+import { useEvent } from '../contexts/EventContext';
+import { format, isToday, startOfDay, isSameDay, parseISO, addMinutes } from 'date-fns';
 import '../styles/pages/events.css';
 import axios from 'axios';
+import { NotificationBellRef } from '../components/NotificationBell';
 
 interface CalendarEvent {
   id: number;
@@ -22,6 +24,8 @@ const EventsPage: React.FC = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [events, setEvents] = useState<CalendarEvent[]>([]);
   const { showNotification } = useContext(NotificationContext);
+  const { selectedEventDate, setSelectedEventDate } = useEvent();
+  const notificationBellRef = useRef<NotificationBellRef>(null);
 
   const createNotification = async (event: CalendarEvent) => {
     try {
@@ -34,6 +38,7 @@ const EventsPage: React.FC = () => {
       const time = format(event.date, 'HH:mm');
       const content = `You have a ${event.type} today at ${time}: ${event.title}`;
 
+      // Create notification in the backend
       await axios.post('/api/notifications', {
         recipient_id: parseInt(userId),
         content: content,
@@ -42,6 +47,15 @@ const EventsPage: React.FC = () => {
       }, {
         headers: { Authorization: `Bearer ${token}` }
       });
+
+      // Add notification to the notification bell
+      if (notificationBellRef.current) {
+        notificationBellRef.current.addNotification({
+          sender_id: 0, // System notification
+          content: content,
+          chatroom_id: 0 // No chatroom for event notifications
+        });
+      }
 
       console.log('Created notification for event:', {
         eventId: event.id,
@@ -86,14 +100,7 @@ const EventsPage: React.FC = () => {
           type: event.type
         });
         
-        // Create notification in the backend
         await createNotification(event);
-        
-        // Show notification in the UI
-        showNotification(
-          `You have a ${event.type} today at ${time}: ${event.title}`,
-          'success'
-        );
       }
 
       setEvents(prevEvents => 
@@ -149,6 +156,18 @@ const EventsPage: React.FC = () => {
   useEffect(() => {
     loadEvents();
   }, []);
+
+  useEffect(() => {
+    if (selectedEventDate) {
+      const dayEvents = events.filter(event => 
+        isSameDay(new Date(event.date), selectedEventDate)
+      );
+      setSelectedDate(selectedEventDate);
+      setSelectedEvents(dayEvents);
+      setIsModalOpen(true);
+      setSelectedEventDate(null); // Reset the selected date after opening the modal
+    }
+  }, [selectedEventDate, events]);
 
   const handleDayClick = (date: Date, dayEvents: CalendarEvent[]) => {
     setSelectedDate(date);
