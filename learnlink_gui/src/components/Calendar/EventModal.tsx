@@ -1,9 +1,9 @@
-import React, { useState } from 'react';
-import { format, parse, setHours, setMinutes } from 'date-fns';
-import { FaTimes, FaCalendar, FaClock, FaInfoCircle, FaPlus } from 'react-icons/fa';
+import React, { useState, useEffect } from 'react';
+import { format, parseISO, setHours, setMinutes } from 'date-fns';
+import { FaTimes, FaCalendar, FaClock, FaInfoCircle, FaPlus, FaEdit, FaTrash } from 'react-icons/fa';
 import './EventModal.css';
 
-interface Event {
+interface CalendarEvent {
   id: number;
   title: string;
   description: string;
@@ -15,8 +15,18 @@ interface EventModalProps {
   isOpen: boolean;
   onClose: () => void;
   selectedDate: Date;
-  events: Event[];
-  onAddEvent: (event: Event) => void;
+  events: CalendarEvent[];
+  onAddEvent: (event: Omit<CalendarEvent, 'id'>) => void;
+  onUpdateEvent: (eventId: number, event: Partial<CalendarEvent>) => void;
+  onDeleteEvent: (eventId: number) => void;
+}
+
+interface FormData {
+  title: string;
+  description: string;
+  date: Date;
+  type: 'assignment' | 'exam' | 'meeting' | 'other';
+  time: string;
 }
 
 const EventModal: React.FC<EventModalProps> = ({
@@ -24,20 +34,45 @@ const EventModal: React.FC<EventModalProps> = ({
   onClose,
   selectedDate,
   events,
-  onAddEvent
+  onAddEvent,
+  onUpdateEvent,
+  onDeleteEvent
 }) => {
   const [isAddingEvent, setIsAddingEvent] = useState(false);
-  const [newEvent, setNewEvent] = useState<Omit<Event, 'id'>>({
+  const [editingEventId, setEditingEventId] = useState<number | null>(null);
+  const initialFormData: FormData = {
     title: '',
     description: '',
     date: selectedDate,
-    type: 'other'
-  });
-  const [eventTime, setEventTime] = useState('12:00');
+    type: 'other',
+    time: format(selectedDate, 'HH:mm')
+  };
+  const [formData, setFormData] = useState(initialFormData);
+
+  useEffect(() => {
+    if (editingEventId) {
+      const eventToEdit = events.find(e => e.id === editingEventId);
+      if (eventToEdit) {
+        setFormData({
+          title: eventToEdit.title,
+          description: eventToEdit.description,
+          date: eventToEdit.date,
+          type: eventToEdit.type,
+          time: format(eventToEdit.date, 'HH:mm')
+        });
+      }
+    } else {
+      setFormData({
+        ...initialFormData,
+        date: selectedDate,
+        time: format(selectedDate, 'HH:mm')
+      });
+    }
+  }, [editingEventId, events, selectedDate]);
 
   if (!isOpen) return null;
 
-  const getEventTypeColor = (type: Event['type']) => {
+  const getEventTypeColor = (type: CalendarEvent['type']) => {
     switch (type) {
       case 'assignment':
         return '#4CAF50';
@@ -52,30 +87,58 @@ const EventModal: React.FC<EventModalProps> = ({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    const [hours, minutes] = eventTime.split(':').map(Number);
-    const eventDate = setMinutes(setHours(selectedDate, hours), minutes);
+    const [hours, minutes] = formData.time.split(':').map(Number);
     
-    onAddEvent({ ...newEvent, id: 0, date: eventDate });
-    setIsAddingEvent(false);
-    setNewEvent({
-      title: '',
-      description: '',
-      date: selectedDate,
-      type: 'other'
+    // Create a new date object and set the time
+    const eventDate = new Date(formData.date);
+    eventDate.setHours(hours);
+    eventDate.setMinutes(minutes);
+    eventDate.setSeconds(0);
+    eventDate.setMilliseconds(0);
+
+    console.log('Submitting event:', {
+      inputTime: formData.time,
+      hours,
+      minutes,
+      eventDate,
+      localTime: format(eventDate, 'HH:mm')
     });
-    setEventTime('12:00');
+
+    const eventData = {
+      title: formData.title,
+      description: formData.description,
+      date: eventDate,
+      type: formData.type
+    };
+
+    if (editingEventId) {
+      onUpdateEvent(editingEventId, eventData);
+    } else {
+      onAddEvent(eventData);
+    }
+    setIsAddingEvent(false);
+    setEditingEventId(null);
+    onClose();
   };
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+  const handleInputChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
+  ) => {
     const { name, value } = e.target;
-    if (name === 'time') {
-      setEventTime(value);
-    } else {
-      setNewEvent(prev => ({
-        ...prev,
-        [name]: value
-      }));
-    }
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
+
+  const handleEdit = (event: CalendarEvent) => {
+    setEditingEventId(event.id);
+    setIsAddingEvent(true);
+  };
+
+  const handleDelete = (eventId: number) => {
+
+      onDeleteEvent(eventId);
   };
 
   return (
@@ -102,19 +165,31 @@ const EventModal: React.FC<EventModalProps> = ({
                 <div className="events-list">
                   {events.map(event => (
                     <div key={event.id} className="event-item">
-                      <div 
-                        className="event-type-indicator"
-                        style={{ backgroundColor: getEventTypeColor(event.type) }}
-                      />
+                      <div className="event-item-header">
+                        <div 
+                          className="event-type-indicator"
+                          style={{ backgroundColor: getEventTypeColor(event.type) }}
+                        />
+                        <div className="event-title-section">
+                          <h3>{event.title}</h3>
+                          <div className="event-actions">
+                            <button onClick={() => handleEdit(event)} className="edit-button">
+                              <FaEdit /> Edit
+                            </button>
+                            <button onClick={() => handleDelete(event.id)} className="delete-button">
+                              <FaTrash />
+                            </button>
+                          </div>
+                        </div>
+                      </div>
                       <div className="event-details">
-                        <h3>{event.title}</h3>
                         <p className="event-description">{event.description}</p>
                         <div className="event-meta">
                           <span>
-                            <FaCalendar /> {format(new Date(event.date), 'MMM d, yyyy')}
+                            <FaCalendar /> {format(event.date, 'MMM d, yyyy')}
                           </span>
                           <span>
-                            <FaClock /> {format(new Date(event.date), 'h:mm a')}
+                            <FaClock /> {format(event.date, 'HH:mm')}
                           </span>
                           <span className="event-type">
                             <FaInfoCircle /> {event.type.charAt(0).toUpperCase() + event.type.slice(1)}
@@ -138,7 +213,7 @@ const EventModal: React.FC<EventModalProps> = ({
                   type="text"
                   id="title"
                   name="title"
-                  value={newEvent.title}
+                  value={formData.title}
                   onChange={handleInputChange}
                   required
                 />
@@ -148,7 +223,7 @@ const EventModal: React.FC<EventModalProps> = ({
                 <textarea
                   id="description"
                   name="description"
-                  value={newEvent.description}
+                  value={formData.description}
                   onChange={handleInputChange}
                   required
                 />
@@ -159,7 +234,7 @@ const EventModal: React.FC<EventModalProps> = ({
                   type="time"
                   id="time"
                   name="time"
-                  value={eventTime}
+                  value={formData.time}
                   onChange={handleInputChange}
                   required
                 />
@@ -169,9 +244,8 @@ const EventModal: React.FC<EventModalProps> = ({
                 <select
                   id="type"
                   name="type"
-                  value={newEvent.type}
+                  value={formData.type}
                   onChange={handleInputChange}
-                  required
                 >
                   <option value="assignment">Assignment</option>
                   <option value="exam">Exam</option>
@@ -180,11 +254,18 @@ const EventModal: React.FC<EventModalProps> = ({
                 </select>
               </div>
               <div className="form-actions">
-                <button type="button" onClick={() => setIsAddingEvent(false)} className="cancel-button">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsAddingEvent(false);
+                    setEditingEventId(null);
+                  }}
+                  className="cancel-button"
+                >
                   Cancel
                 </button>
                 <button type="submit" className="submit-button">
-                  Add Event
+                  {editingEventId ? 'Update Event' : 'Add Event'}
                 </button>
               </div>
             </form>
