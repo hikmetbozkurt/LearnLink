@@ -8,6 +8,13 @@ interface CreateCourseResponse {
   error?: string;
 }
 
+interface CreatePostData {
+  content: string;
+  type: string;
+  file?: File;
+  videoUrl?: string;
+}
+
 export const courseService = {
   getAllCourses: async (): Promise<Course[]> => {
     try {
@@ -108,17 +115,22 @@ export const courseService = {
     }
   },
 
-  createPost: async (courseId: string, data: {
-    content: string;
-    type: string;
-    file?: File;
-  }) => {
+  createPost: async (courseId: string, data: CreatePostData | FormData) => {
     try {
-      const formData = new FormData();
-      formData.append('content', data.content);
-      formData.append('type', data.type);
-      if (data.file) {
-        formData.append('file', data.file);
+      let formData: FormData;
+
+      if (data instanceof FormData) {
+        formData = data;
+      } else {
+        formData = new FormData();
+        formData.append('content', data.content);
+        formData.append('type', data.type);
+        if (data.file) {
+          formData.append('file', data.file);
+        }
+        if (data.videoUrl) {
+          formData.append('videoUrl', data.videoUrl);
+        }
       }
 
       const response = await api.post(`/api/courses/${courseId}/posts`, formData, {

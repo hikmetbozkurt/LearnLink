@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { Post } from "../../types/post";
 import {
   FaRegComment,
@@ -6,6 +6,7 @@ import {
   FaVideo,
   FaRegClock,
   FaTrash,
+  FaDownload,
 } from "react-icons/fa";
 import ConfirmationModal from "../shared/ConfirmationModal";
 import "./PostList.css";
@@ -114,136 +115,158 @@ const PostList: React.FC<PostListProps> = ({
     }
   };
 
+  // Dosya adını ve uzantısını almak için yardımcı fonksiyon
+  const getFileInfo = (fileUrl: string | undefined | null) => {
+    if (!fileUrl) return { name: "", extension: "" };
+
+    const parts = fileUrl.split("/");
+    const fullName = decodeURIComponent(parts[parts.length - 1]);
+    const nameWithoutTimestamp = fullName.substring(fullName.indexOf("-") + 1);
+    const extension =
+      nameWithoutTimestamp.split(".").pop()?.toLowerCase() || "";
+    return { name: nameWithoutTimestamp, extension };
+  };
+
+  // Video URL'ini embed URL'ine çevir
+  const getEmbedUrl = (url: string) => {
+    if (url.includes("youtube.com") || url.includes("youtu.be")) {
+      const videoId = url.includes("youtube.com")
+        ? url.split("v=")[1]?.split("&")[0]
+        : url.split("youtu.be/")[1];
+      return `https://www.youtube.com/embed/${videoId}`;
+    }
+    return url;
+  };
+
   return (
-    <>
-      <div className="post-list">
-        {postList.map((post) => (
-          <div key={post.post_id} className="post-card">
-            <div className="post-header">
-              <div className="post-info">
-                <span className="author">{post.author_name}</span>
-                <span className="date">
-                  <FaRegClock className="icon" />
-                  {formatDate(post.created_at)}
-                </span>
-              </div>
-              <div className="post-type">
-                {post.type === "pdf" && <FaFile className="icon" />}
-                {post.type === "video" && <FaVideo className="icon" />}
-              </div>
-              {canDelete(post.author_id) && (
-                <button
-                  className="delete-button"
-                  onClick={() => handleDeleteClick(post.post_id)}
-                >
-                  <FaTrash className="icon" />
-                </button>
-              )}
+    <div className="post-list">
+      {postList.map((post) => (
+        <div key={post.post_id} className="post-card">
+          <div className="post-header">
+            <div className="post-info">
+              <span className="author">{post.author_name}</span>
+              <span className="date">
+                <FaRegClock className="icon" />
+                {formatDate(post.created_at)}
+              </span>
             </div>
-
-            <div className="post-content">
-              {post.type === "text" ? (
-                <p>{post.content}</p>
-              ) : (
-                <div className="file-content">
-                  {post.type === "pdf" ? (
-                    <a
-                      href={post.file_url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="file-link"
-                    >
-                      <FaFile className="icon" />
-                      View PDF Document
-                    </a>
-                  ) : (
-                    <div className="video-container">
-                      <video src={post.file_url} controls />
-                    </div>
-                  )}
-                </div>
-              )}
-            </div>
-
-            <div className="post-actions">
+            {canDelete(post.author_id) && (
               <button
-                className="comment-button"
-                onClick={() =>
-                  setExpandedPost(
-                    expandedPost === post.post_id ? null : post.post_id
-                  )
-                }
+                className="delete-button"
+                onClick={() => handleDeleteClick(post.post_id)}
               >
-                <FaRegComment className="icon" />
-                {post.comments.length} Comments
+                <FaTrash className="icon" />
               </button>
-            </div>
-
-            {(expandedPost === post.post_id || post.comments.length > 0) && (
-              <div className="comments-section">
-                {post.comments.map((comment) => {
-                  console.log("Comment Debug:", {
-                    comment,
-                    authorId: comment.author_id,
-                    currentUserId,
-                    isAdmin,
-                    canDelete: canDelete(comment.author_id),
-                  });
-
-                  return (
-                    <div key={comment.comment_id} className="comment">
-                      <div className="comment-header">
-                        <div className="comment-info">
-                          <span className="comment-author">
-                            {comment.author_name}
-                          </span>
-                          <span className="comment-date">
-                            {formatDate(comment.created_at)}
-                          </span>
-                        </div>
-                        {canDelete(comment.author_id) && (
-                          <button
-                            className="delete-button small"
-                            onClick={() =>
-                              handleDeleteComment(
-                                post.post_id,
-                                comment.comment_id
-                              )
-                            }
-                          >
-                            <FaTrash className="icon" />
-                          </button>
-                        )}
-                      </div>
-                      <p className="comment-content">{comment.content}</p>
-                    </div>
-                  );
-                })}
-
-                <div className="add-comment">
-                  <textarea
-                    value={commentText[post.post_id] || ""}
-                    onChange={(e) =>
-                      setCommentText((prev) => ({
-                        ...prev,
-                        [post.post_id]: e.target.value,
-                      }))
-                    }
-                    placeholder="Write a comment..."
-                    rows={2}
-                  />
-                  <button
-                    onClick={() => handleAddComment(post.post_id)}
-                    disabled={!commentText[post.post_id]?.trim()}
-                  >
-                    Comment
-                  </button>
-                </div>
-              </div>
             )}
           </div>
-        ))}
-      </div>
+
+          <div className="post-content">{post.content}</div>
+
+          {post.file_url && (
+            <div className="file-content">
+              <a
+                href={`http://localhost:5001${post.file_url}`}
+                target={post.type === "pdf" ? "_blank" : "_self"}
+                rel={post.type === "pdf" ? "noopener noreferrer" : undefined}
+                className="file-link"
+                download={post.type !== "pdf"}
+              >
+                <FaFile />{" "}
+                {post.file_url.split("/").pop()?.split("-").slice(1).join("-")}
+              </a>
+            </div>
+          )}
+
+          {post.video_url && (
+            <div className="video-container">
+              <iframe
+                src={getEmbedUrl(post.video_url)}
+                title="Video Content"
+                frameBorder="0"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowFullScreen
+              />
+            </div>
+          )}
+
+          <div className="post-actions">
+            <button
+              className="comment-button"
+              onClick={() =>
+                setExpandedPost(
+                  expandedPost === post.post_id ? null : post.post_id
+                )
+              }
+            >
+              <FaRegComment className="icon" />
+              {post.comments.length} Comments
+            </button>
+          </div>
+
+          {(expandedPost === post.post_id || post.comments.length > 0) && (
+            <div className="comments-section">
+              {post.comments.map((comment) => {
+                console.log("Comment Debug:", {
+                  comment,
+                  authorId: comment.author_id,
+                  currentUserId,
+                  isAdmin,
+                  canDelete: canDelete(comment.author_id),
+                });
+
+                return (
+                  <div key={comment.comment_id} className="comment">
+                    <div className="comment-header">
+                      <div className="comment-info">
+                        <span className="comment-author">
+                          {comment.author_name}
+                        </span>
+                        <span className="comment-date">
+                          {formatDate(comment.created_at)}
+                        </span>
+                      </div>
+                      {canDelete(comment.author_id) && (
+                        <button
+                          className="delete-button small"
+                          onClick={() =>
+                            handleDeleteComment(
+                              post.post_id,
+                              comment.comment_id
+                            )
+                          }
+                        >
+                          <FaTrash className="icon" />
+                        </button>
+                      )}
+                    </div>
+                    <p className="comment-content">{comment.content}</p>
+                  </div>
+                );
+              })}
+
+              <div className="add-comment">
+                <textarea
+                  value={commentText[post.post_id] || ""}
+                  onChange={(e) =>
+                    setCommentText((prev) => ({
+                      ...prev,
+                      [post.post_id]: e.target.value,
+                    }))
+                  }
+                  placeholder="Write a comment..."
+                  rows={2}
+                />
+                <button
+                  onClick={() => handleAddComment(post.post_id)}
+                  disabled={!commentText[post.post_id]?.trim()}
+                >
+                  Comment
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+      ))}
 
       <ConfirmationModal
         isOpen={!!postToDelete}
@@ -260,7 +283,7 @@ const PostList: React.FC<PostListProps> = ({
         onConfirm={handleConfirmDeleteComment}
         onCancel={() => setCommentToDelete(null)}
       />
-    </>
+    </div>
   );
 };
 

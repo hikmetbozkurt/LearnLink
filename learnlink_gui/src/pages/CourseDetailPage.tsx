@@ -1,24 +1,28 @@
-import React, { useState, useEffect, useContext } from 'react';
-import { useParams } from 'react-router-dom';
-import { NotificationContext } from '../contexts/NotificationContext';
-import CourseHeader from '../components/CourseDetail/CourseHeader';
-import PostList from '../components/CourseDetail/PostList';
-import CreatePostModal from '../components/CourseDetail/CreatePostModal';
-import { courseService } from '../services/courseService';
-import { Course } from '../types/course';
-import { Post } from '../types/post';
-import '../styles/pages/CourseDetail.css';
-import { AuthContext } from '../contexts/AuthContext';
+import React, { useState, useEffect, useContext } from "react";
+import { useParams } from "react-router-dom";
+import { NotificationContext } from "../contexts/NotificationContext";
+import CourseHeader from "../components/CourseDetail/CourseHeader";
+import PostList from "../components/CourseDetail/PostList";
+import CreatePostModal from "../components/CourseDetail/CreatePostModal";
+import { courseService } from "../services/courseService";
+import { Course } from "../types/course";
+import { Post } from "../types/post";
+import "../styles/pages/CourseDetail.css";
+import { AuthContext } from "../contexts/AuthContext";
 
 const CourseDetailPage = () => {
   const { courseId } = useParams<{ courseId: string }>();
   const { showNotification } = useContext(NotificationContext);
   const { user } = useContext(AuthContext);
   const [course, setCourse] = useState<Course | null>(null);
-  const [posts, setPosts] = useState<{ data: Post[], success: boolean, message: string }>({
+  const [posts, setPosts] = useState<{
+    data: Post[];
+    success: boolean;
+    message: string;
+  }>({
     data: [],
     success: true,
-    message: ''
+    message: "",
   });
   const [showCreatePost, setShowCreatePost] = useState(false);
 
@@ -28,8 +32,8 @@ const CourseDetailPage = () => {
       const postsData = await courseService.getCoursePosts(courseId!);
       setPosts(postsData);
     } catch (error) {
-      console.error('Error loading posts:', error);
-      showNotification('Failed to load posts', 'error');
+      console.error("Error loading posts:", error);
+      showNotification("Failed to load posts", "error");
     }
   };
 
@@ -41,19 +45,22 @@ const CourseDetailPage = () => {
         await loadPosts();
 
         // Debug logları
-        console.log('Course Data:', {
+        console.log("Course Data:", {
           courseId: courseData.course_id,
           instructorId: courseData.instructor_id,
-          instructorName: courseData.instructor_name
+          instructorName: courseData.instructor_name,
         });
-        console.log('Current User:', {
+        console.log("Current User:", {
           userId: user?.user_id,
-          name: user?.name
+          name: user?.name,
         });
-        console.log('Is Instructor:', courseData.instructor_id?.toString() === user?.user_id?.toString());
+        console.log(
+          "Is Instructor:",
+          courseData.instructor_id?.toString() === user?.user_id?.toString()
+        );
       } catch (error) {
-        console.error('Error fetching course details:', error);
-        showNotification('Failed to load course details', 'error');
+        console.error("Error fetching course details:", error);
+        showNotification("Failed to load course details", "error");
       }
     };
 
@@ -77,7 +84,7 @@ const CourseDetailPage = () => {
       const newPosts = await courseService.getCoursePosts(courseId!);
       setPosts(newPosts);
     } catch (error) {
-      console.error('Error adding comment:', error);
+      console.error("Error adding comment:", error);
     }
   };
 
@@ -85,10 +92,10 @@ const CourseDetailPage = () => {
     try {
       await loadPosts(); // Yeni post eklenince tüm postları yeniden yükle
       setShowCreatePost(false);
-      showNotification('Post created successfully', 'success');
+      showNotification("Post created successfully", "success");
     } catch (error) {
-      console.error('Error refreshing posts:', error);
-      showNotification('Failed to refresh posts', 'error');
+      console.error("Error refreshing posts:", error);
+      showNotification("Failed to refresh posts", "error");
     }
   };
 
@@ -96,10 +103,10 @@ const CourseDetailPage = () => {
     try {
       await courseService.deletePost(postId);
       await loadPosts(); // Postları yeniden yükle
-      showNotification('Post deleted successfully', 'success');
+      showNotification("Post deleted successfully", "success");
     } catch (error) {
-      console.error('Error deleting post:', error);
-      showNotification('Failed to delete post', 'error');
+      console.error("Error deleting post:", error);
+      showNotification("Failed to delete post", "error");
     }
   };
 
@@ -107,28 +114,30 @@ const CourseDetailPage = () => {
     try {
       await courseService.deleteComment(commentId);
       await loadPosts(); // Postları yeniden yükle
-      showNotification('Comment deleted successfully', 'success');
+      showNotification("Comment deleted successfully", "success");
     } catch (error) {
-      console.error('Error deleting comment:', error);
-      showNotification('Failed to delete comment', 'error');
+      console.error("Error deleting comment:", error);
+      showNotification("Failed to delete comment", "error");
     }
   };
 
   return (
     <div className="course-detail-container">
-      <CourseHeader 
+      <CourseHeader
         course={course}
         onCreatePost={() => setShowCreatePost(true)}
       />
-      
+
       <div className="course-detail-content">
-        <PostList 
+        <PostList
           posts={posts}
           onComment={handleComment}
           onDeletePost={handleDeletePost}
           onDeleteComment={handleDeleteComment}
           currentUserId={user?.user_id}
-          isAdmin={course?.instructor_id?.toString() === user?.user_id?.toString()}
+          isAdmin={
+            course?.instructor_id?.toString() === user?.user_id?.toString()
+          }
         />
       </div>
 
@@ -143,4 +152,4 @@ const CourseDetailPage = () => {
   );
 };
 
-export default CourseDetailPage; 
+export default CourseDetailPage;

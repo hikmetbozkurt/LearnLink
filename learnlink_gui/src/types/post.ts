@@ -5,6 +5,7 @@ export interface Post {
   content: string;
   type: string;
   file_url?: string;
+  video_url?: string;
   created_at: string;
   updated_at: string;
   comments: Comment[];

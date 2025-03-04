@@ -43,14 +43,19 @@
 }
 
 .post-content {
-  margin-bottom: 20px;
+  margin-bottom: 16px;
+  white-space: pre-wrap;
+  word-break: break-word;
   font-size: 1rem;
-  line-height: 1.6;
+  line-height: 1.5;
   color: #333;
 }
 
 .file-content {
   margin: 16px 0;
+  padding: 12px;
+  background: #f8f9fa;
+  border-radius: 8px;
 }
 
 .file-link {
@@ -59,25 +64,34 @@
   gap: 8px;
   color: #512da8;
   text-decoration: none;
-  padding: 12px;
-  background: #f8f9fa;
-  border-radius: 8px;
-  transition: background-color 0.2s;
+  font-size: 0.95rem;
+  padding: 8px;
+  border-radius: 4px;
+  transition: all 0.2s;
 }
 
 .file-link:hover {
-  background: #f0f0f0;
+  background-color: #e9ecef;
+  color: #4527a0;
 }
 
 .video-container {
-  width: 100%;
-  border-radius: 8px;
+  margin: 16px 0;
+  position: relative;
+  padding-bottom: 56.25%; /* 16:9 aspect ratio */
+  height: 0;
   overflow: hidden;
+  border-radius: 8px;
+  background: #f8f9fa;
 }
 
-.video-container video {
+.video-container iframe {
+  position: absolute;
+  top: 0;
+  left: 0;
   width: 100%;
-  max-height: 400px;
+  height: 100%;
+  border: none;
 }
 
 .post-actions {
@@ -184,22 +198,22 @@
   border: none;
   color: #dc3545;
   cursor: pointer;
-  padding: 5px;
+  padding: 8px;
   display: flex;
   align-items: center;
-  transition: color 0.2s;
-  margin-left: auto;
+  border-radius: 50%;
+  transition: all 0.2s;
 }
 
 .delete-button:hover {
-  color: #c82333;
+  background-color: rgba(220, 53, 69, 0.1);
+}
+
+.delete-button .icon {
+  font-size: 1.1rem;
 }
 
 .delete-button.small {
   padding: 3px;
   font-size: 0.9em;
-}
-
-.delete-button .icon {
-  font-size: 1.2em;
 } 

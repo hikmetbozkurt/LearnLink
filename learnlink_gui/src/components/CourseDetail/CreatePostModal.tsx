@@ -1,15 +1,17 @@
-import React, { useState } from 'react';
-import { FaFile, FaVideo, FaTimes } from 'react-icons/fa';
-import { Post } from '../../types/post';
-import { courseService } from '../../services/courseService';
-import './CreatePostModal.css';
+import React, { useState, useEffect } from "react";
+import { FaTimes, FaPaperclip, FaTrash } from "react-icons/fa";
+import "./CreatePostModal.css";
+import { courseService } from "../../services/courseService";
 
 interface CreatePostModalProps {
   courseId: string;
   onClose: () => void;
-  onPostCreated: (post: Post) => void;
+  onPostCreated: (post: any) => void;
   isLoading?: boolean;
 }
+
+const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
+const ALLOWED_FILE_TYPES = ['.pdf', '.txt', '.zip', '.rar'];
 
 const CreatePostModal: React.FC<CreatePostModalProps> = ({
   courseId,
@@ -19,8 +21,39 @@ const CreatePostModal: React.FC<CreatePostModalProps> = ({
 }) => {
   const [content, setContent] = useState('');
   const [file, setFile] = useState<File | null>(null);
-  const [type, setType] = useState<'text' | 'pdf' | 'video'>('text');
   const [error, setError] = useState('');
+  const [videoPreview, setVideoPreview] = useState<string | null>(null);
+
+  // Video URL'ini kontrol et
+  useEffect(() => {
+    const videoUrlMatch = content.match(/(https?:\/\/)?(www\.)?(youtube\.com\/watch\?v=|youtu\.be\/|vimeo\.com\/)([^\s&]+)/);
+    if (videoUrlMatch) {
+      setVideoPreview(videoUrlMatch[0]);
+    } else {
+      setVideoPreview(null);
+    }
+  }, [content]);
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const selectedFile = e.target.files?.[0];
+    if (!selectedFile) return;
+
+    // Dosya uzantısını kontrol et
+    const fileExtension = '.' + selectedFile.name.split('.').pop()?.toLowerCase();
+    if (!ALLOWED_FILE_TYPES.includes(fileExtension)) {
+      setError(`Only ${ALLOWED_FILE_TYPES.join(', ')} files are allowed`);
+      return;
+    }
+
+    // Dosya boyutunu kontrol et
+    if (selectedFile.size > MAX_FILE_SIZE) {
+      setError('File size should be less than 10MB');
+      return;
+    }
+
+    setFile(selectedFile);
+    setError('');
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -30,12 +63,25 @@ const CreatePostModal: React.FC<CreatePostModalProps> = ({
     }
 
     try {
-      const result = await courseService.createPost(courseId, {
-        content,
-        type,
-        file: file || undefined
-      });
+      const formData = new FormData();
+      formData.append('content', content);
+      
+      // Video URL varsa
+      if (videoPreview) {
+        formData.append('type', 'video');
+        formData.append('videoUrl', videoPreview);
+      } 
+      // Dosya varsa
+      else if (file) {
+        formData.append('type', 'file');
+        formData.append('file', file);
+      } 
+      // Sadece text
+      else {
+        formData.append('type', 'text');
+      }
 
+      const result = await courseService.createPost(courseId, formData);
       onPostCreated(result);
       onClose();
     } catch (error: any) {
@@ -47,60 +93,59 @@ const CreatePostModal: React.FC<CreatePostModalProps> = ({
     <div className="modal-overlay">
       <div className="modal-content create-post-modal">
         <div className="modal-header">
-          <h2>Create New Post</h2>
+          <h2>Share your knowledge with the class</h2>
           <button className="close-button" onClick={onClose}>
             <FaTimes />
           </button>
         </div>
 
         <form onSubmit={handleSubmit}>
-          <div className="form-group">
-            <label>Post Type</label>
-            <div className="post-type-selector">
-              <button
-                type="button"
-                className={`type-button ${type === 'text' ? 'active' : ''}`}
-                onClick={() => setType('text')}
-              >
-                Text
-              </button>
-              <button
-                type="button"
-                className={`type-button ${type === 'pdf' ? 'active' : ''}`}
-                onClick={() => setType('pdf')}
-              >
-                <FaFile /> PDF
-              </button>
-              <button
-                type="button"
-                className={`type-button ${type === 'video' ? 'active' : ''}`}
-                onClick={() => setType('video')}
-              >
-                <FaVideo /> Video
-              </button>
-            </div>
-          </div>
-
-          <div className="form-group">
-            <label>Content</label>
+          <div className="content-area">
             <textarea
               value={content}
               onChange={(e) => setContent(e.target.value)}
-              placeholder="Write your post content..."
-              rows={5}
+              placeholder="Share your thoughts, questions, or resources..."
+              rows={8}
+              required
             />
-          </div>
 
-          {type !== 'text' && (
-            <div className="form-group">
-              <label>{type === 'pdf' ? 'PDF File' : 'Video File'}</label>
+            {videoPreview && (
+              <div className="video-preview">
+                <iframe
+                  src={videoPreview.replace('watch?v=', 'embed/')}
+                  title="Video Preview"
+                  frameBorder="0"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                  allowFullScreen
+                />
+              </div>
+            )}
+
+            <div className="attachment-section">
+              <label htmlFor="file-upload" className="file-upload-label">
+                <FaPaperclip /> Attach File
+              </label>
               <input
+                id="file-upload"
                 type="file"
-                onChange={(e) => setFile(e.target.files?.[0] || null)}
-                accept={type === 'pdf' ? '.pdf' : 'video/*'}
+                onChange={handleFileChange}
+                accept={ALLOWED_FILE_TYPES.join(',')}
+                style={{ display: 'none' }}
               />
+              {file && (
+                <div className="selected-file">
+                  <span>{file.name}</span>
+                  <button
+                    type="button"
+                    onClick={() => setFile(null)}
+                    className="remove-file"
+                  >
+                    <FaTrash />
+                  </button>
+                </div>
+              )}
             </div>
-          )}
+          </div>
 
           {error && <div className="error-message">{error}</div>}
 
