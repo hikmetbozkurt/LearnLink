@@ -9,16 +9,22 @@
   justify-content: center;
   align-items: center;
   z-index: 1000;
+  backdrop-filter: blur(4px);
 }
 
 .profile-card {
-  background: white;
+  background: var(--surface);
   border-radius: 12px;
   padding: 24px;
   width: 90%;
   max-width: 400px;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 4px 6px var(--shadow);
   position: relative;
+}
+
+.dark .profile-card {
+  background: #1e1e1e;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
 }
 
 .close-button {
@@ -29,15 +35,20 @@
   border: none;
   font-size: 24px;
   cursor: pointer;
-  color: #666;
+  color: var(--text-secondary);
   padding: 4px 8px;
   border-radius: 4px;
   transition: all 0.2s;
 }
 
 .close-button:hover {
-  background-color: #f0f0f0;
-  color: #333;
+  background-color: rgba(0, 0, 0, 0.08);
+  color: var(--text-primary);
+}
+
+.dark .close-button:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+  color: #ffffff;
 }
 
 .profile-header {
@@ -48,23 +59,23 @@
 .profile-avatar {
   width: 36px;
   height: 36px;
-  background-color: #f0f0f0;
+  background-color: var(--hover-background);
   border-radius: 50%;
   margin: 0 auto 16px;
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #666;
+  color: var(--text-secondary);
 }
 
 .profile-header h2 {
   margin: 8px 0;
-  color: #333;
+  color: var(--text-primary);
 }
 
 .role-badge {
-  background-color: #e3f2fd;
-  color: #1976d2;
+  background-color: var(--primary);
+  color: white;
   padding: 4px 12px;
   border-radius: 16px;
   font-size: 0.9em;
@@ -80,30 +91,43 @@
   align-items: flex-start;
   margin-bottom: 16px;
   padding: 12px;
-  background-color: #f8f9fa;
+  background-color: var(--hover-background);
   border-radius: 8px;
   transition: all 0.2s;
 }
 
 .info-item:hover {
-  background-color: #e9ecef;
+  background-color: var(--primary);
+  color: white;
 }
 
 .info-icon {
   margin-right: 12px;
   margin-top: 4px;
-  color: #666;
+  color: var(--text-secondary);
+}
+
+.info-item:hover .info-icon {
+  color: white;
 }
 
 .info-item label {
   font-size: 0.9em;
-  color: #666;
+  color: var(--text-secondary);
   margin-bottom: 4px;
   display: block;
 }
 
+.info-item:hover label {
+  color: rgba(255, 255, 255, 0.8);
+}
+
 .info-item p {
   margin: 0;
-  color: #333;
+  color: var(--text-primary);
   font-weight: 500;
+}
+
+.info-item:hover p {
+  color: white;
 } 

@@ -1,7 +1,8 @@
 .main-layout {
   display: flex;
   min-height: 100vh;
-  background-color: #f8f9fa;
+  background-color: var(--background);
+  transition: background-color 0.3s ease;
 }
 
 .main-content {
@@ -9,17 +10,20 @@
   margin-left: 250px; /* Match sidebar width */
   padding: 80px 24px 24px; /* Top padding for header + content padding */
   min-height: 100vh;
-  background-color: #f8f9fa;
+  background-color: var(--background);
   overflow-x: hidden;
+  transition: background-color 0.3s ease;
+  width: calc(100% - 250px);
 }
 
 .content-wrapper {
   max-width: 1400px;
   margin: 0 auto;
   padding: 20px;
-  background-color: #ffffff;
+  background-color: var(--surface);
   border-radius: 12px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  box-shadow: 0 2px 4px var(--shadow);
+  transition: all 0.3s ease;
 }
 
 /* Responsive adjustments */
@@ -27,5 +31,6 @@
   .main-content {
     margin-left: 0;
     padding: 70px 16px 16px;
+    width: 100%;
   }
 } 

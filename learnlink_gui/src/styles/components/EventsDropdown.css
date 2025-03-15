@@ -7,13 +7,12 @@
   border: none;
   font-size: 1.2rem;
   cursor: pointer;
-  color: #512da8;
+  color: var(--primary);
   padding: 8px;
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: all 0.2s;
   transform-origin: center;
 }
 
@@ -42,9 +41,9 @@
   top: 100%;
   right: 0;
   width: 300px;
-  background: white;
+  background: var(--surface);
   border-radius: 8px;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 2px 10px var(--shadow);
   z-index: 1000;
   margin-top: 8px;
   display: flex;
@@ -54,14 +53,14 @@
 
 .events-header {
   padding: 16px;
-  border-bottom: 1px solid #eee;
-  background-color: #f8f9fa;
+  border-bottom: 1px solid var(--border);
+  background-color: var(--background);
   flex-shrink: 0;
 }
 
 .events-header h3 {
   margin: 0;
-  color: #333;
+  color: var(--text-primary);
   font-size: 1.1rem;
 }
 
@@ -72,7 +71,7 @@
   max-height: calc(80vh - 60px);
   min-height: 100px;
   scrollbar-width: thin;
-  scrollbar-color: #512da8 #f0f0f0;
+  scrollbar-color: var(--primary) var(--surface-variant);
 }
 
 .events-list::-webkit-scrollbar {
@@ -80,12 +79,12 @@
 }
 
 .events-list::-webkit-scrollbar-track {
-  background: #f0f0f0;
+  background: var(--surface-variant);
   border-radius: 3px;
 }
 
 .events-list::-webkit-scrollbar-thumb {
-  background-color: #512da8;
+  background-color: var(--primary);
   border-radius: 3px;
 }
 
@@ -98,8 +97,8 @@
   transition: all 0.2s;
   cursor: pointer;
   margin-bottom: 8px;
-  background: #fff;
-  border: 1px solid #eee;
+  background: var(--surface);
+  border: 1px solid var(--border);
   min-height: 45px;
   overflow: hidden;
   position: relative;
@@ -110,12 +109,12 @@
 }
 
 .event-item:hover {
-  background-color: #f8f9fa;
+  background-color: var(--hover-background);
 }
 
 .event-item.today {
-  background-color: #ede7f6;
-  border-color: #d1c4e9;
+  background-color: var(--primary-light);
+  border-color: var(--primary-lighter);
 }
 
 .event-type-indicator {
@@ -125,19 +124,19 @@
 }
 
 .event-type-indicator[data-type="assignment"] {
-  background-color: #2196f3;
+  background-color: var(--info);
 }
 
 .event-type-indicator[data-type="exam"] {
-  background-color: #f44336;
+  background-color: var(--error);
 }
 
 .event-type-indicator[data-type="meeting"] {
-  background-color: #4caf50;
+  background-color: var(--success);
 }
 
 .event-type-indicator[data-type="other"] {
-  background-color: #ff9800;
+  background-color: var(--warning);
 }
 
 .event-content {
@@ -150,7 +149,7 @@
 
 .event-title {
   margin: 0;
-  color: #333;
+  color: var(--text-primary);
   font-weight: 500;
   font-size: 0.95rem;
   overflow: hidden;
@@ -176,20 +175,20 @@
 }
 
 .event-status.today {
-  background-color: #e3f2fd;
-  color: #1976d2;
+  background-color: var(--info-light);
+  color: var(--info);
 }
 
 .event-status.past {
-  background-color: #e45d5d;
-  color: #431212;
+  background-color: var(--error-light);
+  color: var(--error);
 }
 
 .events-loading,
 .no-events {
   padding: 20px;
   text-align: center;
-  color: #666;
+  color: var(--text-secondary);
 }
 
 @media (max-width: 480px) {
@@ -250,7 +249,7 @@
 }
 
 .rbc-event {
-  background-color: #512da8 !important;
+  background-color: #512da8 ;
   border: none !important;
   border-radius: 4px !important;
   color: white !important;
@@ -263,7 +262,6 @@
 }
 
 .rbc-event.rbc-selected {
-  background-color: #4527a0 !important;
   opacity: 1 !important;
 }
 

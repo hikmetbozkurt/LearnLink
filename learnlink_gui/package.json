@@ -27,7 +27,8 @@
     "react-router-dom": "^6.28.1",
     "react-scripts": "5.0.1",
     "socket.io-client": "^4.8.1",
-    "styled-components": "^6.1.13"
+    "styled-components": "^6.1.15",
+    "styled-theming": "^2.2.0"
   },
   "scripts": {
     "start": "react-scripts start",
