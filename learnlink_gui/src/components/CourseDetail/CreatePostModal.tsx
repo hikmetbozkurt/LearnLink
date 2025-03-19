@@ -11,22 +11,59 @@ interface CreatePostModalProps {
 }
 
 const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
-const ALLOWED_FILE_TYPES = ['.pdf', '.txt', '.zip', '.rar'];
+const ALLOWED_FILE_TYPES = [
+  // Temel dosya tipleri
+  ".pdf",
+  ".txt",
+  ".zip",
+  ".rar",
+
+  // Microsoft Word
+  ".doc",
+  ".docx",
+  ".docm",
+  ".dot",
+  ".dotx",
+  ".dotm",
+
+  // Microsoft Excel
+  ".xls",
+  ".xlsx",
+  ".xlsm",
+  ".xlt",
+  ".xltx",
+  ".xltm",
+  ".xlsb",
+  ".csv",
+
+  // Microsoft PowerPoint
+  ".ppt",
+  ".pptx",
+  ".pptm",
+  ".pot",
+  ".potx",
+  ".potm",
+  ".pps",
+  ".ppsx",
+  ".ppsm",
+];
 
 const CreatePostModal: React.FC<CreatePostModalProps> = ({
   courseId,
   onClose,
   onPostCreated,
-  isLoading = false
+  isLoading = false,
 }) => {
-  const [content, setContent] = useState('');
+  const [content, setContent] = useState("");
   const [file, setFile] = useState<File | null>(null);
-  const [error, setError] = useState('');
+  const [error, setError] = useState("");
   const [videoPreview, setVideoPreview] = useState<string | null>(null);
 
   // Video URL'ini kontrol et
   useEffect(() => {
-    const videoUrlMatch = content.match(/(https?:\/\/)?(www\.)?(youtube\.com\/watch\?v=|youtu\.be\/|vimeo\.com\/)([^\s&]+)/);
+    const videoUrlMatch = content.match(
+      /(https?:\/\/)?(www\.)?(youtube\.com\/watch\?v=|youtu\.be\/|vimeo\.com\/)([^\s&]+)/
+    );
     if (videoUrlMatch) {
       setVideoPreview(videoUrlMatch[0]);
     } else {
@@ -39,53 +76,54 @@ const CreatePostModal: React.FC<CreatePostModalProps> = ({
     if (!selectedFile) return;
 
     // Dosya uzantısını kontrol et
-    const fileExtension = '.' + selectedFile.name.split('.').pop()?.toLowerCase();
+    const fileExtension =
+      "." + selectedFile.name.split(".").pop()?.toLowerCase();
     if (!ALLOWED_FILE_TYPES.includes(fileExtension)) {
-      setError(`Only ${ALLOWED_FILE_TYPES.join(', ')} files are allowed`);
+      setError(`Only ${ALLOWED_FILE_TYPES.join(", ")} files are allowed`);
       return;
     }
 
     // Dosya boyutunu kontrol et
     if (selectedFile.size > MAX_FILE_SIZE) {
-      setError('File size should be less than 10MB');
+      setError("File size should be less than 10MB");
       return;
     }
 
     setFile(selectedFile);
-    setError('');
+    setError("");
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!content.trim()) {
-      setError('Content is required');
+      setError("Content is required");
       return;
     }
 
     try {
       const formData = new FormData();
-      formData.append('content', content);
-      
+      formData.append("content", content);
+
       // Video URL varsa
       if (videoPreview) {
-        formData.append('type', 'video');
-        formData.append('videoUrl', videoPreview);
-      } 
+        formData.append("type", "video");
+        formData.append("videoUrl", videoPreview);
+      }
       // Dosya varsa
       else if (file) {
-        formData.append('type', 'file');
-        formData.append('file', file);
-      } 
+        formData.append("type", "file");
+        formData.append("file", file);
+      }
       // Sadece text
       else {
-        formData.append('type', 'text');
+        formData.append("type", "text");
       }
 
       const result = await courseService.createPost(courseId, formData);
       onPostCreated(result);
       onClose();
     } catch (error: any) {
-      setError(error.message || 'Failed to create post');
+      setError(error.message || "Failed to create post");
     }
   };
 
@@ -112,7 +150,7 @@ const CreatePostModal: React.FC<CreatePostModalProps> = ({
             {videoPreview && (
               <div className="video-preview">
                 <iframe
-                  src={videoPreview.replace('watch?v=', 'embed/')}
+                  src={videoPreview.replace("watch?v=", "embed/")}
                   title="Video Preview"
                   frameBorder="0"
                   allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
@@ -129,8 +167,8 @@ const CreatePostModal: React.FC<CreatePostModalProps> = ({
                 id="file-upload"
                 type="file"
                 onChange={handleFileChange}
-                accept={ALLOWED_FILE_TYPES.join(',')}
-                style={{ display: 'none' }}
+                accept={ALLOWED_FILE_TYPES.join(",")}
+                style={{ display: "none" }}
               />
               {file && (
                 <div className="selected-file">
@@ -153,12 +191,12 @@ const CreatePostModal: React.FC<CreatePostModalProps> = ({
             <button type="button" className="cancel-button" onClick={onClose}>
               Cancel
             </button>
-            <button 
-              type="submit" 
+            <button
+              type="submit"
               className="submit-button"
               disabled={isLoading || !content.trim()}
             >
-              {isLoading ? 'Posting...' : 'Post'}
+              {isLoading ? "Posting..." : "Post"}
             </button>
           </div>
         </form>
@@ -167,4 +205,4 @@ const CreatePostModal: React.FC<CreatePostModalProps> = ({
   );
 };
 
-export default CreatePostModal; 
+export default CreatePostModal;

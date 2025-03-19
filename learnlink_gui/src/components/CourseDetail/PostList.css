@@ -216,4 +216,79 @@
 .delete-button.small {
   padding: 3px;
   font-size: 0.9em;
+}
+
+/* PDF dosyası için stil ekleyelim */
+.pdf-content {
+  margin: 16px 0;
+  padding: 12px;
+  background: #f8f9fa;
+  border-radius: 8px;
+}
+
+.pdf-link {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #512da8;
+  text-decoration: none;
+  font-size: 1rem;
+  padding: 8px;
+  border-radius: 4px;
+  transition: all 0.2s;
+}
+
+.pdf-link:hover {
+  background-color: #e9ecef;
+  color: #4527a0;
+}
+
+.pdf-icon {
+  color: #e74c3c;
+  font-size: 1.2rem;
+}
+
+/* PDF dosyası için stil ekleyelim */
+.pdf-file-icon {
+  color: #e74c3c;
+}
+
+.missing-file {
+  opacity: 0.6;
+}
+
+.file-missing {
+  color: #888;
+  font-style: italic;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.missing-icon {
+  color: #999;
+}
+
+.download-button {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background-color: #f0f2f5;
+  color: #444;
+  border: none;
+  border-radius: 4px;
+  padding: 8px 12px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.download-button:hover {
+  background-color: #e4e6e9;
+  color: #000;
+}
+
+.download-button svg {
+  color: #1877f2;
+  font-size: 16px;
 } 

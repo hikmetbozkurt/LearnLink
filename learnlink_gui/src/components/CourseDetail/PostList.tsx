@@ -138,6 +138,126 @@ const PostList: React.FC<PostListProps> = ({
     return url;
   };
 
+  // Dosya indirme fonksiyonu - yeniden yazıldı, fetch API kullanarak
+  const handleDownloadFile = async (fileUrl: string, fileName: string) => {
+    console.log("Downloading file:", fileName, "from URL:", fileUrl);
+
+    try {
+      // Dosyayı fetch ile al
+      const response = await fetch(fileUrl);
+
+      // Hata kontrolü
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      // Blob olarak al (ikili dosya içeriği)
+      const blob = await response.blob();
+
+      // Blob için URL oluştur
+      const blobUrl = URL.createObjectURL(blob);
+
+      // İndirme bağlantısı oluştur
+      const downloadLink = document.createElement("a");
+      downloadLink.href = blobUrl;
+      downloadLink.download = fileName; // İndirilecek dosyanın adı
+
+      // Bağlantıyı DOM'a ekle ve tıkla
+      document.body.appendChild(downloadLink);
+      downloadLink.click();
+
+      // Temizlik
+      document.body.removeChild(downloadLink);
+      URL.revokeObjectURL(blobUrl); // Bellek sızıntısını önlemek için
+
+      console.log("Download initiated successfully");
+    } catch (error) {
+      console.error("Error downloading file:", error);
+      alert("Dosya indirilirken bir hata oluştu. Lütfen tekrar deneyin.");
+    }
+  };
+
+  // Dosya tipini kontrol et
+  const isDownloadableFile = (
+    fileUrl: string | null | undefined,
+    type: string
+  ): boolean => {
+    if (!fileUrl) return false;
+
+    // Desteklenen uzantıları tanımla - Microsoft Office dosyalarını da ekleyelim
+    const downloadableExtensions = [
+      // Temel indirilebilir dosyalar
+      ".txt",
+      ".rar",
+      ".zip",
+
+      // Microsoft Word
+      ".doc",
+      ".docx",
+      ".docm",
+      ".dot",
+      ".dotx",
+      ".dotm",
+
+      // Microsoft Excel
+      ".xls",
+      ".xlsx",
+      ".xlsm",
+      ".xlt",
+      ".xltx",
+      ".xltm",
+      ".xlsb",
+      ".csv",
+
+      // Microsoft PowerPoint
+      ".ppt",
+      ".pptx",
+      ".pptm",
+      ".pot",
+      ".potx",
+      ".potm",
+      ".pps",
+      ".ppsx",
+      ".ppsm",
+    ];
+
+    // Microsoft dosya tiplerini tanımla
+    const microsoftTypes = ["word", "excel", "powerpoint", "doc", "xls", "ppt"];
+
+    // Uzantı kontrolü
+    const fileExtension = fileUrl.toLowerCase().split(".").pop();
+    const hasDownloadableExtension = fileExtension
+      ? downloadableExtensions.some((ext) =>
+          fileUrl.toLowerCase().endsWith(ext)
+        )
+      : false;
+
+    // Tip kontrolü
+    const isDownloadableType =
+      type === "txt" ||
+      type === "rar" ||
+      type === "zip" ||
+      microsoftTypes.includes(type.toLowerCase());
+
+    return hasDownloadableExtension || isDownloadableType;
+  };
+
+  // Post verilerini konsolda gösterelim (Debug için)
+  React.useEffect(() => {
+    postList.forEach((post) => {
+      console.log("Post Details:", {
+        postId: post.post_id,
+        type: post.type,
+        fileUrl: post.file_url,
+        hasFile: !!post.file_url,
+        fileName: post.file_url ? post.file_url.split("/").pop() : null,
+        isPdf: post.file_url
+          ? post.file_url.toLowerCase().endsWith(".pdf")
+          : false,
+      });
+    });
+  }, [postList]);
+
   return (
     <div className="post-list">
       {postList.map((post) => (
@@ -162,18 +282,102 @@ const PostList: React.FC<PostListProps> = ({
 
           <div className="post-content">{post.content}</div>
 
+          {/* PDF ve diğer dosyaları göster */}
           {post.file_url && (
-            <div className="file-content">
-              <a
-                href={`http://localhost:5001${post.file_url}`}
-                target={post.type === "pdf" ? "_blank" : "_self"}
-                rel={post.type === "pdf" ? "noopener noreferrer" : undefined}
-                className="file-link"
-                download={post.type !== "pdf"}
-              >
-                <FaFile />{" "}
-                {post.file_url.split("/").pop()?.split("-").slice(1).join("-")}
-              </a>
+            <div className="pdf-content">
+              {isDownloadableFile(post.file_url, post.type) ? (
+                // İndirilebilir dosyalar için download butonu
+                <button
+                  onClick={() => {
+                    if (!post.file_url) return; // TypeScript için güvenlik kontrolü
+
+                    const fileUrl = `http://localhost:5001${post.file_url}`;
+
+                    // Dosya adını güvenli bir şekilde alalım
+                    let fileName = "file";
+                    try {
+                      const pathParts = post.file_url.split("/");
+                      const lastPart = pathParts[pathParts.length - 1];
+                      if (lastPart && lastPart.includes("-")) {
+                        fileName = lastPart.substring(
+                          lastPart.indexOf("-") + 1
+                        );
+                      }
+                    } catch (error) {
+                      console.error("Dosya adı alınamadı:", error);
+                    }
+
+                    // Yeni indirme fonksiyonunu kullan
+                    handleDownloadFile(fileUrl, fileName);
+                  }}
+                  className="download-button"
+                >
+                  <FaDownload />{" "}
+                  {(() => {
+                    if (!post.file_url) return "Dosya";
+
+                    try {
+                      const parts = post.file_url.split("/");
+                      const lastPart = parts[parts.length - 1];
+                      if (lastPart && lastPart.includes("-")) {
+                        return lastPart.substring(lastPart.indexOf("-") + 1);
+                      }
+                    } catch (error) {
+                      console.error("Dosya adı gösterimi alınamadı:", error);
+                    }
+
+                    return post.type === "txt"
+                      ? "TXT Dosyası"
+                      : post.type === "rar"
+                      ? "RAR Dosyası"
+                      : post.type === "zip"
+                      ? "ZIP Dosyası"
+                      : "Dosya";
+                  })()}
+                </button>
+              ) : (
+                // PDF ve diğer dosyalar için normal bağlantı
+                <a
+                  href={`http://localhost:5001${post.file_url}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="pdf-link"
+                >
+                  <FaFile
+                    className={
+                      post.file_url.toLowerCase().endsWith(".pdf") ||
+                      post.type === "pdf"
+                        ? "pdf-file-icon"
+                        : ""
+                    }
+                  />{" "}
+                  {(() => {
+                    if (!post.file_url)
+                      return post.type === "pdf" ? "PDF Dosyası" : "Dosya";
+
+                    try {
+                      const parts = post.file_url.split("/");
+                      const lastPart = parts[parts.length - 1];
+                      if (lastPart && lastPart.includes("-")) {
+                        return lastPart.substring(lastPart.indexOf("-") + 1);
+                      }
+                    } catch (error) {
+                      console.error("Dosya adı gösterimi alınamadı:", error);
+                    }
+
+                    return post.type === "pdf" ? "PDF Dosyası" : "Dosya";
+                  })()}
+                </a>
+              )}
+            </div>
+          )}
+
+          {/* Dosya türünde olup file_url'i olmayan postlar için bilgi mesajı */}
+          {(post.type === "pdf" || post.type === "file") && !post.file_url && (
+            <div className="pdf-content missing-file">
+              <span className="file-missing">
+                <FaFile className="missing-icon" /> Dosya bulunamadı
+              </span>
             </div>
           )}
 
