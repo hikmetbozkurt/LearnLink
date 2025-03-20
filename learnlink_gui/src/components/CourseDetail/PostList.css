@@ -6,7 +6,7 @@
 .post-card {
   background: white;
   border-radius: 12px;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   margin-bottom: 24px;
   padding: 20px;
 }
@@ -78,7 +78,8 @@
 .video-container {
   margin: 16px 0;
   position: relative;
-  padding-bottom: 56.25%; /* 16:9 aspect ratio */
+  padding-bottom: 56.25%;
+  /* 16:9 aspect ratio */
   height: 0;
   overflow: hidden;
   border-radius: 8px;
@@ -291,4 +292,4 @@
 .download-button svg {
   color: #1877f2;
   font-size: 16px;
-} 
+}

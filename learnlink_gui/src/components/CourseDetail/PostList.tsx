@@ -19,7 +19,8 @@ interface PostListProps {
   };
   onComment: (postId: string, content: string) => void;
   onDeletePost: (postId: string) => void;
-  currentUserId?: string; // undefined olabilir
+  currentUserId?: string | number; // string | number olarak güncellendi
+  userName?: string; // Yeni prop ekledik
   isAdmin: boolean;
   onDeleteComment: (commentId: string) => void;
 }
@@ -29,6 +30,7 @@ const PostList: React.FC<PostListProps> = ({
   onComment,
   onDeletePost,
   currentUserId,
+  userName, // Yeni prop'u ekleyelim
   isAdmin,
   onDeleteComment,
 }) => {
@@ -62,17 +64,36 @@ const PostList: React.FC<PostListProps> = ({
     });
   }, [postList, currentUserId, isAdmin]);
 
-  // Silme butonu kontrolünü güncelleyelim
+  // canDelete fonksiyonunu güncelleyelim
   const canDelete = (authorId: number | string) => {
-    console.log("Can Delete Check:", {
+    // Debug için detaylı log
+    console.log("Delete Permission Check:", {
       authorId,
       currentUserId,
       isAdmin,
       authorIdType: typeof authorId,
       currentUserIdType: typeof currentUserId,
-      isEqual: String(authorId) === String(currentUserId),
+      storedUser: JSON.parse(localStorage.getItem("user") || "null"),
     });
-    return String(authorId) === String(currentUserId) || isAdmin;
+
+    // authorId ve currentUserId string'e çevrilmeli
+    const authorIdStr = String(authorId);
+    const currentUserIdStr = String(currentUserId);
+
+    const isAuthor = authorIdStr === currentUserIdStr;
+
+    console.log("Permission Result:", {
+      isAuthor,
+      isAdmin,
+      canDelete: isAuthor || isAdmin,
+      comparison: {
+        authorIdStr,
+        currentUserIdStr,
+        equal: authorIdStr === currentUserIdStr,
+      },
+    });
+
+    return isAuthor || isAdmin;
   };
 
   const handleAddComment = (postId: string) => {
@@ -409,44 +430,31 @@ const PostList: React.FC<PostListProps> = ({
 
           {(expandedPost === post.post_id || post.comments.length > 0) && (
             <div className="comments-section">
-              {post.comments.map((comment) => {
-                console.log("Comment Debug:", {
-                  comment,
-                  authorId: comment.author_id,
-                  currentUserId,
-                  isAdmin,
-                  canDelete: canDelete(comment.author_id),
-                });
-
-                return (
-                  <div key={comment.comment_id} className="comment">
-                    <div className="comment-header">
-                      <div className="comment-info">
-                        <span className="comment-author">
-                          {comment.author_name}
-                        </span>
-                        <span className="comment-date">
-                          {formatDate(comment.created_at)}
-                        </span>
-                      </div>
-                      {canDelete(comment.author_id) && (
-                        <button
-                          className="delete-button small"
-                          onClick={() =>
-                            handleDeleteComment(
-                              post.post_id,
-                              comment.comment_id
-                            )
-                          }
-                        >
-                          <FaTrash className="icon" />
-                        </button>
-                      )}
+              {post.comments.map((comment) => (
+                <div key={comment.comment_id} className="comment">
+                  <div className="comment-header">
+                    <div className="comment-info">
+                      <span className="comment-author">
+                        {comment.author_name}
+                      </span>
+                      <span className="comment-date">
+                        {formatDate(comment.created_at)}
+                      </span>
                     </div>
-                    <p className="comment-content">{comment.content}</p>
+                    {(comment.author_name === userName || isAdmin) && (
+                      <button
+                        className="delete-button small"
+                        onClick={() =>
+                          handleDeleteComment(post.post_id, comment.comment_id)
+                        }
+                      >
+                        <FaTrash className="icon" />
+                      </button>
+                    )}
                   </div>
-                );
-              })}
+                  <p className="comment-content">{comment.content}</p>
+                </div>
+              ))}
 
               <div className="add-comment">
                 <textarea

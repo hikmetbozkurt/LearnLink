@@ -9,6 +9,7 @@ import { Course } from "../types/course";
 import { Post } from "../types/post";
 import "../styles/pages/CourseDetail.css";
 import { AuthContext } from "../contexts/AuthContext";
+import { User } from "../types/user";
 
 const CourseDetailPage = () => {
   const { courseId } = useParams<{ courseId: string }>();
@@ -25,6 +26,9 @@ const CourseDetailPage = () => {
     message: "",
   });
   const [showCreatePost, setShowCreatePost] = useState(false);
+
+  // user'ı User tipine cast edelim
+  const currentUser = user as User;
 
   // Postları yükle
   const loadPosts = async () => {
@@ -77,6 +81,14 @@ const CourseDetailPage = () => {
 
     return () => clearInterval(interval);
   }, [courseId, user]);
+
+  // Debug log ekleyelim
+  useEffect(() => {
+    console.log("CourseDetail - User Info:", {
+      user,
+      storedUser: JSON.parse(localStorage.getItem("user") || "null"),
+    });
+  }, [user]);
 
   const handleComment = async (postId: string, content: string) => {
     try {
@@ -134,10 +146,12 @@ const CourseDetailPage = () => {
           onComment={handleComment}
           onDeletePost={handleDeletePost}
           onDeleteComment={handleDeleteComment}
-          currentUserId={user?.user_id}
-          isAdmin={
-            course?.instructor_id?.toString() === user?.user_id?.toString()
-          }
+          currentUserId={user?.user_id || user?.id}
+          userName={user?.name}
+          isAdmin={Boolean(
+            course?.instructor_id?.toString() ===
+              (user?.user_id || user?.id)?.toString() || user?.role === "admin"
+          )}
         />
       </div>
 
