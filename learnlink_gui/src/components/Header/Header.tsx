@@ -18,6 +18,20 @@ import { authService } from '../../services/authService';
 
 type DropdownType = 'settings' | 'notifications' | 'events' | null;
 
+interface User {
+  id: number;
+  user_id: number;
+  username?: string;
+  email: string;
+  first_name?: string;
+  last_name?: string;
+  profile_picture?: string;
+  profile_pic?: string;
+  name?: string;
+  role?: string;
+  created_at?: string;
+}
+
 const Header = () => {
   const navigate = useNavigate();
   const { user, setUser } = useAuth();

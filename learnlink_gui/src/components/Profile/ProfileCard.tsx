@@ -9,12 +9,17 @@ import { authService } from '../../services/authService';
 import { useAuth } from '../../hooks/useAuth';
 
 interface User {
+  id: number;
   user_id: number;
+  username?: string;
   email: string;
+  first_name?: string;
+  last_name?: string;
+  profile_picture?: string;
+  profile_pic?: string;
   name?: string;
   role?: string;
-  created_at: string;
-  profile_pic?: string;
+  created_at?: string;
 }
 
 interface ProfileCardProps {
