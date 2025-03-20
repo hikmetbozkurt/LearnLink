@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useContext } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import { NotificationContext } from "../contexts/NotificationContext";
 import CourseHeader from "../components/CourseDetail/CourseHeader";
 import PostList from "../components/CourseDetail/PostList";
@@ -13,6 +13,7 @@ import { User } from "../types/user";
 
 const CourseDetailPage = () => {
   const { courseId } = useParams<{ courseId: string }>();
+  const navigate = useNavigate();
   const { showNotification } = useContext(NotificationContext);
   const { user } = useContext(AuthContext);
   const [course, setCourse] = useState<Course | null>(null);
@@ -133,11 +134,36 @@ const CourseDetailPage = () => {
     }
   };
 
+  const handleLeaveCourse = async () => {
+    try {
+      if (!course?.course_id) return;
+      await courseService.leaveCourse(course.course_id);
+      // Başarılı olduğunda doğrudan yönlendir
+      navigate("/courses", { replace: true });
+    } catch (error) {
+      console.error("Error leaving course:", error);
+    }
+  };
+
+  const handleDeleteCourse = async () => {
+    try {
+      if (!course?.course_id) return;
+      await courseService.deleteCourse(course.course_id);
+      // Başarılı olduğunda doğrudan yönlendir
+      navigate("/courses", { replace: true });
+    } catch (error) {
+      console.error("Error deleting course:", error);
+    }
+  };
+
   return (
     <div className="course-detail-container">
       <CourseHeader
         course={course}
         onCreatePost={() => setShowCreatePost(true)}
+        onLeaveCourse={handleLeaveCourse}
+        onDeleteCourse={handleDeleteCourse}
+        isInstructor={course?.instructor_id === user?.user_id}
       />
 
       <div className="course-detail-content">

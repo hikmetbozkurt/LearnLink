@@ -7,7 +7,7 @@ import { Course } from "../types/course";
 import { courseService } from "../services/courseService";
 import "../styles/pages/courses.css";
 import { debounce } from "lodash";
-import { Outlet } from "react-router-dom";
+import { Outlet, useLocation } from "react-router-dom";
 
 const CoursesPage = () => {
   const { showNotification } = useContext(NotificationContext);
@@ -16,8 +16,8 @@ const CoursesPage = () => {
   );
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [formData, setFormData] = useState({
-    title: '',
-    description: ''
+    title: "",
+    description: "",
   });
   const [courseAvatar, setCourseAvatar] = useState<File | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
@@ -25,6 +25,7 @@ const CoursesPage = () => {
   const [myCourses, setMyCourses] = useState<Course[]>([]);
   const [filteredCourses, setFilteredCourses] = useState<Course[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const location = useLocation();
 
   useEffect(() => {
     // activeTab değiştiğinde filteredCourses'u güncelle
@@ -36,6 +37,15 @@ const CoursesPage = () => {
     // Her tab değişiminde ilgili kursları yükle
     loadCourses();
   }, [activeTab]);
+
+  useEffect(() => {
+    // Location state'inde refresh varsa kursları yeniden yükle
+    if (location.state?.refresh) {
+      loadCourses();
+      // State'i temizle
+      window.history.replaceState({}, document.title);
+    }
+  }, [location.state]);
 
   const loadCourses = async () => {
     try {
@@ -53,11 +63,13 @@ const CoursesPage = () => {
     }
   };
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+  const handleInputChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) => {
     const { name, value } = e.target;
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      [name]: value
+      [name]: value,
     }));
   };
 
@@ -68,26 +80,26 @@ const CoursesPage = () => {
     try {
       const response = await courseService.createCourse({
         title: formData.title,
-        description: formData.description
+        description: formData.description,
       });
 
       if (response.success) {
-        showNotification('Course created successfully', 'success');
+        showNotification("Course created successfully", "success");
         setShowCreateModal(false);
         // Kursları yeniden yükle
         loadCourses();
       } else {
-        showNotification(response.error || 'Failed to create course', 'error');
+        showNotification(response.error || "Failed to create course", "error");
       }
     } catch (error) {
-      console.error('Error creating course:', error);
-      showNotification('Failed to create course', 'error');
+      console.error("Error creating course:", error);
+      showNotification("Failed to create course", "error");
     } finally {
       setIsLoading(false);
       // Form verilerini sıfırla
       setFormData({
-        title: '',
-        description: ''
+        title: "",
+        description: "",
       });
     }
   };
@@ -158,7 +170,7 @@ const CoursesPage = () => {
           onSubmit={handleCreateCourse}
           onClose={() => {
             setShowCreateModal(false);
-            setFormData({ title: '', description: '' }); // Modal kapanınca formu sıfırla
+            setFormData({ title: "", description: "" }); // Modal kapanınca formu sıfırla
           }}
           isLoading={isLoading}
         />

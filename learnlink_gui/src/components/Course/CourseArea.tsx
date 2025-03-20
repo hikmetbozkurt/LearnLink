@@ -22,20 +22,25 @@ const CourseArea: React.FC<CourseAreaProps> = ({
 
   // Buton görünürlük kontrolü için yardımcı fonksiyon
   const renderActionButtons = (course: Course) => {
+    // student_count için null coalescing operator kullanarak varsayılan değer 0 atayalım
+    const currentStudentCount = course.student_count ?? 0;
+
     return (
       <div className="card-actions">
         {/* Join Course butonu: Sadece dashboard'da ve üye olmadığı kurslar için */}
-        {activeTab === "dashboard" && !course.is_admin && !course.is_enrolled && (
-          <button
-            className="join-button"
-            onClick={() => onJoinCourse(course.course_id)}
-            disabled={course.student_count >= course.max_students}
-          >
-            {course.student_count >= course.max_students
-              ? "Course Full"
-              : "Join Course"}
-          </button>
-        )}
+        {activeTab === "dashboard" &&
+          !course.is_admin &&
+          !course.is_enrolled && (
+            <button
+              className="join-button"
+              onClick={() => onJoinCourse(course.course_id)}
+              disabled={currentStudentCount >= course.max_students}
+            >
+              {currentStudentCount >= course.max_students
+                ? "Course Full"
+                : "Join Course"}
+            </button>
+          )}
 
         {/* View Details butonu: Sadece üye olduğu kurslar için */}
         {course.is_enrolled && !course.is_admin && (

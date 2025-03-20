@@ -162,5 +162,19 @@ export const courseService = {
       console.error('Error deleting comment:', error);
       throw error;
     }
-  }
+  },
+
+  leaveCourse: async (courseId: string): Promise<void> => {
+    const response = await api.delete(`/api/courses/${courseId}/leave`);
+    if (response.status !== 200) {
+      throw new Error(response.data.message || 'Failed to leave course');
+    }
+  },
+
+  deleteCourse: async (courseId: string): Promise<void> => {
+    const response = await api.delete(`/api/courses/${courseId}`);
+    if (response.status !== 200) {
+      throw new Error(response.data.message || 'Failed to delete course');
+    }
+  },
 }; 

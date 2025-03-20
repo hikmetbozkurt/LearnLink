@@ -1,15 +1,146 @@
-.course-detail-header {
+.course-header {
+  padding: 20px;
+  background-color: #fff;
   width: 100%;
-  background: white;
-  padding: 24px;
-  border-bottom: 1px solid #e0e0e0;
+}
+
+.header-main {
+  margin-bottom: 20px;
+  width: 100%;
+}
+
+.title-section {
   display: flex;
   justify-content: space-between;
-  align-items: flex-start;
+  align-items: center;
+  width: 100%;
+}
+
+.course-title {
+  margin: 0;
+  font-size: 24px;
+  font-weight: 500;
+  color: #333;
+}
+
+.course-actions {
+  display: flex;
+  gap: 10px;
+  margin-left: auto;
+}
+
+.leave-course-btn {
+  padding: 6px 12px;
+  background-color: #dc3545;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.create-post-btn {
+  padding: 6px 12px;
+  background-color: #007bff;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.header-info {
+  display: flex;
+  gap: 20px;
+  align-items: center;
+  margin-top: 10px;
+}
+
+.info-item {
+  font-size: 14px;
+  color: #666;
+}
+
+.info-item.admin {
+  background-color: #f8f9fa;
+  padding: 4px 8px;
+  border-radius: 4px;
+}
+
+.course-detail-header {
+  padding: 24px;
+  background: white;
 }
 
 .course-info {
-  flex: 1;
+  width: 100%;
+}
+
+.title-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.title-row h1 {
+  margin: 0;
+  font-size: 24px;
+  color: #333;
+}
+
+.action-buttons {
+  display: flex;
+  gap: 10px;
+}
+
+.delete-course-button {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 24px;
+  background-color: #dc3545;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 500;
+  font-size: 1rem;
+  transition: all 0.3s ease;
+}
+
+.create-post-btn {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 24px;
+  background-color: #512da8;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 500;
+  font-size: 1rem;
+  transition: all 0.3s ease;
+}
+
+.info-row {
+  display: flex;
+  gap: 20px;
+}
+
+.admin-label {
+  background-color: #f8f9fa;
+  padding: 4px 8px;
+  border-radius: 4px;
+  color: #512da8;
+}
+
+.members-label {
+  background-color: #f8f9fa;
+  padding: 4px 8px;
+  border-radius: 4px;
+  color: #512da8;
 }
 
 .course-info h1 {
@@ -49,29 +180,6 @@
   margin-left: 24px;
 }
 
-.create-post-button {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 12px 24px;
-  background-color: #512da8;
-  color: white;
-  border: none;
-  border-radius: 8px;
-  cursor: pointer;
-  font-weight: 500;
-  font-size: 1rem;
-  transition: all 0.3s ease;
-}
-
-.create-post-button svg {
-  font-size: 1.2rem;
-}
-
-.create-post-button:hover {
-  background-color: #4527a0;
-}
-
 @media (max-width: 768px) {
   .course-detail-header {
     flex-direction: column;
@@ -83,7 +191,7 @@
     width: 100%;
   }
 
-  .create-post-button {
+  .create-post-btn {
     width: 100%;
     justify-content: center;
   }
