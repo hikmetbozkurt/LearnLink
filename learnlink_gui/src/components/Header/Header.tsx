@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
   FaSearch, 
@@ -20,12 +20,13 @@ type DropdownType = 'settings' | 'notifications' | 'events' | null;
 
 const Header = () => {
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, setUser } = useAuth();
   const { setSelectedEventDate } = useEvent();
   const [activeDropdown, setActiveDropdown] = useState<DropdownType>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [showProfileCard, setShowProfileCard] = useState(false);
   const [showSettingsModal, setShowSettingsModal] = useState(false);
+  const [profileImageKey, setProfileImageKey] = useState(Date.now());
   const dropdownRef = useRef<HTMLDivElement>(null);
   const notificationRef = useRef<NotificationBellRef>(null);
 
@@ -56,6 +57,26 @@ const Header = () => {
     } catch (error) {
       console.error('Logout error:', error);
     }
+  };
+
+  // Function to refresh user data
+  const refreshUserData = useCallback(async () => {
+    try {
+      const userData = await authService.getCurrentUser();
+      if (userData && setUser) {
+        setUser(userData);
+      }
+      // Force image refresh
+      setProfileImageKey(Date.now());
+    } catch (error) {
+      console.error('Error refreshing user data:', error);
+    }
+  }, [setUser]);
+
+  const handleProfileCardClose = () => {
+    setShowProfileCard(false);
+    // Refresh user data when profile card closes
+    refreshUserData();
   };
 
   const renderDropdownContent = (type: DropdownType) => {
@@ -104,7 +125,15 @@ const Header = () => {
 
           <div className="header-actions" ref={dropdownRef}>
             <div className="profile-avatar" onClick={() => setShowProfileCard(true)}>
-              <img src={defaultAvatar} alt="Profile" />
+              <img 
+                key={profileImageKey}
+                src={user?.profile_pic ? `${user.profile_pic}?t=${profileImageKey}` : defaultAvatar} 
+                alt="Profile" 
+                onError={(e) => { 
+                  console.log('Error loading profile pic, falling back to default');
+                  e.currentTarget.src = defaultAvatar; 
+                }}
+              />
             </div>
 
             <EventsDropdown 
@@ -134,7 +163,8 @@ const Header = () => {
         {showProfileCard && user && (
           <ProfileCard 
             user={user}
-            onClose={() => setShowProfileCard(false)} 
+            onClose={handleProfileCardClose} 
+            currentUser={true}
           />
         )}
       </header>

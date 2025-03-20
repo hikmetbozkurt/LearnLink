@@ -8,6 +8,7 @@ const authenticateTokenMiddleware = (req, res, next) => {
     const token = authHeader && authHeader.split(' ')[1];
 
     if (!token) {
+      console.warn('Authentication failed: No token provided');
       return res.status(401).json({ message: 'No token provided' });
     }
 
@@ -17,6 +18,8 @@ const authenticateTokenMiddleware = (req, res, next) => {
         return res.status(403).json({ message: 'Invalid or expired token' });
       }
 
+      console.log('Token decoded successfully:', decoded);
+      
       // Handle both id and user_id formats
       const userId = decoded.user_id || decoded.id;
       if (!userId) {
@@ -32,7 +35,8 @@ const authenticateTokenMiddleware = (req, res, next) => {
         email: decoded.email,
         role: decoded.role
       };
-
+      
+      console.log('User authenticated:', req.user);
       next();
     });
   } catch (error) {

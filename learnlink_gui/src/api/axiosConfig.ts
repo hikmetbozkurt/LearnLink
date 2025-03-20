@@ -15,9 +15,9 @@ api.interceptors.request.use(
             // Clean token and add to headers
             const cleanToken = token.replace(/['"]+/g, '');
             config.headers.Authorization = `Bearer ${cleanToken}`;
-            console.log('Request with token:', { url: config.url, method: config.method });
+            console.log('Request with token:', { url: config.url, method: config.method, baseURL: config.baseURL, headers: config.headers });
         } else {
-            console.log('Request without token:', { url: config.url, method: config.method });
+            console.log('Request without token:', { url: config.url, method: config.method, baseURL: config.baseURL });
         }
         return config;
     },

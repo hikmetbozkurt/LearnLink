@@ -9,7 +9,8 @@ import {
   getFriendRequests, 
   getFriends,
   getSentFriendRequests,
-  removeFriend
+  removeFriend,
+  uploadProfilePicture
 } from '../controllers/userController.js'
 
 const router = express.Router()
@@ -26,5 +27,8 @@ router.post('/friend-request/:userId', sendFriendRequest)
 router.put('/friend-request/:requestId/accept', acceptFriendRequest)
 router.delete('/friend-request/:requestId', rejectFriendRequest)
 router.delete('/friends/:friendId', removeFriend)
+
+// Profile picture upload - separate route
+router.post('/profile-picture', uploadProfilePicture)
 
 export default router 

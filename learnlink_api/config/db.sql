@@ -631,7 +631,8 @@ CREATE TABLE public.users (
     is_active boolean DEFAULT true,
     reset_token character varying(6),
     reset_token_expiry timestamp without time zone,
-    username character varying(255)
+    username character varying(255),
+    created_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP
 );
 
 
@@ -1359,4 +1360,23 @@ CREATE TABLE course_enrollments (
     enrolled_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     UNIQUE(course_id, user_id)
 );
+
+-- Add created_at column to users table if it doesn't exist
+DO $$ 
+BEGIN 
+    IF NOT EXISTS (
+        SELECT 1 
+        FROM information_schema.columns 
+        WHERE table_name = 'users' 
+        AND column_name = 'created_at'
+    ) THEN
+        ALTER TABLE users 
+        ADD COLUMN created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP;
+        
+        -- Update existing users with current timestamp
+        UPDATE users 
+        SET created_at = CURRENT_TIMESTAMP 
+        WHERE created_at IS NULL;
+    END IF;
+END $$;
 
