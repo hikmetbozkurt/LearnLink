@@ -145,6 +145,28 @@ const NotificationBell = forwardRef<NotificationBellRef, NotificationBellProps>(
     }
   };
 
+  // Delete a specific notification
+  const handleDeleteNotification = async (notification: ChatNotification) => {
+    try {
+      await api.delete(`/api/notifications/${notification.notifications_id}`);
+      
+      // Remove the notification from state
+      setNotifications(prev => 
+        prev.filter(n => n.notifications_id !== notification.notifications_id)
+      );
+      
+      // If the deleted notification was unread, update the unread count
+      if (!notification.read) {
+        setUnreadCount(prev => Math.max(0, prev - 1));
+      }
+      
+      showToast('Notification deleted', 'success');
+    } catch (error) {
+      console.error('Error deleting notification:', error);
+      showToast('Failed to delete notification', 'error');
+    }
+  };
+
   // Format timestamp
   const formatTime = (timestamp: string) => {
     const date = new Date(timestamp);
@@ -237,16 +259,27 @@ const NotificationBell = forwardRef<NotificationBellRef, NotificationBellProps>(
                 <div 
                   key={notification.notifications_id}
                   className={`notification-item ${!notification.read ? 'unread' : ''}`}
-                  onClick={() => handleNotificationClick(notification)}
                 >
-                  <div className="notification-icon">
-                    {getNotificationIcon(notification)}
+                  <div className="notification-content-wrapper" onClick={() => handleNotificationClick(notification)}>
+                    <div className="notification-icon">
+                      {getNotificationIcon(notification)}
+                    </div>
+                    <div className="notification-content">
+                      <p className="notification-message">{notification.content}</p>
+                      <span className="notification-time">
+                        {formatTime(notification.created_at)}
+                      </span>
+                    </div>
                   </div>
-                  <div className="notification-content">
-                    <p className="notification-message">{notification.content}</p>
-                    <span className="notification-time">
-                      {formatTime(notification.created_at)}
-                    </span>
+                  <div 
+                    className="notification-delete"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleDeleteNotification(notification);
+                    }}
+                    title="Delete notification"
+                  >
+                    <FaTrash />
                   </div>
                 </div>
               ))

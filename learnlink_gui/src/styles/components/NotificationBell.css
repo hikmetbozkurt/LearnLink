@@ -45,25 +45,30 @@
 .notification-dropdown {
   position: absolute;
   top: 100%;
-  right: 0;
-  width: 320px;
+  right: -10px;
+  width: 340px;
   background: var(--surface);
-  border-radius: 8px;
-  box-shadow: 0 4px 12px var(--shadow);
+  border-radius: 12px;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
   z-index: 1000;
   margin-top: 8px;
   animation: dropdownFade 0.2s ease;
   max-height: 400px;
   display: flex;
   flex-direction: column;
+  overflow: hidden;
 }
 
 .notification-header {
-  padding: 12px 16px;
+  padding: 16px;
   border-bottom: 1px solid var(--border);
   display: flex;
   justify-content: space-between;
   align-items: center;
+  background-color: var(--surface);
+  position: sticky;
+  top: 0;
+  z-index: 2;
 }
 
 .notification-header h3 {
@@ -108,17 +113,20 @@
 .notification-list {
   overflow-y: auto;
   flex-grow: 1;
-  padding: 8px 0;
+  overscroll-behavior: contain;
 }
 
 .notification-item {
-  padding: 12px 16px;
   display: flex;
-  align-items: flex-start;
-  gap: 12px;
-  cursor: pointer;
-  transition: background-color 0.2s ease;
-  animation: itemFade 0.3s ease;
+  justify-content: space-between;
+  align-items: center;
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--border);
+  transition: background-color 0.2s;
+}
+
+.notification-item:last-child {
+  border-bottom: none;
 }
 
 .notification-item:hover {
@@ -126,17 +134,35 @@
 }
 
 .notification-item.unread {
-  background-color: var(--primary-light);
+  background-color: rgba(66, 133, 244, 0.08);
+  position: relative;
 }
 
-.notification-item.unread:hover {
-  background-color: var(--primary-lighter);
+.notification-item.unread::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 3px;
+  background-color: var(--primary, #4285f4);
+}
+
+.notification-content-wrapper {
+  display: flex;
+  flex: 1;
+  align-items: flex-start;
+  gap: 10px;
+  cursor: pointer;
+  padding-right: 10px;
 }
 
 .notification-icon {
   color: var(--text-secondary);
   font-size: 16px;
-  padding-top: 2px;
+  min-width: 20px;
+  display: flex;
+  margin-top: 3px;
 }
 
 .notification-content {
@@ -144,25 +170,48 @@
 }
 
 .notification-message {
-  margin: 0;
+  margin: 0 0 4px 0;
   color: var(--text-primary);
   font-size: 14px;
   line-height: 1.4;
+  word-break: break-word;
 }
 
 .notification-time {
   display: block;
   color: var(--text-secondary);
   font-size: 12px;
-  margin-top: 4px;
+  font-weight: 400;
 }
 
 .notification-loading,
 .no-notifications {
-  padding: 24px;
+  padding: 32px 16px;
   text-align: center;
   color: var(--text-secondary);
   font-size: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100px;
+}
+
+.notification-delete {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  transition: all 0.2s;
+  color: var(--text-secondary);
+  flex-shrink: 0;
+}
+
+.notification-delete:hover {
+  background-color: rgba(255, 0, 0, 0.1);
+  color: var(--error);
 }
 
 @keyframes bellRing {
