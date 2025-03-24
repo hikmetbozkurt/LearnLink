@@ -4,7 +4,8 @@ import {
     createEvent,
     getEvents,
     updateEvent,
-    deleteEvent
+    deleteEvent,
+    deletePastEvents
 } from '../controllers/eventController.js';
 
 const router = express.Router();
@@ -23,5 +24,8 @@ router.put('/:event_id', updateEvent);
 
 // Delete an event
 router.delete('/:event_id', deleteEvent);
+
+// Delete all past events
+router.delete('/past/clear', deletePastEvents);
 
 export default router; 

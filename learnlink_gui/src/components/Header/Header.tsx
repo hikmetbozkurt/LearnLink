@@ -156,6 +156,12 @@ const Header = () => {
               onEventSelect={(date) => {
                 setSelectedEventDate(date);
               }}
+              refreshEvents={() => {
+                if (setSelectedEventDate) {
+                  // Provide a way to trigger refresh without changing date
+                  setSelectedEventDate(null);
+                }
+              }}
             />
 
             <NotificationBell 

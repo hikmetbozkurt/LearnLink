@@ -24,7 +24,7 @@ const EventsPage: React.FC = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [events, setEvents] = useState<CalendarEvent[]>([]);
   const { showNotification } = useContext(NotificationContext);
-  const { selectedEventDate, setSelectedEventDate } = useEvent();
+  const { selectedEventDate, setSelectedEventDate, shouldRefreshEvents, setShouldRefreshEvents } = useEvent();
   const notificationBellRef = useRef<NotificationBellRef>(null);
 
   const createNotification = async (event: CalendarEvent) => {
@@ -156,6 +156,14 @@ const EventsPage: React.FC = () => {
   useEffect(() => {
     loadEvents();
   }, []);
+
+  // Listen for event refresh requests
+  useEffect(() => {
+    if (shouldRefreshEvents) {
+      loadEvents();
+      setShouldRefreshEvents(false);
+    }
+  }, [shouldRefreshEvents, setShouldRefreshEvents]);
 
   useEffect(() => {
     if (selectedEventDate) {

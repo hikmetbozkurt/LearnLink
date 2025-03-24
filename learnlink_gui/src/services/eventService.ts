@@ -43,6 +43,13 @@ const eventService = {
         await axios.delete(`${API_BASE_URL}/events/${eventId}`, {
             headers: getAuthHeaders()
         });
+    },
+
+    async clearPastEvents(): Promise<{count: number}> {
+        const response = await axios.delete(`${API_BASE_URL}/events/past/clear`, {
+            headers: getAuthHeaders()
+        });
+        return response.data;
     }
 };
 

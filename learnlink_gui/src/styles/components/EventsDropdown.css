@@ -56,12 +56,152 @@
   border-bottom: 1px solid var(--border);
   background-color: var(--background);
   flex-shrink: 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 }
 
 .events-header h3 {
   margin: 0;
   color: var(--text-primary);
   font-size: 1.1rem;
+}
+
+.events-dropdown .clear-past-events {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px;
+  border-radius: 4px;
+  border: none;
+  background-color: #e3f2fd; /* Soluk mavi */
+  color: #1976d2; /* Koyu mavi */
+  font-size: 0.75rem;
+  cursor: pointer;
+  transition: all 0.2s;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+.events-dropdown .clear-past-events span {
+  color: #1976d2 !important; /* Koyu mavi */
+}
+
+/* Dark theme adjustments */
+:root[data-theme='dark'] .events-dropdown .clear-past-events {
+  background-color: #3a3169; /* Soluk mor */
+  color: #bb86fc; /* Açık mor */
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+}
+
+/* Dark theme için span rengi */
+:root[data-theme='dark'] .events-dropdown .clear-past-events span {
+  color: #bb86fc !important; /* Açık mor */
+}
+
+.events-dropdown .clear-past-events:hover {
+  background-color: #bbdefb; /* Daha açık mavi hover durumunda */
+  color: #0d47a1; /* Daha koyu mavi */
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
+}
+
+/* Dark theme hover state */
+:root[data-theme='dark'] .events-dropdown .clear-past-events:hover {
+  background-color: #4a4179; /* Daha koyu mor hover durumunda */
+  color: #d0bcff; /* Daha açık mor */
+}
+
+.events-dropdown .clear-past-events:active {
+  transform: translateY(0);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+.events-dropdown .confirmation-dialog {
+  padding: 16px;
+  background-color: var(--surface, #fff);
+  border-bottom: 1px solid var(--border, #e0e0e0);
+  animation: fadeIn 0.2s ease;
+  box-shadow: inset 0 -2px 5px rgba(0, 0, 0, 0.03);
+}
+
+/* Dark theme dialog adjustments */
+:root[data-theme='dark'] .events-dropdown .confirmation-dialog {
+  background-color: var(--surface, #1e1e1e);
+  border-bottom: 1px solid var(--border, #333);
+  box-shadow: inset 0 -2px 5px rgba(0, 0, 0, 0.1);
+}
+
+.events-dropdown .confirmation-dialog p {
+  margin: 0 0 12px 0;
+  color: var(--text-primary, #333);
+  font-size: 0.9rem;
+  text-align: center;
+  font-weight: 500;
+}
+
+/* Dark theme text adjustments */
+:root[data-theme='dark'] .events-dropdown .confirmation-dialog p {
+  color: white;
+}
+
+/* Text color fixes for dark theme */
+:root[data-theme='dark'] .events-header h3,
+:root[data-theme='dark'] .event-title,
+:root[data-theme='dark'] .events-loading,
+:root[data-theme='dark'] .no-events {
+  color: white;
+}
+
+.events-dropdown .confirmation-actions {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+}
+
+.events-dropdown .confirmation-actions button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 8px 16px;
+  border-radius: 4px;
+  border: none;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: all 0.2s;
+  min-width: 80px;
+}
+
+.events-dropdown .confirmation-actions .confirm-button {
+  background-color: var(--success-light, #e8f5e9);
+  color: var(--success, #2e7d32);
+}
+
+/* Dark theme confirm button */
+:root[data-theme='dark'] .events-dropdown .confirmation-actions .confirm-button {
+  background-color: rgba(46, 125, 50, 0.2);
+  color: #81c784;
+}
+
+.events-dropdown .confirmation-actions .confirm-button:hover {
+  background-color: var(--success, #2e7d32);
+  color: white;
+}
+
+.events-dropdown .confirmation-actions .cancel-button {
+  background-color: var(--error-light, #ffebee);
+  color: var(--error, #d32f2f);
+}
+
+/* Dark theme cancel button */
+:root[data-theme='dark'] .events-dropdown .confirmation-actions .cancel-button {
+  background-color: rgba(211, 47, 47, 0.2);
+  color: #e57373;
+}
+
+.events-dropdown .confirmation-actions .cancel-button:hover {
+  background-color: var(--error, #d32f2f);
+  color: white;
 }
 
 .events-list {
@@ -115,6 +255,14 @@
 .event-item.today {
   background-color: var(--primary-light);
   border-color: var(--primary-lighter);
+}
+
+.event-item.past {
+  opacity: 0.7;
+}
+
+.event-item.upcoming {
+  border-left: 3px solid var(--success);
 }
 
 .event-type-indicator {
@@ -284,4 +432,15 @@
 
 .rbc-time-slot {
   min-height: 24px !important;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 } 

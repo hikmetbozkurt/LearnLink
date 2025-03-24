@@ -206,7 +206,7 @@ const EventModal: React.FC<EventModalProps> = ({
               )}
             </>
           ) : (
-            <form onSubmit={handleSubmit} className="add-event-form">
+            <form onSubmit={handleSubmit} className="add-event-form event-modal-form">
               <div className="form-group">
                 <label htmlFor="title">Event Title</label>
                 <input
@@ -253,7 +253,7 @@ const EventModal: React.FC<EventModalProps> = ({
                   <option value="other">Other</option>
                 </select>
               </div>
-              <div className="form-actions">
+              <div className="form-actions button-group">
                 <button
                   type="button"
                   onClick={() => {

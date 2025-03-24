@@ -112,4 +112,27 @@ export const deleteEvent = async (req, res) => {
         console.error('Error deleting event:', error);
         res.status(500).json({ error: 'Failed to delete event' });
     }
+};
+
+// Delete all past events
+export const deletePastEvents = async (req, res) => {
+    try {
+        const userId = req.user.user_id;
+        
+        const query = `
+            DELETE FROM events
+            WHERE date < NOW() AND created_by = $1
+            RETURNING event_id
+        `;
+        
+        const result = await pool.query(query, [userId]);
+        
+        res.json({ 
+            message: 'Past events deleted successfully',
+            count: result.rowCount
+        });
+    } catch (error) {
+        console.error('Error deleting past events:', error);
+        res.status(500).json({ error: 'Failed to delete past events' });
+    }
 }; 
