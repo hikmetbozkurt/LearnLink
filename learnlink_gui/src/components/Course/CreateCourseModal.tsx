@@ -3,22 +3,21 @@ import { FaTimes } from "react-icons/fa";
 import "./CreateCourseModal.css";
 
 interface CreateCourseModalProps {
-  courseName: string;
-  courseDescription: string;
-  onNameChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
-  onDescriptionChange: (e: React.ChangeEvent<HTMLTextAreaElement>) => void;
-  onFileChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  formData: {
+    title: string;
+    description: string;
+  };
+  onInputChange: (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) => void;
   onSubmit: (e: React.FormEvent) => void;
   onClose: () => void;
   isLoading: boolean;
 }
 
 const CreateCourseModal: React.FC<CreateCourseModalProps> = ({
-  courseName,
-  courseDescription,
-  onNameChange,
-  onDescriptionChange,
-  onFileChange,
+  formData,
+  onInputChange,
   onSubmit,
   onClose,
   isLoading,
@@ -63,32 +62,28 @@ const CreateCourseModal: React.FC<CreateCourseModalProps> = ({
   const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newName = e.target.value;
     validateCourseName(newName);
-    onNameChange(e);
+    onInputChange(e);
   };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (validateCourseName(courseName)) {
+    if (validateCourseName(formData.title)) {
       onSubmit(e);
     }
   };
 
   return (
-    <div className="modal-overlay">
-      <div className="modal-container">
-        <div className="modal-header">
-          <h2>Create New Course</h2>
-          <button className="close-button" onClick={onClose}>
-            <FaTimes />
-          </button>
-        </div>
-        <form onSubmit={handleSubmit} className="modal-form">
+    <div className="create-room-modal">
+      <div className="modal-content">
+        <h2>Create New Course</h2>
+        <form onSubmit={handleSubmit}>
           <div className="form-group">
-            <label>Course Name</label>
+            <label>Course Title</label>
             <input
               type="text"
-              placeholder="Enter course name"
-              value={courseName}
+              name="title"
+              placeholder="Enter course title"
+              value={formData.title}
               onChange={handleNameChange}
               className={nameError ? "error" : ""}
               maxLength={50}
@@ -99,15 +94,12 @@ const CreateCourseModal: React.FC<CreateCourseModalProps> = ({
           <div className="form-group">
             <label>Description</label>
             <textarea
+              name="description"
               placeholder="Enter course description"
-              value={courseDescription}
-              onChange={onDescriptionChange}
+              value={formData.description}
+              onChange={onInputChange}
               required
             />
-          </div>
-          <div className="form-group">
-            <label>Course Avatar</label>
-            <input type="file" accept="image/*" onChange={onFileChange} />
           </div>
           <div className="form-actions">
             <button type="button" onClick={onClose} disabled={isLoading}>
@@ -116,7 +108,11 @@ const CreateCourseModal: React.FC<CreateCourseModalProps> = ({
             <button
               type="submit"
               className="create-button"
-              disabled={isLoading || !!nameError}
+              disabled={
+                isLoading ||
+                !formData.title.trim() ||
+                !formData.description.trim()
+              }
             >
               {isLoading ? "Creating..." : "Create Course"}
             </button>

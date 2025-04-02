@@ -8,6 +8,13 @@ interface CreateCourseResponse {
   error?: string;
 }
 
+interface CreatePostData {
+  content: string;
+  type: string;
+  file?: File;
+  videoUrl?: string;
+}
+
 export const courseService = {
   getAllCourses: async (): Promise<Course[]> => {
     try {
@@ -34,32 +41,31 @@ export const courseService = {
     title: string;
     description: string;
     category?: string;
-    image?: File;
   }): Promise<CreateCourseResponse> => {
     try {
       // Debug için request detaylarını logla
-      console.log('Request Data:', {
-        title: courseData.title,
-        description: courseData.description
+      console.log('Creating course with data:', courseData);
+
+      const formData = new FormData();
+      formData.append('title', courseData.title);
+      formData.append('description', courseData.description);
+      if (courseData.category) {
+        formData.append('category', courseData.category);
+      }
+
+      // Request headers'ı kontrol et
+      const response = await api.post('/api/courses', formData, {
+        headers: {
+          'Content-Type': 'application/json' // FormData yerine JSON gönderelim
+        }
       });
 
-      const response = await api.post('/api/courses', {
-        title: courseData.title,
-        description: courseData.description,
-        category: courseData.category
-      });
-
-      console.log('Response:', response.data);
       return {
         success: true,
         course: response.data
       };
     } catch (error: any) {
-      console.error('Create Course Error:', {
-        status: error.response?.status,
-        data: error.response?.data,
-        message: error.message
-      });
+      console.error('Error in createCourse:', error.response?.data || error);
       return {
         success: false,
         error: error.response?.data?.message || 'Failed to create course'
@@ -113,17 +119,22 @@ export const courseService = {
     }
   },
 
-  createPost: async (courseId: string, data: {
-    content: string;
-    type: string;
-    file?: File;
-  }) => {
+  createPost: async (courseId: string, data: CreatePostData | FormData) => {
     try {
-      const formData = new FormData();
-      formData.append('content', data.content);
-      formData.append('type', data.type);
-      if (data.file) {
-        formData.append('file', data.file);
+      let formData: FormData;
+
+      if (data instanceof FormData) {
+        formData = data;
+      } else {
+        formData = new FormData();
+        formData.append('content', data.content);
+        formData.append('type', data.type);
+        if (data.file) {
+          formData.append('file', data.file);
+        }
+        if (data.videoUrl) {
+          formData.append('videoUrl', data.videoUrl);
+        }
       }
 
       const response = await api.post(`/api/courses/${courseId}/posts`, formData, {
@@ -155,5 +166,19 @@ export const courseService = {
       console.error('Error deleting comment:', error);
       throw error;
     }
-  }
+  },
+
+  leaveCourse: async (courseId: string): Promise<void> => {
+    const response = await api.delete(`/api/courses/${courseId}/leave`);
+    if (response.status !== 200) {
+      throw new Error(response.data.message || 'Failed to leave course');
+    }
+  },
+
+  deleteCourse: async (courseId: string): Promise<void> => {
+    const response = await api.delete(`/api/courses/${courseId}`);
+    if (response.status !== 200) {
+      throw new Error(response.data.message || 'Failed to delete course');
+    }
+  },
 }; 
