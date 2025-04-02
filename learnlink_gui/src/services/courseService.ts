@@ -40,6 +40,7 @@ export const courseService = {
   createCourse: async (courseData: {
     title: string;
     description: string;
+    category?: string;
   }): Promise<CreateCourseResponse> => {
     try {
       // Debug için request detaylarını logla
@@ -48,6 +49,9 @@ export const courseService = {
       const formData = new FormData();
       formData.append('title', courseData.title);
       formData.append('description', courseData.description);
+      if (courseData.category) {
+        formData.append('category', courseData.category);
+      }
 
       // Request headers'ı kontrol et
       const response = await api.post('/api/courses', formData, {

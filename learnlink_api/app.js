@@ -12,6 +12,7 @@ import notificationRoutes from "./routes/notificationRoutes.js";
 import directMessageRoutes from "./routes/directMessageRoutes.js";
 import postRoutes from "./routes/postRoutes.js";
 import commentRoutes from "./routes/commentRoutes.js";
+import eventRoutes from "./routes/eventRoutes.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -34,5 +35,6 @@ app.use("/api/notifications", notificationRoutes);
 app.use("/api/direct-messages", directMessageRoutes);
 app.use("/api", postRoutes);
 app.use("/api", commentRoutes);
+app.use("/api/events", eventRoutes);
 
 export default app;
