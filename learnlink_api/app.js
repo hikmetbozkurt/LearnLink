@@ -3,6 +3,7 @@ import cors from "cors";
 import path from "path";
 import { fileURLToPath } from "url";
 import { dirname } from "path";
+
 import authRoutes from "./routes/authRoutes.js";
 import userRoutes from "./routes/userRoutes.js";
 import chatRoutes from "./routes/chatRoutes.js";
@@ -21,7 +22,7 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// Uploads klasörünü statik olarak sun
+// Serve static files from uploads folder
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
 // Routes
