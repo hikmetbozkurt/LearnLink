@@ -15,6 +15,7 @@ import EventsPage from "./pages/EventsPage";
 import ProgressPage from "./pages/ProgressPage";
 import SupportPage from "./pages/SupportPage";
 import Layout from "./components/Layout/Layout";
+
 import RouteGuard from './components/RouteGuard';
 import DirectMessagesPage from './pages/DirectMessagesPage';
 import CourseDetailPage from './pages/CourseDetailPage';
@@ -33,7 +34,6 @@ const App: React.FC = () => {
               <Route path="/" element={<LoginPage />} />
               <Route path="/forgot-password" element={<ForgotPasswordPage />} />
               <Route path="/reset-password" element={<ResetPasswordPage />} />
-
               {/* Protected Routes - With Layout */}
               <Route element={<RouteGuard><Layout /></RouteGuard>}>
                 <Route path="/home" element={<HomePage />} />
@@ -54,6 +54,7 @@ const App: React.FC = () => {
         </EventProvider>
       </AuthProvider>
     </ThemeProvider>
+
   );
 };
 

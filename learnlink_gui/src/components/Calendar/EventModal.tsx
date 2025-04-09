@@ -1,9 +1,9 @@
-import React, { useState, useEffect } from 'react';
-import { format, parseISO, setHours, setMinutes } from 'date-fns';
-import { FaTimes, FaCalendar, FaClock, FaInfoCircle, FaPlus, FaEdit, FaTrash } from 'react-icons/fa';
+import React from 'react';
+import { format } from 'date-fns';
+import { FaTimes, FaCalendar, FaClock, FaInfoCircle } from 'react-icons/fa';
 import './EventModal.css';
 
-interface CalendarEvent {
+interface Event {
   id: number;
   title: string;
   description: string;
@@ -15,64 +15,18 @@ interface EventModalProps {
   isOpen: boolean;
   onClose: () => void;
   selectedDate: Date;
-  events: CalendarEvent[];
-  onAddEvent: (event: Omit<CalendarEvent, 'id'>) => void;
-  onUpdateEvent: (eventId: number, event: Partial<CalendarEvent>) => void;
-  onDeleteEvent: (eventId: number) => void;
-}
-
-interface FormData {
-  title: string;
-  description: string;
-  date: Date;
-  type: 'assignment' | 'exam' | 'meeting' | 'other';
-  time: string;
+  events: Event[];
 }
 
 const EventModal: React.FC<EventModalProps> = ({
   isOpen,
   onClose,
   selectedDate,
-  events,
-  onAddEvent,
-  onUpdateEvent,
-  onDeleteEvent
+  events
 }) => {
-  const [isAddingEvent, setIsAddingEvent] = useState(false);
-  const [editingEventId, setEditingEventId] = useState<number | null>(null);
-  const initialFormData: FormData = {
-    title: '',
-    description: '',
-    date: selectedDate,
-    type: 'other',
-    time: format(selectedDate, 'HH:mm')
-  };
-  const [formData, setFormData] = useState(initialFormData);
-
-  useEffect(() => {
-    if (editingEventId) {
-      const eventToEdit = events.find(e => e.id === editingEventId);
-      if (eventToEdit) {
-        setFormData({
-          title: eventToEdit.title,
-          description: eventToEdit.description,
-          date: eventToEdit.date,
-          type: eventToEdit.type,
-          time: format(eventToEdit.date, 'HH:mm')
-        });
-      }
-    } else {
-      setFormData({
-        ...initialFormData,
-        date: selectedDate,
-        time: format(selectedDate, 'HH:mm')
-      });
-    }
-  }, [editingEventId, events, selectedDate]);
-
   if (!isOpen) return null;
 
-  const getEventTypeColor = (type: CalendarEvent['type']) => {
+  const getEventTypeColor = (type: Event['type']) => {
     switch (type) {
       case 'assignment':
         return '#4CAF50';
@@ -83,62 +37,6 @@ const EventModal: React.FC<EventModalProps> = ({
       default:
         return '#9C27B0';
     }
-  };
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    const [hours, minutes] = formData.time.split(':').map(Number);
-    
-    // Create a new date object and set the time
-    const eventDate = new Date(formData.date);
-    eventDate.setHours(hours);
-    eventDate.setMinutes(minutes);
-    eventDate.setSeconds(0);
-    eventDate.setMilliseconds(0);
-
-    console.log('Submitting event:', {
-      inputTime: formData.time,
-      hours,
-      minutes,
-      eventDate,
-      localTime: format(eventDate, 'HH:mm')
-    });
-
-    const eventData = {
-      title: formData.title,
-      description: formData.description,
-      date: eventDate,
-      type: formData.type
-    };
-
-    if (editingEventId) {
-      onUpdateEvent(editingEventId, eventData);
-    } else {
-      onAddEvent(eventData);
-    }
-    setIsAddingEvent(false);
-    setEditingEventId(null);
-    onClose();
-  };
-
-  const handleInputChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
-  ) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: value
-    }));
-  };
-
-  const handleEdit = (event: CalendarEvent) => {
-    setEditingEventId(event.id);
-    setIsAddingEvent(true);
-  };
-
-  const handleDelete = (eventId: number) => {
-
-      onDeleteEvent(eventId);
   };
 
   return (
@@ -155,56 +53,32 @@ const EventModal: React.FC<EventModalProps> = ({
         </div>
         
         <div className="event-modal-content">
-          {!isAddingEvent ? (
-            <>
-              <button className="add-event-button" onClick={() => setIsAddingEvent(true)}>
-                <FaPlus /> Add Event
-              </button>
-              
-              {events.length > 0 ? (
-                <div className="events-list">
-                  {events.map(event => (
-                    <div key={event.id} className="event-item">
-                      <div className="event-item-header">
-                        <div 
-                          className="event-type-indicator"
-                          style={{ backgroundColor: getEventTypeColor(event.type) }}
-                        />
-                        <div className="event-title-section">
-                          <h3>{event.title}</h3>
-                          <div className="event-actions">
-                            <button onClick={() => handleEdit(event)} className="edit-button">
-                              <FaEdit /> Edit
-                            </button>
-                            <button onClick={() => handleDelete(event.id)} className="delete-button">
-                              <FaTrash />
-                            </button>
-                          </div>
-                        </div>
-                      </div>
-                      <div className="event-details">
-                        <p className="event-description">{event.description}</p>
-                        <div className="event-meta">
-                          <span>
-                            <FaCalendar /> {format(event.date, 'MMM d, yyyy')}
-                          </span>
-                          <span>
-                            <FaClock /> {format(event.date, 'HH:mm')}
-                          </span>
-                          <span className="event-type">
-                            <FaInfoCircle /> {event.type.charAt(0).toUpperCase() + event.type.slice(1)}
-                          </span>
-                        </div>
-                      </div>
+          {events.length > 0 ? (
+            <div className="events-list">
+              {events.map(event => (
+                <div key={event.id} className="event-item">
+                  <div 
+                    className="event-type-indicator"
+                    style={{ backgroundColor: getEventTypeColor(event.type) }}
+                  />
+                  <div className="event-details">
+                    <h3>{event.title}</h3>
+                    <p className="event-description">{event.description}</p>
+                    <div className="event-meta">
+                      <span>
+                        <FaCalendar /> {format(new Date(event.date), 'MMM d, yyyy')}
+                      </span>
+                      <span>
+                        <FaClock /> {format(new Date(event.date), 'h:mm a')}
+                      </span>
+                      <span className="event-type">
+                        <FaInfoCircle /> {event.type.charAt(0).toUpperCase() + event.type.slice(1)}
+                      </span>
                     </div>
-                  ))}
+                  </div>
                 </div>
-              ) : (
-                <div className="no-events">
-                  <p>No events scheduled for this day</p>
-                </div>
-              )}
-            </>
+              ))}
+            </div>
           ) : (
             <form onSubmit={handleSubmit} className="add-event-form event-modal-form">
               <div className="form-group">

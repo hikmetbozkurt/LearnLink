@@ -1,5 +1,5 @@
 .events-page {
-  padding: 1.5rem;
+  padding: 2rem;
   height: calc(100vh - 64px);
   overflow-y: auto;
   display: flex;
@@ -10,7 +10,7 @@
 
 .events-header {
   text-align: center;
-  margin-bottom: 1.5rem;
+  margin-bottom: 2rem;
   flex-shrink: 0;
 }
 
@@ -76,14 +76,10 @@
   }
 
   .events-header h1 {
-    font-size: 1.5rem;
+    font-size: 1.75rem;
   }
 
   .events-header p {
-    font-size: 0.9rem;
-  }
-
-  .calendar-day {
-    min-height: 60px;
+    font-size: 1rem;
   }
 } 

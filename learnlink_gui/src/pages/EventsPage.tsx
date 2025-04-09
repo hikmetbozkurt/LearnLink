@@ -9,18 +9,17 @@ import '../styles/pages/events.css';
 import axios from 'axios';
 import { NotificationBellRef } from '../components/NotificationBell';
 
-interface CalendarEvent {
+interface Event {
   id: number;
   title: string;
   description: string;
   date: Date;
   type: 'assignment' | 'exam' | 'meeting' | 'other';
-  notified?: boolean;
 }
 
 const EventsPage: React.FC = () => {
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
-  const [selectedEvents, setSelectedEvents] = useState<CalendarEvent[]>([]);
+  const [selectedEvents, setSelectedEvents] = useState<Event[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [events, setEvents] = useState<CalendarEvent[]>([]);
   const { showNotification } = useContext(NotificationContext);
@@ -70,26 +69,7 @@ const EventsPage: React.FC = () => {
         console.error('Notification creation error details:', error.response?.data);
       }
     }
-  };
-
-  const checkTodayEvents = async (events: CalendarEvent[]) => {
-    console.log('Checking today events...');
-    console.log('Total events:', events.length);
-    
-    const today = startOfDay(new Date());
-    const todayEvents = events.filter(event => {
-      const eventDate = startOfDay(new Date(event.date));
-      const isEventToday = isSameDay(eventDate, today);
-      console.log('Event:', {
-        title: event.title,
-        date: format(event.date, 'yyyy-MM-dd HH:mm'),
-        isToday: isEventToday,
-        notified: event.notified
-      });
-      return isEventToday && !event.notified;
-    });
-
-    console.log('Today events:', todayEvents.length);
+  ];
 
     if (todayEvents.length > 0) {
       for (const event of todayEvents) {
@@ -183,60 +163,6 @@ const EventsPage: React.FC = () => {
     setIsModalOpen(true);
   };
 
-  const handleAddEvent = async (newEvent: Omit<CalendarEvent, 'id'>) => {
-    try {
-      // Just send the date as is - browser will handle UTC conversion
-      console.log('Creating event:', {
-        date: newEvent.date,
-        time: format(newEvent.date, 'HH:mm')
-      });
-
-      await eventService.createEvent({
-        title: newEvent.title,
-        description: newEvent.description,
-        date: newEvent.date.toISOString(),
-        type: newEvent.type
-      });
-      await loadEvents();
-      setIsModalOpen(false);
-    } catch (error) {
-      console.error('Error creating event:', error);
-    }
-  };
-
-  const handleUpdateEvent = async (eventId: number, updatedEvent: Partial<CalendarEvent>) => {
-    try {
-      if (updatedEvent.date) {
-        console.log('Updating event:', {
-          date: updatedEvent.date,
-          time: format(updatedEvent.date, 'HH:mm')
-        });
-
-        await eventService.updateEvent(eventId, {
-          ...updatedEvent,
-          date: updatedEvent.date.toISOString()
-        });
-      } else {
-        const { date, ...eventWithoutDate } = updatedEvent;
-        await eventService.updateEvent(eventId, eventWithoutDate);
-      }
-      await loadEvents();
-      setIsModalOpen(false);
-    } catch (error) {
-      console.error('Error updating event:', error);
-    }
-  };
-
-  const handleDeleteEvent = async (eventId: number) => {
-    try {
-      await eventService.deleteEvent(eventId);
-      await loadEvents();
-      setIsModalOpen(false);
-    } catch (error) {
-      console.error('Error deleting event:', error);
-    }
-  };
-
   return (
     <div className="events-page">
       <div className="events-header">
@@ -250,9 +176,6 @@ const EventsPage: React.FC = () => {
           selectedDate={selectedDate}
           events={selectedEvents}
           onClose={() => setIsModalOpen(false)}
-          onAddEvent={handleAddEvent}
-          onUpdateEvent={handleUpdateEvent}
-          onDeleteEvent={handleDeleteEvent}
         />
       )}
     </div>

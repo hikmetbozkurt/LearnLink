@@ -1,10 +1,11 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect } from "react";
 
 interface User {
-  user_id: string;
+  user_id?: string; // Optional yap
+  id?: string | number; // id ekle
   name: string;
   email: string;
-  // diğer user özellikleri
+  role?: string;
 }
 
 interface AuthContextType {
@@ -14,17 +15,25 @@ interface AuthContextType {
 
 export const AuthContext = createContext<AuthContextType>({
   user: null,
-  setUser: () => {}
+  setUser: () => {},
 });
 
-export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
+  children,
+}) => {
   const [user, setUser] = useState<User | null>(null);
 
   // Local storage'dan user bilgisini al
   useEffect(() => {
-    const storedUser = localStorage.getItem('user');
+    const storedUser = localStorage.getItem("user");
     if (storedUser) {
-      setUser(JSON.parse(storedUser));
+      const parsedUser = JSON.parse(storedUser);
+      // user_id ve id alanlarını normalize et
+      const normalizedUser = {
+        ...parsedUser,
+        user_id: parsedUser.user_id || parsedUser.id, // id'yi user_id olarak da kullan
+      };
+      setUser(normalizedUser);
     }
   }, []);
 
@@ -33,4 +42,4 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       {children}
     </AuthContext.Provider>
   );
-}; 
+};

@@ -6,10 +6,54 @@ import ChatRoom from "./models/chatroomModel.js";
 import pool from "./config/database.js";
 import jwt from "jsonwebtoken";
 import dotenv from "dotenv";
+import express from "express";
+import path from "path";
+import fs from "fs";
 
 dotenv.config();
 
 const httpServer = createServer(app);
+
+// İndirilebilir dosya uzantıları
+const DOWNLOADABLE_EXTENSIONS = [".txt", ".rar", ".zip"];
+
+// Önce indirilebilir dosyalar için özel middleware
+app.get("/uploads/files/:filename", (req, res) => {
+  const filename = req.params.filename;
+  const filePath = path.join(process.cwd(), "uploads/files", filename);
+  const fileExtension = path.extname(filename).toLowerCase();
+
+  // Dosya varlığını kontrol et
+  if (!fs.existsSync(filePath)) {
+    return res.status(404).send("Dosya bulunamadı");
+  }
+
+  // İndirilebilir uzantılara sahip dosyaları indirme olarak işaretle
+  if (DOWNLOADABLE_EXTENSIONS.includes(fileExtension)) {
+    // Timestampi kaldırıp orijinal dosya adını elde et
+    const originalNameWithTimestamp = decodeURIComponent(filename);
+    const dashIndex = originalNameWithTimestamp.indexOf("-");
+    const originalName =
+      dashIndex !== -1
+        ? originalNameWithTimestamp.substring(dashIndex + 1)
+        : originalNameWithTimestamp;
+
+    console.log(`Downloading file: ${filename} as ${originalName}`);
+
+    // İndirme başlıklarını ayarla
+    res.setHeader(
+      "Content-Disposition",
+      `attachment; filename="${originalName}"`
+    );
+    res.setHeader("Content-Type", "application/octet-stream");
+  }
+
+  // Dosyayı gönder
+  res.sendFile(filePath);
+});
+
+// Geriye kalan tüm statik dosyalar için
+app.use("/uploads", express.static("uploads"));
 
 // Create Socket.IO instance
 export const io = new Server(httpServer, {

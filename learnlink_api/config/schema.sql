@@ -1317,6 +1317,7 @@ CREATE TABLE IF NOT EXISTS posts (
     content TEXT NOT NULL,
     type VARCHAR(50) NOT NULL, -- 'text', 'pdf', 'video' gibi
     file_url TEXT,
+    video_url TEXT,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );

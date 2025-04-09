@@ -1,8 +1,7 @@
 import jwt from 'jsonwebtoken';
 import config from '../config/env.js';
 
-// Main authentication middleware
-const authenticateTokenMiddleware = (req, res, next) => {
+export const authenticateToken = (req, res, next) => {
   try {
     const authHeader = req.headers['authorization'];
     const token = authHeader && authHeader.split(' ')[1];
@@ -28,7 +27,6 @@ const authenticateTokenMiddleware = (req, res, next) => {
       }
 
       // Set user object with consistent ID format
-      req.userId = userId; // Set userId directly
       req.user = {
         user_id: userId,
         id: userId,
@@ -44,10 +42,6 @@ const authenticateTokenMiddleware = (req, res, next) => {
     res.status(500).json({ message: 'Internal server error during authentication' });
   }
 };
-
-// Export both names for compatibility
-export const authenticateToken = authenticateTokenMiddleware;
-export const authMiddleware = authenticateTokenMiddleware;
 
 export const authorize = (...roles) => {
   return (req, res, next) => {

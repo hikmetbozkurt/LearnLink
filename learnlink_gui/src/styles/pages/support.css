@@ -117,16 +117,14 @@
 .contact-form {
   display: grid;
   gap: 1rem;
-  width: 100%;
   max-width: 600px;
-  margin: 0 auto;
+  margin-top: 1.5rem;
 }
 
 .form-group {
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
-  text-align: left;
 }
 
 .form-group label {
