@@ -3,6 +3,8 @@
   height: 100%;
   padding: 2rem;
   overflow-y: auto;
+  background-color: var(--background);
+  transition: background-color 0.3s ease;
 }
 
 .main-content {
@@ -21,7 +23,7 @@
 
 .section-title {
   font-size: 1.8rem;
-  color: #512da8;
+  color: var(--primary);
   margin: 0;
 }
 
@@ -35,7 +37,7 @@
   align-items: center;
   gap: 0.5rem;
   padding: 0.75rem 1.5rem;
-  background-color: #512da8;
+  background-color: var(--primary);
   color: white;
   border: none;
   border-radius: 8px;
@@ -44,7 +46,7 @@
 }
 
 .action-button:hover {
-  background-color: #4527a0;
+  background-color: var(--secondary);
 }
 
 .stats-grid {
@@ -55,38 +57,40 @@
 }
 
 .stat-card {
-  background: white;
+  background: var(--surface);
   padding: 1.5rem;
   border-radius: 12px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 2px 8px var(--shadow);
   text-align: center;
+  transition: all 0.3s ease;
 }
 
 .stat-number {
   font-size: 2.5rem;
   font-weight: bold;
-  color: #512da8;
+  color: var(--primary);
   margin-bottom: 0.5rem;
 }
 
 .stat-label {
-  color: #666;
+  color: var(--text-secondary);
   font-size: 1rem;
 }
 
 .recent-activity {
-  background: white;
+  background: var(--surface);
   padding: 1.5rem;
   border-radius: 12px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 2px 8px var(--shadow);
   margin-bottom: 2rem;
+  transition: all 0.3s ease;
 }
 
 .activity-item {
   display: flex;
   align-items: center;
   padding: 1rem 0;
-  border-bottom: 1px solid #eee;
+  border-bottom: 1px solid var(--border);
 }
 
 .activity-item:last-child {
@@ -96,12 +100,12 @@
 .activity-icon {
   width: 40px;
   height: 40px;
-  background: #f0ebff;
+  background: var(--hover-background);
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #512da8;
+  color: var(--primary);
   margin-right: 1rem;
 }
 
@@ -111,12 +115,13 @@
 
 .activity-title {
   font-weight: 500;
+  color: var(--text-primary);
   margin-bottom: 0.25rem;
 }
 
 .activity-time {
   font-size: 0.875rem;
-  color: #666;
+  color: var(--text-secondary);
 }
 
 .content-grid {
@@ -126,14 +131,15 @@
 }
 
 .card {
-  background: white;
+  background: var(--surface);
   padding: 1.5rem;
   border-radius: 12px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 2px 8px var(--shadow);
+  transition: all 0.3s ease;
 }
 
 .card h3 {
-  color: #512da8;
+  color: var(--primary);
   margin-bottom: 1rem;
 }
 

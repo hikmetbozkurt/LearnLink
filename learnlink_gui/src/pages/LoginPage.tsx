@@ -10,6 +10,7 @@ import api from "../api/axiosConfig";
 import axios from "axios";
 import { API_URL } from '../config/config';
 import { useToast } from '../components/ToastProvider';
+import { useTheme } from '../context/ThemeContext';
 
 console.log('Google Client ID:', process.env.REACT_APP_GOOGLE_CLIENT_ID);
 
@@ -27,6 +28,7 @@ const LoginPage = () => {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const { showToast } = useToast();
+  const { isDarkMode } = useTheme();
 
   // Toggle between sign-in and sign-up views
   const toggleView = () => {
@@ -182,7 +184,7 @@ const LoginPage = () => {
               <GoogleLogin
                 onSuccess={handleGoogleSuccess}
                 onError={handleGoogleError}
-                theme="outline"
+                theme={isDarkMode ? "filled_black" : "outline"}
                 size="large"
                 text="signup_with"
                 shape="rectangular"
@@ -264,7 +266,7 @@ const LoginPage = () => {
               <GoogleLogin
                 onSuccess={handleGoogleSuccess}
                 onError={handleGoogleError}
-                theme="outline"
+                theme={isDarkMode ? "filled_black" : "outline"}
                 size="large"
                 text="continue_with"
                 shape="rectangular"

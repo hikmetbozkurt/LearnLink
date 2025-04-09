@@ -115,4 +115,39 @@ export const clearAllNotifications = async (req, res) => {
       message: 'Error clearing notifications' 
     });
   }
+};
+
+// Delete a specific notification
+export const deleteNotification = async (req, res) => {
+  try {
+    const { notificationId } = req.params;
+    const userId = req.user.user_id;
+    
+    const query = `
+      DELETE FROM notifications
+      WHERE notifications_id = $1 AND recipient_id = $2
+      RETURNING *
+    `;
+    
+    const result = await pool.query(query, [notificationId, userId]);
+    
+    if (result.rows.length === 0) {
+      return res.status(404).json({ 
+        success: false,
+        message: 'Notification not found or you do not have permission to delete it' 
+      });
+    }
+    
+    res.json({
+      success: true,
+      message: 'Notification deleted successfully',
+      data: result.rows[0]
+    });
+  } catch (error) {
+    console.error('Error deleting notification:', error);
+    res.status(500).json({ 
+      success: false,
+      message: 'Error deleting notification' 
+    });
+  }
 }; 

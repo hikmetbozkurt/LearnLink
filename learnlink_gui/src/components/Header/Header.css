@@ -58,6 +58,11 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  transition: color 0.2s ease;
+}
+
+.search-wrapper button:hover {
+  color: #512da8;
 }
 
 .header-actions {
@@ -93,7 +98,7 @@
   cursor: pointer;
   padding: 8px;
   border-radius: 50%;
-  transition: all 0.3s ease;
+  transition: color 0.3s ease;
   display: flex;
   align-items: center;
   justify-content: center;

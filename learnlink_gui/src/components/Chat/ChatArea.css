@@ -3,17 +3,18 @@
   display: flex;
   flex-direction: column;
   height: 100%;
-  background-color: #fff;
+  background-color: var(--surface);
   position: relative;
   overflow: hidden;
   margin: 0;
   padding: 0;
+  transition: all 0.3s ease;
 }
 
 .chat-header {
   padding: 20px;
-  border-bottom: 1px solid #e0e0e0;
-  background-color: #fff;
+  border-bottom: 1px solid var(--border);
+  background-color: var(--surface);
   flex-shrink: 0;
   display: flex;
   align-items: center;
@@ -23,7 +24,7 @@
 .chat-header h2 {
   margin: 0;
   font-size: 1.5rem;
-  color: #333;
+  color: var(--text-primary);
 }
 
 .messages-container {
@@ -35,6 +36,7 @@
   gap: 2px;
   position: relative;
   margin-bottom: 0;
+  background-color: var(--background);
 }
 
 .message {
@@ -62,15 +64,16 @@
 }
 
 .message-self .message-content {
-  background-color: #512da8;
+  background-color: var(--primary);
   color: white;
   border-bottom-right-radius: 5px;
 }
 
 .message-other .message-content {
-  background-color: #f0f0f0;
-  color: #333;
+  background-color: var(--message-background);
+  color: var(--text-primary);
   border-bottom-left-radius: 5px;
+  border: 1px solid var(--border);
 }
 
 .message-sender {
@@ -94,7 +97,7 @@
 }
 
 .message-other .message-timestamp {
-  color: #666;
+  color: var(--text-secondary);
 }
 
 /* Add spacing after messages with timestamps */
@@ -104,8 +107,8 @@
 
 .chat-input-area {
   padding: 20px;
-  background-color: #fff;
-  border-top: 1px solid #e0e0e0;
+  background-color: var(--surface);
+  border-top: 1px solid var(--border);
   flex-shrink: 0;
   margin: 0;
   width: 100%;
@@ -121,16 +124,18 @@
 .chat-input-area input {
   flex: 1;
   padding: 12px;
-  border: 1px solid #ddd;
+  border: 1px solid var(--border);
   border-radius: 25px;
   outline: none;
   font-size: 14px;
-  transition: border-color 0.3s;
+  transition: all 0.3s ease;
   margin: 0;
+  background-color: var(--input-background);
+  color: var(--text-primary);
 }
 
 .chat-input-area input:focus {
-  border-color: #512da8;
+  border-color: var(--primary);
 }
 
 .file-button,
@@ -143,34 +148,45 @@
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: color 0.3s ease;
   font-size: 1.2rem;
   margin: 0;
   padding: 0;
 }
 
 .file-button {
-  background-color: #f5f5f5;
-  color: #512da8;
+  background: none;
+  color: var(--primary);
 }
 
 .file-button:hover {
-  background-color: #ede7f6;
-  transform: translateY(-2px);
+  color: var(--secondary);
 }
 
 .send-button {
-  background-color: #512da8;
+  width: 40px;
+  height: 40px;
+  border: 1px solid var(--primary);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-size: 1.2rem;
+  margin: 0;
+  padding: 0;
+  background-color: var(--primary);
   color: white;
 }
 
 .send-button:hover {
-  background-color: #5B3DD4;
+  background-color: var(--secondary);
   transform: translateY(-2px);
 }
 
 .send-button:disabled {
-  background-color: #ccc;
+  background-color: var(--disabled);
   cursor: not-allowed;
   transform: none;
 }
@@ -183,7 +199,7 @@
 .menu-button {
   background: none;
   border: none;
-  color: #512da8;
+  color: var(--primary);
   cursor: pointer;
   padding: 8px;
   font-size: 1.2rem;
@@ -195,7 +211,7 @@
 }
 
 .menu-button:hover {
-  background-color: rgba(81, 45, 168, 0.1);
+  background-color: var(--primary-light);
 }
 
 @media (max-width: 768px) {

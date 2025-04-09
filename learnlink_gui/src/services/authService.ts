@@ -4,11 +4,20 @@ export const authService = {
   login: async (email: string, password: string) => {
     try {
       const response = await api.post('/api/auth/login', { email, password });
+      
+      // Store initial user data and token
+      const { token, user } = response.data;
+      localStorage.setItem('token', token);
+      localStorage.setItem('user', JSON.stringify(user));
+      
+      // Fetch complete user data to ensure we have profile pic
+      await authService.getCurrentUser();
+      
       return {
         success: true,
         data: {
-          token: response.data.token,
-          user: response.data.user
+          token,
+          user
         }
       };
     } catch (error) {
@@ -115,6 +124,34 @@ export const authService = {
       };
     } catch (error) {
       throw error;
+    }
+  },
+
+  // Fetch current user profile to ensure we have the latest data
+  getCurrentUser: async () => {
+    try {
+      const userId = JSON.parse(localStorage.getItem('user') || '{}').id || 
+                     JSON.parse(localStorage.getItem('user') || '{}').user_id;
+      
+      if (!userId) {
+        throw new Error('No user ID available');
+      }
+      
+      const response = await api.get(`/api/users/${userId}`);
+      const userData = response.data;
+      
+      // Update the stored user data with the latest info
+      const currentUser = {
+        ...JSON.parse(localStorage.getItem('user') || '{}'),
+        ...userData,
+        profile_pic: userData.profile_pic // Ensure profile pic is updated
+      };
+      
+      localStorage.setItem('user', JSON.stringify(currentUser));
+      return currentUser;
+    } catch (error) {
+      console.error('Error fetching current user:', error);
+      return null;
     }
   }
 }; 

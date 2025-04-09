@@ -1,10 +1,13 @@
 import pool from '../config/database.js';
 import asyncHandler from '../utils/asyncHandler.js';
+import multer from 'multer';
+import path from 'path';
+import fs from 'fs';
 
 export const getUser = asyncHandler(async (req, res) => {
   const { id } = req.params;
   const result = await pool.query(
-    'SELECT user_id as id, name, email, role FROM users WHERE user_id = $1',
+    'SELECT user_id as id, name, email, role, profile_pic FROM users WHERE user_id = $1',
     [id]
   );
   
@@ -303,4 +306,73 @@ export const removeFriend = asyncHandler(async (req, res) => {
   } finally {
     client.release();
   }
+});
+
+// Configure multer for file upload
+const storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    const uploadDir = path.join(process.cwd(), 'uploads', 'profile-pics');
+    fs.mkdirSync(uploadDir, { recursive: true });
+    cb(null, uploadDir);
+  },
+  filename: function (req, file, cb) {
+    const fileExt = file.originalname.split('.').pop();
+    const fileName = `${req.user.user_id}-${Date.now()}.${fileExt}`;
+    cb(null, fileName);
+  }
+});
+
+const fileFilter = (req, file, cb) => {
+  // Accept only image files
+  if (file.mimetype.startsWith('image/')) {
+    cb(null, true);
+  } else {
+    cb(new Error('Only image files are allowed!'), false);
+  }
+};
+
+const upload = multer({
+  storage,
+  limits: { fileSize: 5 * 1024 * 1024 }, // 5MB
+  fileFilter
+});
+
+export const uploadProfilePicture = asyncHandler(async (req, res) => {
+
+  const uploadSingle = upload.single('profilePic');
+  
+  uploadSingle(req, res, async (err) => {
+    if (err) {
+      console.error('Upload error:', err);
+      return res.status(400).json({ message: err.message || 'Error uploading file' });
+    }
+    
+    if (!req.file) {
+      console.log('No file in request after multer processing');
+      return res.status(400).json({ message: 'No file uploaded' });
+    }
+    
+    try {
+      console.log('File successfully uploaded:', req.file);
+      
+      // Update user profile in database with full URL path
+      const profilePicUrl = `http://localhost:5001/uploads/profile-pics/${req.file.filename}`;
+      
+      console.log('Updating profile pic for user:', req.user.user_id);
+      console.log('New profile pic URL:', profilePicUrl);
+      
+      await pool.query(
+        'UPDATE users SET profile_pic = $1 WHERE user_id = $2',
+        [profilePicUrl, req.user.user_id]
+      );
+      
+      res.status(200).json({
+        message: 'Profile picture updated successfully',
+        profilePic: profilePicUrl
+      });
+    } catch (error) {
+      console.error('Error updating profile picture in database:', error);
+      res.status(500).json({ message: 'Server error while updating profile picture' });
+    }
+  });
 }); 

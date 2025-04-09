@@ -2,9 +2,10 @@
   width: 100%;
   height: 100%;
   padding: 1.5rem;
-  background: #fff;
+  background: var(--surface);
   overflow-y: auto;
   margin: 0;
+  transition: background-color 0.3s ease;
 }
 
 .page-content {
@@ -23,13 +24,13 @@
 
 .page-title {
   font-size: 1.8rem;
-  color: #512da8;
+  color: var(--primary);
   margin: 0;
   font-weight: 600;
 }
 
 h1, h2, h3 {
-  color: #512da8;
+  color: var(--primary);
 }
 
 @media (max-width: 768px) {

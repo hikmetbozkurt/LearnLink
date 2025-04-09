@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import api from '../api/axiosConfig';
+import { authService } from '../services/authService';
 
 interface User {
   id: number;
@@ -9,6 +10,10 @@ interface User {
   first_name: string;
   last_name: string;
   profile_picture?: string;
+  profile_pic?: string;
+  name?: string;
+  role?: string;
+  created_at: string;
 }
 
 interface AuthContextType {
@@ -18,6 +23,7 @@ interface AuthContextType {
   login: (email: string, password: string) => Promise<void>;
   logout: () => void;
   register: (userData: any) => Promise<void>;
+  setUser: (user: User | null) => void;
 }
 
 export const useAuth = (): AuthContextType => {
@@ -29,15 +35,27 @@ export const useAuth = (): AuthContextType => {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const token = localStorage.getItem('token');
-    const storedUser = localStorage.getItem('user');
+    const fetchCurrentUser = async () => {
+      const token = localStorage.getItem('token');
+      if (!token) {
+        setLoading(false);
+        return;
+      }
+      
+      try {
+        // Get fresh user data from the server
+        const userData = await authService.getCurrentUser();
+        if (userData) {
+          setUser(userData);
+        }
+      } catch (err) {
+        console.error('Error refreshing user data:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
     
-    if (token && storedUser) {
-      setUser(JSON.parse(storedUser));
-      setLoading(false);
-    } else {
-      setLoading(false);
-    }
+    fetchCurrentUser();
   }, []);
 
   const fetchUser = async () => {
@@ -63,14 +81,12 @@ export const useAuth = (): AuthContextType => {
     try {
       setLoading(true);
       setError(null);
-      const response = await api.post('/api/auth/login', { email, password });
       
-      const { token, user: userData } = response.data;
+      // Use the authService which now also fetches profile data
+      const response = await authService.login(email, password);
       
-      // Store clean token
-      localStorage.setItem('token', token.replace(/['"]+/g, ''));
-      localStorage.setItem('user', JSON.stringify(userData));
-      
+      // Get the user from authService response
+      const userData = response.data.user;
       setUser(userData);
     } catch (err: any) {
       setError(err.response?.data?.message || 'Failed to login');
@@ -113,6 +129,7 @@ export const useAuth = (): AuthContextType => {
     error,
     login,
     logout,
-    register
+    register,
+    setUser
   };
 } 

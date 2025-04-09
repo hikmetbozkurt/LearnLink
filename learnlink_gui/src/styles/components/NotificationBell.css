@@ -6,25 +6,23 @@
 .notification-bell {
   background: none;
   border: none;
-  padding: 8px;
+  font-size: 1.2rem;
   cursor: pointer;
-  position: relative;
-  color: #512da8;
-  transition: color 0.3s ease, transform 0.3s ease;
-  font-size: 20px;
+  color: var(--primary);
+  padding: 8px;
+  border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
+  transform-origin: center;
 }
 
 .notification-bell:hover {
-  color: #3f1f8f;
   transform: scale(1.1);
 }
 
 .notification-bell.active {
-  color: #3f1f8f;
-  animation: bellRing 0.5s ease;
+  animation: bellRing 0.4s ease-in-out;
 }
 
 .notification-badge {
@@ -47,31 +45,36 @@
 .notification-dropdown {
   position: absolute;
   top: 100%;
-  right: 0;
-  width: 320px;
-  background: white;
-  border-radius: 8px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  right: -10px;
+  width: 340px;
+  background: var(--surface);
+  border-radius: 12px;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
   z-index: 1000;
   margin-top: 8px;
   animation: dropdownFade 0.2s ease;
   max-height: 400px;
   display: flex;
   flex-direction: column;
+  overflow: hidden;
 }
 
 .notification-header {
-  padding: 12px 16px;
-  border-bottom: 1px solid #eee;
+  padding: 16px;
+  border-bottom: 1px solid var(--border);
   display: flex;
   justify-content: space-between;
   align-items: center;
+  background-color: var(--surface);
+  position: sticky;
+  top: 0;
+  z-index: 2;
 }
 
 .notification-header h3 {
   margin: 0;
   font-size: 16px;
-  color: #333;
+  color: var(--text-primary);
 }
 
 .notification-actions {
@@ -82,7 +85,7 @@
 .notification-actions .icon-button {
   background: none;
   border: none;
-  color: #666;
+  color: var(--text-secondary);
   font-size: 16px;
   cursor: pointer;
   padding: 6px;
@@ -94,51 +97,72 @@
 }
 
 .notification-actions .icon-button:hover {
-  background-color: #f5f5f5;
-  color: #333;
+  background-color: var(--hover-background);
+  color: var(--text-primary);
   transform: scale(1.1);
 }
 
 .notification-actions .icon-button[title="Mark all as read"]:hover {
-  color: #4CAF50;
+  color: var(--success);
 }
 
 .notification-actions .icon-button[title="Clear all notifications"]:hover {
-  color: #f44336;
+  color: var(--error);
 }
 
 .notification-list {
   overflow-y: auto;
   flex-grow: 1;
-  padding: 8px 0;
+  overscroll-behavior: contain;
 }
 
 .notification-item {
-  padding: 12px 16px;
   display: flex;
-  align-items: flex-start;
-  gap: 12px;
-  cursor: pointer;
-  transition: background-color 0.2s ease;
-  animation: itemFade 0.3s ease;
+  justify-content: space-between;
+  align-items: center;
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--border);
+  transition: background-color 0.2s;
+}
+
+.notification-item:last-child {
+  border-bottom: none;
 }
 
 .notification-item:hover {
-  background-color: #f5f5f5;
+  background-color: var(--hover-background);
 }
 
 .notification-item.unread {
-  background-color: #f0f7ff;
+  background-color: rgba(66, 133, 244, 0.08);
+  position: relative;
 }
 
-.notification-item.unread:hover {
-  background-color: #e5f1ff;
+.notification-item.unread::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 3px;
+  background-color: var(--primary, #4285f4);
+}
+
+.notification-content-wrapper {
+  display: flex;
+  flex: 1;
+  align-items: flex-start;
+  gap: 10px;
+  cursor: pointer;
+  padding-right: 10px;
 }
 
 .notification-icon {
-  color: #666;
+  color: var(--text-secondary);
   font-size: 16px;
-  padding-top: 2px;
+  min-width: 20px;
+  display: flex;
+  margin-top: 3px;
 }
 
 .notification-content {
@@ -146,34 +170,66 @@
 }
 
 .notification-message {
-  margin: 0;
-  color: #333;
+  margin: 0 0 4px 0;
+  color: var(--text-primary);
   font-size: 14px;
   line-height: 1.4;
+  word-break: break-word;
 }
 
 .notification-time {
   display: block;
-  color: #999;
+  color: var(--text-secondary);
   font-size: 12px;
-  margin-top: 4px;
+  font-weight: 400;
 }
 
 .notification-loading,
 .no-notifications {
-  padding: 24px;
+  padding: 32px 16px;
   text-align: center;
-  color: #666;
+  color: var(--text-secondary);
   font-size: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100px;
+}
+
+.notification-delete {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  transition: all 0.2s;
+  color: var(--text-secondary);
+  flex-shrink: 0;
+}
+
+.notification-delete:hover {
+  background-color: rgba(255, 0, 0, 0.1);
+  color: var(--error);
 }
 
 @keyframes bellRing {
-  0% { transform: rotate(0); }
-  20% { transform: rotate(15deg); }
-  40% { transform: rotate(-15deg); }
-  60% { transform: rotate(7deg); }
-  80% { transform: rotate(-7deg); }
-  100% { transform: rotate(0); }
+  0% {
+    transform: rotate(0deg);
+  }
+  25% {
+    transform: rotate(10deg);
+  }
+  50% {
+    transform: rotate(-10deg);
+  }
+  75% {
+    transform: rotate(5deg);
+  }
+  100% {
+    transform: rotate(0deg);
+  }
 }
 
 @keyframes badgePop {

@@ -1,7 +1,20 @@
 .page-container {
-  padding: 2rem;
+  padding: 1.5rem;
+  width: 100%;
+  margin: 0;
+  background-color: var(--background);
+  min-height: calc(100vh - var(--header-height));
+  transition: all 0.3s ease;
+  display: flex;
+  flex-direction: column;
+}
+
+.page-content {
+  flex: 1;
+  width: 100%;
   max-width: 1200px;
   margin: 0 auto;
+  background-color: var(--background);
 }
 
 .page-header {
@@ -10,19 +23,20 @@
 
 .page-title {
   font-size: 1.8rem;
-  color: #512da8;
+  color: var(--text-primary);
   margin: 0;
   font-weight: 600;
 }
 
 .search-section {
-  background: white;
+  background: var(--surface);
   padding: 2rem;
   border-radius: 16px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
-  transition: transform 0.3s ease;
+  box-shadow: 0 4px 20px var(--shadow);
+  transition: all 0.3s ease;
   max-width: 600px;
   margin: 0 auto 2rem auto;
+  width: 100%;
 }
 
 .search-section:hover {
@@ -38,23 +52,24 @@
 .search-bar input {
   flex: 1;
   padding: 12px 16px;
-  border: 2px solid #e0e0e0;
+  border: 2px solid var(--border);
   border-radius: 12px;
   font-size: 0.95rem;
   transition: all 0.3s ease;
-  background-color: #f8f9fa;
+  background-color: var(--input-background);
+  color: var(--text-primary);
 }
 
 .search-bar input:focus {
-  border-color: #512da8;
-  box-shadow: 0 0 0 4px rgba(81, 45, 168, 0.1);
+  border-color: var(--primary);
+  box-shadow: 0 0 0 4px var(--primary-light);
   outline: none;
-  background-color: white;
+  background-color: var(--surface);
 }
 
 .search-bar button {
   padding: 0 1.5rem;
-  background: #512da8;
+  background: var(--primary);
   color: white;
   border: none;
   border-radius: 12px;
@@ -68,13 +83,13 @@
 }
 
 .search-bar button:hover:not(:disabled) {
-  background: #4527a0;
+  background: var(--secondary);
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(81, 45, 168, 0.2);
+  box-shadow: 0 4px 12px var(--shadow);
 }
 
 .search-bar button:disabled {
-  background: #9e9e9e;
+  background: var(--disabled);
   cursor: not-allowed;
   opacity: 0.7;
 }
@@ -86,16 +101,17 @@
 .search-results h3 {
   margin-bottom: 1rem;
   padding-bottom: 0.5rem;
-  border-bottom: 1px solid #e0e0e0;
+  border-bottom: 1px solid var(--border);
   font-size: 1.1rem;
+  color: var(--text-primary);
 }
 
 .user-card {
   display: flex;
   align-items: center;
   padding: 1rem 1.5rem;
-  background-color: white;
-  border: 1px solid #e8e8e8;
+  background-color: var(--surface);
+  border: 1px solid var(--border);
   border-radius: 10px;
   transition: all 0.3s ease;
   gap: 1.5rem;
@@ -107,8 +123,8 @@
 }
 
 .user-card:hover {
-  background-color: #f8f7ff;
-  border-color: #e0e0e0;
+  background-color: var(--hover-background);
+  border-color: var(--border);
 }
 
 .user-info {
@@ -125,7 +141,7 @@
 .user-details h3 {
   margin: 0;
   font-size: 1.1rem;
-  color: #512da8;
+  color: var(--text-primary);
   font-weight: 600;
   border: none;
 }
@@ -133,12 +149,12 @@
 .user-details p {
   margin: 0.2rem 0;
   font-size: 0.9rem;
-  color: #666;
+  color: var(--text-secondary);
 }
 
 .user-details small {
   font-size: 0.85rem;
-  color: #888;
+  color: var(--text-secondary);
   display: block;
   margin-top: 0.2rem;
   text-transform: capitalize;
@@ -172,70 +188,72 @@
 }
 
 .add-friend-btn {
-  background-color: #512da8;
+  background-color: var(--primary);
   color: white;
 }
 
 .add-friend-btn:hover:not(:disabled) {
-  background-color: #4527a0;
+  background-color: var(--secondary);
 }
 
 .accept-friend-btn {
-  background-color: #4caf50;
+  background-color: var(--success);
   color: white;
 }
 
 .accept-friend-btn:hover:not(:disabled) {
-  background-color: #43a047;
+  background-color: var(--success-dark);
 }
 
 .reject-friend-btn,
 .remove-friend-btn {
-  background-color: #ff5252;
+  background-color: #ef5350;
   color: white;
 }
 
 .reject-friend-btn:hover:not(:disabled),
 .remove-friend-btn:hover:not(:disabled) {
-  background-color: #ff1744;
+  background-color: #d32f2f;
 }
 
 .request-sent-btn,
 .already-friend-btn {
-  background-color: #f0f0f0;
-  color: #666;
+  background-color: var(--hover-background);
+  color: var(--text-secondary);
   cursor: default;
 }
 
 .request-sent-btn svg,
 .already-friend-btn svg {
-  color: #4caf50;
+  color: var(--success);
 }
 
 .send-message-btn {
-  background-color: #512da8;
+  background-color: var(--primary);
   color: white;
 }
 
 .send-message-btn:hover:not(:disabled) {
-  background-color: #4527a0;
+  background-color: var(--secondary);
 }
 
 .friend-requests-section,
 .friends-section {
   margin-top: 2rem;
-  background: white;
+  background: var(--surface);
   padding: 1.5rem;
   border-radius: 16px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  box-shadow: 0 4px 20px var(--shadow);
+  transition: all 0.3s ease;
 }
 
 .friend-requests-section h3,
 .friends-section h3 {
   margin-bottom: 1.5rem;
   padding-bottom: 0.5rem;
-  border-bottom: 1px solid #e0e0e0;
+  border-bottom: 1px solid var(--border);
   font-size: 1.2rem;
+  color: var(--text-primary);
 }
 
 .friend-requests-list,

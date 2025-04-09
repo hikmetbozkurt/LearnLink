@@ -19,7 +19,7 @@ body {
 }
 
 .container{
-    background-color: #fff;
+    background-color: var(--surface);
     border-radius: 30px;
     box-shadow: 0 5px 15px rgba(0, 0, 0, 0.35);
     position: relative;
@@ -34,21 +34,23 @@ body {
     line-height: 20px;
     letter-spacing: 0.3px;
     margin: 20px 0;
+    color: var(--text-primary);
 }
 
 .container span{
     font-size: 12px;
+    color: var(--text-primary);
 }
 
 .container a{
-    color: #333;
+    color: var(--text-primary);
     font-size: 13px;
     text-decoration: none;
     margin: 15px 0 10px;
 }
 
 .container button{
-    background-color: #512da8;
+    background-color: var(--primary);
     color: #fff;
     font-size: 14px;
     padding: 12px 45px;
@@ -69,7 +71,7 @@ body {
 }
 
 .container form{
-    background-color: #fff;
+    background-color: var(--surface);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -81,17 +83,57 @@ body {
 .container h1 {
     font-size: 28px;
     margin-bottom: 10px;
+    color: var(--text-primary);
 }
 
 .container input{
-    background-color: #eee;
-    border: none;
-    margin: 0;
-    padding: 12px 40px;
-    font-size: 14px;
-    border-radius: 8px;
-    width: 100%;
-    outline: none;
+    background-color: var(--input-background) !important;
+    border: 1px solid var(--border) !important;
+    margin: 8px 0 !important;
+    padding: 12px 15px 12px 45px !important;
+    font-size: 14px !important;
+    border-radius: 8px !important;
+    width: 100% !important;
+    outline: none !important;
+    color: var(--text-primary) !important;
+    transition: border-color 0.3s ease !important;
+    position: relative !important;
+}
+
+.container input:focus {
+    border-color: var(--primary) !important;
+}
+
+.container .input-group {
+    position: relative !important;
+    margin-bottom: 20px !important;
+    width: 100% !important;
+    max-width: 380px !important;
+    display: flex !important;
+    align-items: center !important;
+}
+
+.container .input-icon {
+    position: absolute !important;
+    left: 15px !important;
+    top: 50% !important;
+    transform: translateY(-50%) !important;
+    font-size: 18px !important;
+    color: var(--primary) !important;
+    z-index: 2 !important;
+    pointer-events: none !important;
+}
+
+.container #togglePassword,
+.container #toggleConfirmPassword {
+    position: absolute !important;
+    right: 15px !important;
+    top: 50% !important;
+    transform: translateY(-50%) !important;
+    cursor: pointer !important;
+    font-size: 18px !important;
+    color: var(--primary) !important;
+    z-index: 2 !important;
 }
 
 .form-container{
@@ -217,32 +259,6 @@ body {
     transform: translateX(200%);
 }
 
-.input-group {
-    position: relative;
-    margin-bottom: 16px;
-    width: 100%;
-}
-
-.input-icon {
-    position: absolute;
-    top: 45%;
-    left: 10px;
-    transform: translateY(-50%);
-    font-size: 18px;
-    color: #007acc;
-}
-
-#togglePassword,
-#toggleConfirmPassword {
-    position: absolute;
-    top: 50%;
-    right: 10px;
-    transform: translateY(-50%);
-    cursor: pointer;
-    font-size: 18px;
-    color: #007acc;
-}
-
 .forgot {
     width: 100%;
     display: flex;
@@ -252,7 +268,7 @@ body {
 }
 
 .forgot-link {
-    color: #512da8;
+    color: var(--primary) !important;
     cursor: pointer;
     text-decoration: none;
     display: flex;
@@ -262,6 +278,7 @@ body {
 
 .forgot-link i {
     font-size: 14px;
+    color: var(--primary);
 }
 
 .error-message {
@@ -276,15 +293,15 @@ body {
 .divider {
     width: 100%;
     text-align: center;
-    border-bottom: 1px solid #ddd;
+    border-bottom: 1px solid var(--border);
     line-height: 0.1em;
-    margin: 15px 0;
+    margin: 20px 0;
 }
 
 .divider span {
-    background: #fff;
+    background: var(--surface);
     padding: 0 10px;
-    color: #666;
+    color: var(--text-secondary);
     font-size: 0.9rem;
 }
 

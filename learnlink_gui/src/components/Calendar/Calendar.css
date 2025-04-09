@@ -1,11 +1,12 @@
 .calendar-container {
   width: 65%;
   max-width: 1000px;
-  margin: 1rem auto;
-  background: #fff;
+
+  margin: 0 auto;
+  background: var(--surface);
   border-radius: 12px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-  padding: 1.25rem;
+  box-shadow: 0 4px 12px var(--shadow);
+  padding: 1rem;
   height: fit-content;
 }
 
@@ -18,15 +19,15 @@
 }
 
 .calendar-header h2 {
-  font-size: 1.3rem;
-  color: #333;
+  font-size: 1.2rem;
+  color: var(--text-primary);
   margin: 0;
 }
 
 .month-nav {
   background: none;
   border: none;
-  color: #512da8;
+  color: var(--primary);
   cursor: pointer;
   padding: 6px;
   border-radius: 50%;
@@ -37,7 +38,7 @@
 }
 
 .month-nav:hover {
-  background: rgba(81, 45, 168, 0.1);
+  background: var(--hover-background);
 }
 
 .calendar-grid {
@@ -48,7 +49,7 @@
   display: grid;
   grid-template-columns: repeat(7, 1fr);
   gap: 1px;
-  background: #f5f5f5;
+  background: var(--border);
   border-radius: 8px 8px 0 0;
   overflow: hidden;
 }
@@ -57,23 +58,22 @@
   padding: 0.6rem;
   text-align: center;
   font-weight: 600;
-  color: #512da8;
-  background: #fff;
-  font-size: 0.9rem;
+  color: var(--primary);
+  background: var(--surface);
+  font-size: 0.85rem;
 }
 
 .calendar-days {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
   gap: 1px;
-  background: #f5f5f5;
+  background: var(--border);
   border-radius: 0 0 8px 8px;
   overflow: hidden;
 }
 
 .calendar-day {
-  aspect-ratio: 1;
-  background: #fff;
+  background: var(--surface);
   padding: 0.4rem;
   cursor: pointer;
   position: relative;
@@ -84,7 +84,7 @@
 }
 
 .calendar-day:hover {
-  background: #f8f7ff;
+  background: var(--hover-background);
 }
 
 .calendar-day.disabled {
@@ -93,13 +93,13 @@
 }
 
 .calendar-day.has-events {
-  background: #f8f7ff;
+  background: var(--hover-background);
 }
 
 .day-number {
   font-size: 0.9rem;
   font-weight: 500;
-  color: #333;
+  color: var(--text-primary);
   margin-bottom: 4px;
 }
 
@@ -112,8 +112,8 @@
 }
 
 .day-event {
-  background: rgba(81, 45, 168, 0.1);
-  color: #512da8;
+  background: var(--primary-light);
+  color: var(--primary);
   padding: 2px 4px;
   border-radius: 2px;
   white-space: nowrap;
@@ -123,7 +123,7 @@
 }
 
 .more-events {
-  color: #666;
+  color: var(--text-secondary);
   font-size: 0.65rem;
   margin-top: 2px;
 }
@@ -138,13 +138,13 @@
 }
 
 .event-star {
-  color: #512da8;
+  color: var(--primary);
   font-size: 0.7rem;
 }
 
 .event-count {
   font-size: 0.7rem;
-  color: #512da8;
+  color: var(--primary);
   font-weight: 600;
 }
 

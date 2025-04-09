@@ -21,7 +21,7 @@ export const login = asyncHandler(async (req, res) => {
   try {
     // Get user by email
     const result = await pool.query(
-      'SELECT user_id, name, email, password, role FROM users WHERE email = $1',
+      'SELECT user_id, name, email, password, role, created_at, profile_pic FROM users WHERE email = $1',
       [email]
     );
 
@@ -60,7 +60,9 @@ export const login = asyncHandler(async (req, res) => {
         user_id: user.user_id,
         name: user.name,
         email: user.email,
-        role: user.role
+        role: user.role,
+        created_at: user.created_at,
+        profile_pic: user.profile_pic
       }
     });
   } catch (error) {
@@ -99,16 +101,16 @@ export const register = asyncHandler(async (req, res) => {
     const result = await pool.query(
       `INSERT INTO users (name, email, password, role, is_active) 
        VALUES ($1, $2, $3, $4, true) 
-       RETURNING user_id, name, email, role`,
+       RETURNING user_id, name, email, role, created_at, profile_pic`,
       [name, email, hashedPassword, role || 'student']
     );
 
-    const user = result.rows[0];
-    console.log('User created successfully:', { userId: user.user_id });
+    const newUser = result.rows[0];
+    console.log('User created successfully:', newUser);
 
     // Generate token
     const token = jwt.sign(
-      { user_id: user.user_id, email: user.email },
+      { user_id: newUser.user_id, email: newUser.email },
       process.env.JWT_SECRET || 'your-secret-key',
       { expiresIn: '24h' }
     );
@@ -117,11 +119,13 @@ export const register = asyncHandler(async (req, res) => {
     res.status(201).json({
       token,
       user: {
-        id: user.user_id,
-        user_id: user.user_id,
-        name: user.name,
-        email: user.email,
-        role: user.role
+        id: newUser.user_id,
+        user_id: newUser.user_id,
+        name: newUser.name,
+        email: newUser.email,
+        role: newUser.role,
+        created_at: newUser.created_at,
+        profile_pic: newUser.profile_pic
       }
     });
   } catch (error) {
@@ -258,7 +262,7 @@ export const googleLogin = asyncHandler(async (req, res) => {
 
     // Check if user exists
     let result = await pool.query(
-      'SELECT user_id, name, email, role FROM users WHERE email = $1',
+      'SELECT user_id, name, email, role, created_at, profile_pic FROM users WHERE email = $1',
       [email]
     );
 
@@ -271,10 +275,10 @@ export const googleLogin = asyncHandler(async (req, res) => {
       const hashedPassword = await bcrypt.hash(randomPassword, 10);
       
       result = await pool.query(
-        `INSERT INTO users (name, email, password, role, is_active) 
-         VALUES ($1, $2, $3, $4, true) 
-         RETURNING user_id, name, email, role`,
-        [name, email, hashedPassword, 'student']
+        `INSERT INTO users (name, email, password, role, is_active, profile_pic) 
+         VALUES ($1, $2, $3, $4, true, $5) 
+         RETURNING user_id, name, email, role, created_at, profile_pic`,
+        [name, email, hashedPassword, 'student', picture]
       );
     }
 
@@ -295,7 +299,9 @@ export const googleLogin = asyncHandler(async (req, res) => {
         user_id: user.user_id,
         name: user.name,
         email: user.email,
-        role: user.role
+        role: user.role,
+        created_at: user.created_at,
+        profile_pic: user.profile_pic || picture // Use Google profile picture if no custom picture is set
       }
     });
   } catch (error) {

@@ -1,22 +1,23 @@
 .chat-sidebar {
   width: 300px;
   height: 100%;
-  background-color: #f5f5f5;
-  border-right: 1px solid #e0e0e0;
+  background-color: var(--surface);
+  border-right: 1px solid var(--border);
   display: flex;
   flex-direction: column;
   position: relative;
+  transition: all 0.3s ease;
 }
 
 .chat-sidebar-header {
   padding: 20px;
-  border-bottom: 1px solid #e0e0e0;
+  border-bottom: 1px solid var(--border);
 }
 
 .chat-sidebar-header h2 {
   margin: 0 0 15px 0;
   font-size: 1.5rem;
-  color: #333;
+  color: var(--text-primary);
 }
 
 .search-box {
@@ -26,15 +27,17 @@
 .search-box input {
   width: 100%;
   padding: 8px 35px;
-  border: 1px solid #ddd;
+  border: 1px solid var(--border);
   border-radius: 20px;
   font-size: 14px;
   outline: none;
-  transition: border-color 0.3s;
+  transition: all 0.3s ease;
+  background-color: var(--input-background);
+  color: var(--text-primary);
 }
 
 .search-box input:focus {
-  border-color: #512da8;
+  border-color: var(--primary);
 }
 
 .search-icon {
@@ -42,7 +45,7 @@
   left: 12px;
   top: 50%;
   transform: translateY(-50%);
-  color: #666;
+  color: var(--text-secondary);
 }
 
 .chat-rooms-list {
@@ -58,18 +61,18 @@
   margin-bottom: 5px;
   cursor: pointer;
   position: relative;
-  transition: background-color 0.3s;
+  transition: all 0.3s ease;
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
 }
 
 .chat-room-item:hover {
-  background-color: #e8e8e8;
+  background-color: var(--hover-background);
 }
 
 .chat-room-item.active {
-  background-color: #ede7f6;
+  background-color: var(--primary-light);
 }
 
 .chat-room-info {
@@ -79,13 +82,13 @@
 .chat-room-info h3 {
   margin: 0;
   font-size: 1rem;
-  color: #333;
+  color: var(--text-primary);
 }
 
 .chat-room-info p {
   margin: 5px 0 0;
   font-size: 0.85rem;
-  color: #666;
+  color: var(--text-secondary);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -93,14 +96,14 @@
 
 .timestamp {
   font-size: 0.75rem;
-  color: #888;
+  color: var(--text-secondary);
   margin-left: 10px;
 }
 
 .delete-room-btn {
   background: none;
   border: none;
-  color: #999;
+  color: var(--text-secondary);
   cursor: pointer;
   padding: 5px;
   margin-left: 10px;
@@ -113,7 +116,7 @@
 }
 
 .delete-room-btn:hover {
-  color: #d32f2f;
+  color: var(--error);
 }
 
 .create-room-button {
@@ -124,7 +127,7 @@
   margin: 0 auto;
   width: 50px;
   height: 50px;
-  background-color: #512da8;
+  background-color: var(--primary);
   color: white;
   border: none;
   cursor: pointer;
@@ -133,14 +136,14 @@
   justify-content: center;
   transition: all 0.3s ease;
   border-radius: 50%;
-  box-shadow: 0 2px 5px rgba(81, 45, 168, 0.2);
+  box-shadow: 0 2px 5px var(--shadow);
   z-index: 10;
 }
 
 .create-room-button:hover {
-  background-color: #4527a0;
+  background-color: var(--secondary);
   transform: scale(1.1);
-  box-shadow: 0 4px 8px rgba(81, 45, 168, 0.3);
+  box-shadow: 0 4px 8px var(--shadow);
 }
 
 .create-room-button svg {
@@ -152,7 +155,7 @@
     width: 100%;
     height: auto;
     border-right: none;
-    border-bottom: 1px solid #e0e0e0;
+    border-bottom: 1px solid var(--border);
   }
 
   .chat-rooms-list {

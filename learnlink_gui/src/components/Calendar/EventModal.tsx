@@ -80,9 +80,69 @@ const EventModal: React.FC<EventModalProps> = ({
               ))}
             </div>
           ) : (
-            <div className="no-events">
-              <p>No events scheduled for this day</p>
-            </div>
+            <form onSubmit={handleSubmit} className="add-event-form event-modal-form">
+              <div className="form-group">
+                <label htmlFor="title">Event Title</label>
+                <input
+                  type="text"
+                  id="title"
+                  name="title"
+                  value={formData.title}
+                  onChange={handleInputChange}
+                  required
+                />
+              </div>
+              <div className="form-group">
+                <label htmlFor="description">Description</label>
+                <textarea
+                  id="description"
+                  name="description"
+                  value={formData.description}
+                  onChange={handleInputChange}
+                  required
+                />
+              </div>
+              <div className="form-group">
+                <label htmlFor="time">Time</label>
+                <input
+                  type="time"
+                  id="time"
+                  name="time"
+                  value={formData.time}
+                  onChange={handleInputChange}
+                  required
+                />
+              </div>
+              <div className="form-group">
+                <label htmlFor="type">Event Type</label>
+                <select
+                  id="type"
+                  name="type"
+                  value={formData.type}
+                  onChange={handleInputChange}
+                >
+                  <option value="assignment">Assignment</option>
+                  <option value="exam">Exam</option>
+                  <option value="meeting">Meeting</option>
+                  <option value="other">Other</option>
+                </select>
+              </div>
+              <div className="form-actions button-group">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsAddingEvent(false);
+                    setEditingEventId(null);
+                  }}
+                  className="cancel-button"
+                >
+                  Cancel
+                </button>
+                <button type="submit" className="submit-button">
+                  {editingEventId ? 'Update Event' : 'Add Event'}
+                </button>
+              </div>
+            </form>
           )}
         </div>
       </div>

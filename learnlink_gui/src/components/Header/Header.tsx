@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
   FaSearch, 
@@ -6,23 +6,43 @@ import {
   FaSignOutAlt,
   FaUser
 } from 'react-icons/fa';
-import NotificationBell from '../NotificationBell';
+import NotificationBell, { NotificationBellRef } from '../NotificationBell';
+import EventsDropdown from '../EventsDropdown';
 import ProfileCard from '../Profile/ProfileCard';
+import SettingsModal from '../Settings/SettingsModal';
 import { useAuth } from '../../hooks/useAuth';
+import { useEvent } from '../../contexts/EventContext';
 import './Header.css';
 import defaultAvatar from '../../assets/images/default-avatar.png';
 import { authService } from '../../services/authService';
 
-type DropdownType = 'settings' | 'notifications' | null;
+type DropdownType = 'settings' | 'notifications' | 'events' | null;
+
+interface User {
+  id: number;
+  user_id: number;
+  username?: string;
+  email: string;
+  first_name?: string;
+  last_name?: string;
+  profile_picture?: string;
+  profile_pic?: string;
+  name?: string;
+  role?: string;
+  created_at?: string;
+}
 
 const Header = () => {
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, setUser } = useAuth();
+  const { setSelectedEventDate } = useEvent();
   const [activeDropdown, setActiveDropdown] = useState<DropdownType>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [showProfileCard, setShowProfileCard] = useState(false);
+  const [showSettingsModal, setShowSettingsModal] = useState(false);
+  const [profileImageKey, setProfileImageKey] = useState(Date.now());
   const dropdownRef = useRef<HTMLDivElement>(null);
-  const notificationRef = useRef<any>(null);
+  const notificationRef = useRef<NotificationBellRef>(null);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -53,13 +73,36 @@ const Header = () => {
     }
   };
 
+  // Function to refresh user data
+  const refreshUserData = useCallback(async () => {
+    try {
+      const userData = await authService.getCurrentUser();
+      if (userData && setUser) {
+        setUser(userData);
+      }
+      // Force image refresh
+      setProfileImageKey(Date.now());
+    } catch (error) {
+      console.error('Error refreshing user data:', error);
+    }
+  }, [setUser]);
+
+  const handleProfileCardClose = () => {
+    setShowProfileCard(false);
+    // Refresh user data when profile card closes
+    refreshUserData();
+  };
+
   const renderDropdownContent = (type: DropdownType) => {
     switch (type) {
       case 'settings':
         return (
           <div className="dropdown-menu settings">
             <div className="dropdown-header">Settings</div>
-            <div className="menu-item">
+            <div className="menu-item" onClick={() => {
+              setShowSettingsModal(true);
+              setActiveDropdown(null);
+            }}>
               <FaCog />
               <span>Settings</span>
             </div>
@@ -75,52 +118,82 @@ const Header = () => {
   };
 
   return (
-    <header className="header">
-      <div className="header-content">
-        <div className="search-container">
-          <form onSubmit={handleSearch}>
-            <div className="search-wrapper">
-              <input
-                type="text"
-                placeholder="Search courses and users"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
+    <>
+      <header className="header">
+        <div className="header-content">
+          <div className="search-container">
+            <form onSubmit={handleSearch}>
+              <div className="search-wrapper">
+                <input
+                  type="text"
+                  placeholder="Search courses and users"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                />
+                <button type="submit">
+                  <FaSearch />
+                </button>
+              </div>
+            </form>
+          </div>
+
+          <div className="header-actions" ref={dropdownRef}>
+            <div className="profile-avatar" onClick={() => setShowProfileCard(true)}>
+              <img 
+                key={profileImageKey}
+                src={user?.profile_pic ? `${user.profile_pic}?t=${profileImageKey}` : defaultAvatar} 
+                alt="Profile" 
+                onError={(e) => { 
+                  console.log('Error loading profile pic, falling back to default');
+                  e.currentTarget.src = defaultAvatar; 
+                }}
               />
-              <button type="submit">
-                <FaSearch />
-              </button>
             </div>
-          </form>
+
+            <EventsDropdown 
+              isOpen={activeDropdown === 'events'}
+              onToggle={() => handleDropdownClick('events')}
+              onEventSelect={(date) => {
+                setSelectedEventDate(date);
+              }}
+              refreshEvents={() => {
+                if (setSelectedEventDate) {
+                  // Provide a way to trigger refresh without changing date
+                  setSelectedEventDate(null);
+                }
+              }}
+            />
+
+            <NotificationBell 
+              ref={notificationRef} 
+              isOpen={activeDropdown === 'notifications'}
+              onToggle={() => handleDropdownClick('notifications')}
+            />
+
+            <div 
+              className={`settings-icon ${activeDropdown === 'settings' ? 'active' : ''}`}
+              onClick={() => handleDropdownClick('settings')}
+            >
+              <FaCog />
+              {activeDropdown === 'settings' && renderDropdownContent('settings')}
+            </div>
+          </div>
         </div>
 
-        <div className="header-actions" ref={dropdownRef}>
-          <div className="profile-avatar" onClick={() => setShowProfileCard(true)}>
-            <img src={defaultAvatar} alt="Profile" />
-          </div>
-
-          <NotificationBell 
-            ref={notificationRef} 
-            isOpen={activeDropdown === 'notifications'}
-            onToggle={() => handleDropdownClick('notifications')}
+        {showProfileCard && user && (
+          <ProfileCard 
+            user={user}
+            onClose={handleProfileCardClose} 
+            currentUser={true}
           />
+        )}
+      </header>
 
-          <div 
-            className={`settings-icon ${activeDropdown === 'settings' ? 'active' : ''}`}
-            onClick={() => handleDropdownClick('settings')}
-          >
-            <FaCog />
-            {activeDropdown === 'settings' && renderDropdownContent('settings')}
-          </div>
-        </div>
-      </div>
-
-      {showProfileCard && user && (
-        <ProfileCard 
-          user={user}
-          onClose={() => setShowProfileCard(false)} 
-        />
-      )}
-    </header>
+      <SettingsModal 
+        isOpen={showSettingsModal}
+        onClose={() => setShowSettingsModal(false)}
+      />
+    </>
   );
 };
 
