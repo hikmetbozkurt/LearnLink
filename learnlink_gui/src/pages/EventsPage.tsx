@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useContext, useRef } from 'react';
 import Calendar from '../components/Calendar/Calendar';
 import EventModal from '../components/Calendar/EventModal';
-import eventService, { Event } from '../services/eventService';
+import eventService, { Event as ServiceEvent } from '../services/eventService';
 import { NotificationContext } from '../contexts/NotificationContext';
 import { useEvent } from '../contexts/EventContext';
 import { format, isToday, startOfDay, isSameDay, parseISO, addMinutes } from 'date-fns';
@@ -9,7 +9,8 @@ import '../styles/pages/events.css';
 import axios from 'axios';
 import { NotificationBellRef } from '../components/NotificationBell';
 
-interface Event {
+// Calendar expects this type of Event
+interface CalendarEvent {
   id: number;
   title: string;
   description: string;
@@ -17,16 +18,25 @@ interface Event {
   type: 'assignment' | 'exam' | 'meeting' | 'other';
 }
 
+// Our working Event type that extends ServiceEvent with the notified property
+interface Event extends Omit<CalendarEvent, 'id'> {
+  id: number; // From event_id
+  event_id: number;
+  created_at: string;
+  updated_at: string;
+  notified: boolean;
+}
+
 const EventsPage: React.FC = () => {
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [selectedEvents, setSelectedEvents] = useState<Event[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [events, setEvents] = useState<CalendarEvent[]>([]);
+  const [events, setEvents] = useState<Event[]>([]);
   const { showNotification } = useContext(NotificationContext);
   const { selectedEventDate, setSelectedEventDate, shouldRefreshEvents, setShouldRefreshEvents } = useEvent();
   const notificationBellRef = useRef<NotificationBellRef>(null);
 
-  const createNotification = async (event: CalendarEvent) => {
+  const createNotification = async (event: Event) => {
     try {
       const token = localStorage.getItem('token');
       if (!token) return;
@@ -69,7 +79,13 @@ const EventsPage: React.FC = () => {
         console.error('Notification creation error details:', error.response?.data);
       }
     }
-  ];
+  };
+
+  const checkTodayEvents = async (eventsToCheck: Event[]) => {
+    const today = startOfDay(new Date());
+    const todayEvents = eventsToCheck.filter(event => 
+      isToday(new Date(event.date)) && !event.notified
+    );
 
     if (todayEvents.length > 0) {
       for (const event of todayEvents) {
@@ -116,10 +132,13 @@ const EventsPage: React.FC = () => {
         
         return {
           id: event.event_id,
+          event_id: event.event_id,
           title: event.title,
           description: event.description,
           date: localDate,
           type: event.type,
+          created_at: event.created_at,
+          updated_at: event.updated_at,
           notified: false
         };
       });
@@ -158,9 +177,24 @@ const EventsPage: React.FC = () => {
   }, [selectedEventDate, events]);
 
   const handleDayClick = (date: Date, dayEvents: CalendarEvent[]) => {
+    // Convert CalendarEvent[] back to Event[]
+    const matchingEvents = events.filter(event => 
+      dayEvents.some(dayEvent => dayEvent.id === event.id)
+    );
     setSelectedDate(date);
-    setSelectedEvents(dayEvents);
+    setSelectedEvents(matchingEvents);
     setIsModalOpen(true);
+  };
+
+  // Convert our Events to CalendarEvents for the Calendar component
+  const getCalendarEvents = (): CalendarEvent[] => {
+    return events.map(event => ({
+      id: event.id,
+      title: event.title,
+      description: event.description,
+      date: new Date(event.date),
+      type: event.type
+    }));
   };
 
   return (
@@ -169,7 +203,10 @@ const EventsPage: React.FC = () => {
         <h1>Academic Calendar</h1>
         <p>View and manage your academic events, assignments, and deadlines</p>
       </div>
-      <Calendar events={events} onDayClick={handleDayClick} />
+      <Calendar 
+        events={getCalendarEvents()} 
+        onDayClick={handleDayClick}
+      />
       {isModalOpen && selectedDate && (
         <EventModal
           isOpen={isModalOpen}
