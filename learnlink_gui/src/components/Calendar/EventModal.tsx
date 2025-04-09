@@ -1,13 +1,22 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { format } from 'date-fns';
 import { FaTimes, FaCalendar, FaClock, FaInfoCircle } from 'react-icons/fa';
 import './EventModal.css';
+import eventService from '../../services/eventService';
+import { useEvent } from '../../contexts/EventContext';
 
 interface Event {
   id: number;
   title: string;
   description: string;
   date: Date;
+  type: 'assignment' | 'exam' | 'meeting' | 'other';
+}
+
+interface FormData {
+  title: string;
+  description: string;
+  time: string;
   type: 'assignment' | 'exam' | 'meeting' | 'other';
 }
 
@@ -24,7 +33,66 @@ const EventModal: React.FC<EventModalProps> = ({
   selectedDate,
   events
 }) => {
+  const { setShouldRefreshEvents } = useEvent();
+  const [isAddingEvent, setIsAddingEvent] = useState(events.length === 0);
+  const [editingEventId, setEditingEventId] = useState<number | null>(null);
+  const [formData, setFormData] = useState<FormData>({
+    title: '',
+    description: '',
+    time: '12:00',
+    type: 'assignment'
+  });
+
   if (!isOpen) return null;
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    try {
+      const token = localStorage.getItem('token');
+      if (!token) return;
+
+      // Combine date and time
+      const dateTime = new Date(selectedDate);
+      const [hours, minutes] = formData.time.split(':');
+      dateTime.setHours(parseInt(hours, 10), parseInt(minutes, 10));
+
+      const eventData = {
+        title: formData.title,
+        description: formData.description,
+        date: dateTime.toISOString(),
+        type: formData.type
+      };
+
+      if (editingEventId) {
+        await eventService.updateEvent(editingEventId, eventData);
+      } else {
+        await eventService.createEvent(eventData);
+      }
+
+      // Reset form and states
+      setFormData({
+        title: '',
+        description: '',
+        time: '12:00',
+        type: 'assignment'
+      });
+      setIsAddingEvent(false);
+      setEditingEventId(null);
+      setShouldRefreshEvents(true);
+      onClose();
+    } catch (error) {
+      console.error('Error saving event:', error);
+    }
+  };
 
   const getEventTypeColor = (type: Event['type']) => {
     switch (type) {
@@ -53,7 +121,7 @@ const EventModal: React.FC<EventModalProps> = ({
         </div>
         
         <div className="event-modal-content">
-          {events.length > 0 ? (
+          {events.length > 0 && !isAddingEvent ? (
             <div className="events-list">
               {events.map(event => (
                 <div key={event.id} className="event-item">
@@ -78,6 +146,14 @@ const EventModal: React.FC<EventModalProps> = ({
                   </div>
                 </div>
               ))}
+              <div className="add-event-button-container">
+                <button 
+                  className="add-event-button"
+                  onClick={() => setIsAddingEvent(true)}
+                >
+                  Add Event
+                </button>
+              </div>
             </div>
           ) : (
             <form onSubmit={handleSubmit} className="add-event-form event-modal-form">
