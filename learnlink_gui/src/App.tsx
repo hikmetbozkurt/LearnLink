@@ -19,6 +19,7 @@ import RouteGuard from './components/RouteGuard';
 import DirectMessagesPage from './pages/DirectMessagesPage';
 import CourseDetailPage from './pages/CourseDetailPage';
 import CourseAreaWrapper from './components/Course/CourseAreaWrapper';
+import CourseArea from "./components/Course/CourseArea";
 import './styles/global.css';
 
 const App: React.FC = () => {
