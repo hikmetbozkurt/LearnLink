@@ -1,4 +1,4 @@
-.modal-overlay {
+.settings-modal-overlay {
   position: fixed;
   top: 0;
   left: 0;
@@ -12,12 +12,15 @@
   z-index: 1000;
 }
 
-.modal {
+.settings-modal {
   background-color: var(--surface);
   border-radius: 12px;
   box-shadow: 0 4px 6px var(--shadow);
   width: 500px;
-  height: 600px;
+  max-width: 90vw;
+  max-height: 90vh;
+  min-height: 400px;
+  height: auto;
   overflow: hidden;
   display: flex;
   flex-direction: column;
@@ -25,12 +28,12 @@
   position: relative;
 }
 
-.dark .modal {
+.dark .settings-modal {
   background-color: #1e1e1e;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3), 0 1px 3px rgba(0, 0, 0, 0.2);
 }
 
-.modal-header {
+.settings-modal-header {
   padding: 20px 24px;
   background-color: var(--background);
   border-bottom: 1px solid var(--border);
@@ -40,22 +43,22 @@
   transition: all 0.3s ease;
 }
 
-.dark .modal-header {
+.dark .settings-modal-header {
   background-color: #242424;
   border-bottom-color: #333333;
 }
 
-.modal-title {
+.settings-modal-title {
   font-size: 1.25rem;
   font-weight: 600;
   color: var(--text-primary);
 }
 
-.dark .modal-title {
+.dark .settings-modal-title {
   color: #ffffff;
 }
 
-.close-button {
+.settings-close-button {
   background: none;
   border: none;
   color: #666666;
@@ -65,31 +68,31 @@
   transition: all 0.2s ease;
 }
 
-.dark .close-button {
+.dark .settings-close-button {
   color: #b3b3b3;
 }
 
-.close-button:hover {
+.settings-close-button:hover {
   background-color: rgba(0, 0, 0, 0.05);
   color: #333333;
 }
 
-.dark .close-button:hover {
+.dark .settings-close-button:hover {
   background-color: rgba(255, 255, 255, 0.1);
   color: #ffffff;
 }
 
-.modal-content {
-  padding: 24px;
-  overflow-y: auto;
+.settings-modal-content {
   flex: 1;
+  overflow-y: auto;
   display: flex;
   flex-direction: column;
-  gap: 20px;
   width: 100%;
+  box-sizing: border-box;
+  padding: 0;
 }
 
-.sidebar {
+.settings-sidebar {
   width: 200px;
   background-color: #f8f9fa;
   border-right: 1px solid #eeeeee;
@@ -98,21 +101,27 @@
   transition: all 0.3s ease;
 }
 
-.dark .sidebar {
+.dark .settings-sidebar {
   background-color: #242424;
   border-right-color: #333333;
 }
 
-.tabs {
+.settings-tabs {
   display: flex;
   flex-direction: row;
   gap: 12px;
   width: 100%;
-  margin-bottom: 24px;
+  padding: 24px 24px 12px;
   justify-content: center;
+  flex-wrap: wrap;
+  border-bottom: 1px solid var(--border);
 }
 
-.tab-button {
+.dark .settings-tabs {
+  border-bottom-color: #333333;
+}
+
+.settings-tab-button {
   padding: 10px 16px;
   border-radius: 8px;
   background: none;
@@ -129,72 +138,83 @@
   flex: 0 1 auto;
 }
 
-.tab-button:hover {
+.settings-tab-button:hover {
   background-color: rgba(0, 0, 0, 0.08);
 }
 
-.tab-button.active {
+.settings-tab-button.active {
   background-color: #7c4dff;
   color: white;
 }
 
-.dark .tab-button {
+.dark .settings-tab-button {
   color: #b3b3b3;
 }
 
-.tab-button.active:hover {
+.settings-tab-button.active:hover {
   background-color: #651fff;
   color: white;
 }
 
-.dark .tab-button.active:hover {
+.dark .settings-tab-button.active:hover {
   background-color: #651fff;
 }
 
-.tab-content {
-  padding: 0;
-}
-
-.form-group {
-  margin-bottom: 20px;
+.settings-tab-content {
+  padding: 24px;
   width: 100%;
+  box-sizing: border-box;
+  flex: 1;
 }
 
-.form-label {
-  display: block;
-  margin-bottom: 8px;
+.settings-form-group {
+  margin-bottom: 16px;
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 4px 0;
+}
+
+.settings-form-label {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 0;
   font-weight: 500;
   color: var(--text-primary);
+  max-width: 75%;
 }
 
-.dark .form-label {
+.dark .settings-form-label {
   color: #ffffff;
 }
 
-.form-description {
+.settings-form-description {
   font-size: 14px;
   color: var(--text-secondary);
   margin-top: 4px;
 }
 
-.dark .form-description {
+.dark .settings-form-description {
   color: #b3b3b3;
 }
 
-.switch {
+.settings-switch {
   position: relative;
   display: inline-block;
   width: 48px;
   height: 24px;
+  margin-left: 16px;
+  flex-shrink: 0;
 }
 
-.switch input {
+.settings-switch input {
   opacity: 0;
   width: 0;
   height: 0;
 }
 
-.slider {
+.settings-slider {
   position: absolute;
   cursor: pointer;
   top: 0;
@@ -206,11 +226,11 @@
   border-radius: 24px;
 }
 
-.dark .slider {
+.dark .settings-slider {
   background-color: #404040;
 }
 
-.slider:before {
+.settings-slider:before {
   position: absolute;
   content: "";
   height: 20px;
@@ -222,20 +242,20 @@
   border-radius: 50%;
 }
 
-input:checked + .slider {
+.settings-switch input:checked + .settings-slider {
   background-color: var(--primary);
 }
 
-.dark input:checked + .slider {
+.dark .settings-switch input:checked + .settings-slider {
   background-color: #7c4dff;
 }
 
-input:checked + .slider:before {
+.settings-switch input:checked + .settings-slider:before {
   transform: translateX(24px);
 }
 
-input[type="email"],
-input[type="password"] {
+.settings-input[type="email"],
+.settings-input[type="password"] {
   width: 100%;
   padding: 10px 12px;
   border: 1px solid var(--border);
@@ -246,14 +266,14 @@ input[type="password"] {
   transition: all 0.2s ease;
 }
 
-input[type="email"]:focus,
-input[type="password"]:focus {
+.settings-input[type="email"]:focus,
+.settings-input[type="password"]:focus {
   outline: none;
   border-color: var(--primary);
   box-shadow: 0 0 0 2px var(--primary-light);
 }
 
-.save-button {
+.settings-save-button {
   background-color: #7c4dff;
   color: white;
   border: none;
@@ -264,22 +284,22 @@ input[type="password"]:focus {
   font-size: 0.95rem;
   transition: all 0.3s ease;
   width: 100%;
-  margin-top: 12px;
+  margin-top: 24px;
 }
 
-.dark .save-button {
+.dark .settings-save-button {
   background-color: #7c4dff;
 }
 
-.save-button:hover {
+.settings-save-button:hover {
   background-color: #651fff;
 }
 
-.dark .save-button:hover {
+.dark .settings-save-button:hover {
   background-color: #651fff;
 }
 
-.setting-item {
+.settings-item {
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -287,63 +307,68 @@ input[type="password"]:focus {
   border-bottom: 1px solid #eee;
 }
 
-.dark .setting-item {
+.dark .settings-item {
   border-bottom-color: #333;
 }
 
-.setting-label {
+.settings-label {
   display: flex;
   align-items: center;
   gap: 12px;
   color: #333;
 }
 
-.dark .setting-label {
+.dark .settings-label {
   color: #fff;
 }
 
-.setting-label svg {
+.settings-label svg {
   color: #666;
   font-size: 1.1rem;
 }
 
-.dark .setting-label svg {
+.dark .settings-label svg {
   color: #b3b3b3;
 }
 
 @media (max-width: 768px) {
-  .modal {
+  .settings-modal {
     width: 95%;
     height: 80vh;
     margin: 0;
   }
 
-  .modal-content {
-    padding: 16px;
+  .settings-modal-content {
+    padding: 0;
   }
 
-  .tabs {
+  .settings-tabs {
+    padding: 16px 16px 0;
     flex-wrap: wrap;
     justify-content: center;
   }
+  
+  .settings-tab-content {
+    padding: 16px;
+  }
 
-  .tab-button {
+  .settings-tab-button {
     flex: 1 1 auto;
     min-width: 120px;
   }
 
-  .form-group {
+  .settings-form-group {
     margin-bottom: 16px;
   }
 
-  .sidebar {
+  .settings-sidebar {
     width: 100%;
     border-right: none;
     border-bottom: 1px solid #eee;
     padding: 10px;
   }
 
-  .dark .sidebar {
+  .dark .settings-sidebar {
     border-bottom-color: #333;
   }
 } 
