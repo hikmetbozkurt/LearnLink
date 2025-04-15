@@ -14,103 +14,103 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
   if (!isOpen) return null;
 
   return (
-    <div className="modal-overlay" onClick={onClose}>
-      <div className="modal" onClick={e => e.stopPropagation()}>
-        <div className="modal-header">
-          <h2 className="modal-title">Settings</h2>
+    <div className="settings-modal-overlay" onClick={onClose}>
+      <div className="settings-modal" onClick={e => e.stopPropagation()}>
+        <div className="settings-modal-header">
+          <h2 className="settings-modal-title">Settings</h2>
         </div>
-        <div className="modal-content">
-          <div className="tabs">
+        <div className="settings-modal-content">
+          <div className="settings-tabs">
             <button
-              className={`tab-button ${activeTab === 'appearance' ? 'active' : ''}`}
+              className={`settings-tab-button ${activeTab === 'appearance' ? 'active' : ''}`}
               onClick={() => setActiveTab('appearance')}
             >
               Appearance
             </button>
             <button
-              className={`tab-button ${activeTab === 'account' ? 'active' : ''}`}
+              className={`settings-tab-button ${activeTab === 'account' ? 'active' : ''}`}
               onClick={() => setActiveTab('account')}
             >
               Account
             </button>
             <button
-              className={`tab-button ${activeTab === 'notifications' ? 'active' : ''}`}
+              className={`settings-tab-button ${activeTab === 'notifications' ? 'active' : ''}`}
               onClick={() => setActiveTab('notifications')}
             >
               Notifications
             </button>
           </div>
-          <div className="tab-content">
+          <div className="settings-tab-content">
             {activeTab === 'appearance' && (
               <div>
-                <div className="form-group">
-                  <label className="form-label">
+                <div className="settings-form-group">
+                  <label className="settings-form-label">
                     Dark Mode
-                    <div className="form-description">
+                    <div className="settings-form-description">
                       Switch between light and dark themes
                     </div>
                   </label>
-                  <label className="switch">
+                  <label className="settings-switch">
                     <input
                       type="checkbox"
                       checked={isDarkMode}
                       onChange={toggleTheme}
                     />
-                    <span className="slider"></span>
+                    <span className="settings-slider"></span>
                   </label>
                 </div>
               </div>
             )}
             {activeTab === 'account' && (
               <div>
-                <div className="form-group">
-                  <label className="form-label">
+                <div className="settings-form-group">
+                  <label className="settings-form-label">
                     Email
-                    <div className="form-description">
+                    <div className="settings-form-description">
                       Your email address
                     </div>
                   </label>
-                  <input type="email" placeholder="Enter your email" />
+                  <input type="email" className="settings-input" placeholder="Enter your email" />
                 </div>
-                <div className="form-group">
-                  <label className="form-label">
+                <div className="settings-form-group">
+                  <label className="settings-form-label">
                     Password
-                    <div className="form-description">
+                    <div className="settings-form-description">
                       Change your password
                     </div>
                   </label>
-                  <input type="password" placeholder="Enter new password" />
+                  <input type="password" className="settings-input" placeholder="Enter new password" />
                 </div>
-                <button className="save-button">Save Changes</button>
+                <button className="settings-save-button">Save Changes</button>
               </div>
             )}
             {activeTab === 'notifications' && (
               <div>
-                <div className="form-group">
-                  <label className="form-label">
+                <div className="settings-form-group">
+                  <label className="settings-form-label">
                     Email Notifications
-                    <div className="form-description">
+                    <div className="settings-form-description">
                       Receive email notifications
                     </div>
                   </label>
-                  <label className="switch">
+                  <label className="settings-switch">
                     <input type="checkbox" />
-                    <span className="slider"></span>
+                    <span className="settings-slider"></span>
                   </label>
                 </div>
-                <div className="form-group">
-                  <label className="form-label">
+                <div className="settings-form-group">
+                  <label className="settings-form-label">
                     Push Notifications
-                    <div className="form-description">
+                    <div className="settings-form-description">
                       Receive push notifications
                     </div>
                   </label>
-                  <label className="switch">
+                  <label className="settings-switch">
                     <input type="checkbox" />
-                    <span className="slider"></span>
+                    <span className="settings-slider"></span>
                   </label>
                 </div>
-                <button className="save-button">Save Changes</button>
+                <button className="settings-save-button">Save Changes</button>
               </div>
             )}
           </div>
