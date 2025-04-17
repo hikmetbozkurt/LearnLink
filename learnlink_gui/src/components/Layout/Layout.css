@@ -29,6 +29,7 @@
   padding: 0;
   margin: 0;
   width: 100%;
+  background-color: var(--background);
 }
 
 @media (max-width: 768px) {

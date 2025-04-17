@@ -7,6 +7,9 @@ const router = Router();
 // All routes require authentication
 router.use(authenticateToken);
 
+// Stats route
+router.get("/stats/completion", courseController.getCourseCompletionStats);
+
 // Özel route'ları önce tanımla
 router.get("/my-courses", courseController.getMyCourses);
 router.post("/:courseId/join", courseController.joinCourse);

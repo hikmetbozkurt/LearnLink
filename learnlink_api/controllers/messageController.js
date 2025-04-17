@@ -70,3 +70,21 @@ export const deleteMessage = asyncHandler(async (req, res) => {
   
   res.json({ message: 'Message deleted successfully' });
 });
+
+export const getUserMessageStats = asyncHandler(async (req, res) => {
+  try {
+    const result = await pool.query(`
+      SELECT u.user_id, u.name, COUNT(m.id) as message_count 
+      FROM users u
+      LEFT JOIN messages m ON u.user_id = m.sender_id
+      GROUP BY u.user_id, u.name
+      ORDER BY message_count DESC
+      LIMIT 20
+    `);
+    
+    res.json(result.rows);
+  } catch (error) {
+    console.error('Error fetching user message statistics:', error);
+    res.status(500).json({ message: 'Failed to fetch user message statistics' });
+  }
+});

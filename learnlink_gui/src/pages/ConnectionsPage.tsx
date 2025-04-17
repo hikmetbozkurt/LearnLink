@@ -168,7 +168,6 @@ const ConnectionsPage = () => {
     return (
       <div className="page-container">
         <div className="page-content">
-          <p>Loading...</p>
         </div>
       </div>
     );

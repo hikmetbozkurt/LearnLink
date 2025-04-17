@@ -1,30 +1,93 @@
 .progress-page {
-  padding: 2rem;
-  max-width: 1400px;
-  margin: 0 auto;
-  height: calc(100vh - 64px);
+  padding: 1rem;
+  max-width: 100%;
+  margin: 0;
+  height: 100%;
   overflow-y: auto;
   display: flex;
   flex-direction: column;
+  background-color: var(--background);
+  color: var(--text-primary);
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .progress-header {
   text-align: center;
   margin-bottom: 3rem;
   flex-shrink: 0;
+  background-color: var(--card-background);
+  padding: 2.5rem 2rem;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  position: relative;
+  overflow: hidden;
+}
+
+.progress-header::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 5px;
+  background: linear-gradient(to right, #512da8, #7c4dff);
+}
+
+.dark .progress-header {
+  background-color: var(--card-background);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.dark .progress-header::before {
+  background: linear-gradient(to right, #7c4dff, #651fff);
 }
 
 .progress-header h1 {
-  color: #333;
+  color: var(--text-primary);
   margin-bottom: 1rem;
   font-size: 2rem;
+  font-weight: 700;
+}
+
+.dark .progress-header h1 {
+  color: var(--text-primary);
 }
 
 .progress-header p {
-  color: #666;
+  color: var(--text-secondary);
   font-size: 1.1rem;
   max-width: 800px;
   margin: 0 auto;
+}
+
+.dark .progress-header p {
+  color: var(--text-secondary);
+}
+
+.fallback-warning {
+  margin-top: 1rem;
+  padding: 0.5rem 1rem;
+  background-color: #fffde7;
+  border-left: 3px solid #fbc02d;
+  border-radius: 4px;
+  max-width: 800px;
+  margin: 1rem auto 0;
+}
+
+.dark .fallback-warning {
+  background-color: rgba(251, 192, 45, 0.15);
+  border-left: 3px solid #fbc02d;
+}
+
+.fallback-warning p {
+  color: #795548;
+  font-size: 0.9rem;
+  margin: 0;
+}
+
+.dark .fallback-warning p {
+  color: #fbc02d;
 }
 
 .charts-grid {
@@ -44,6 +107,11 @@
   height: fit-content;
 }
 
+.dark .chart-container {
+  background: #242424;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
 .chart-header {
   display: flex;
   justify-content: space-between;
@@ -55,6 +123,10 @@
   margin: 0;
   font-size: 1.25rem;
   color: #333;
+}
+
+.dark .chart-header h2 {
+  color: #fff;
 }
 
 .filter-button {
@@ -70,13 +142,169 @@
   transition: all 0.2s ease;
 }
 
+.dark .filter-button {
+  color: #7c4dff;
+}
+
 .filter-button:hover {
   background: rgba(81, 45, 168, 0.1);
+}
+
+.dark .filter-button:hover {
+  background: rgba(124, 77, 255, 0.2);
 }
 
 .chart-wrapper {
   height: 300px;
   position: relative;
+}
+
+.loading, .no-data {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  color: #666;
+  font-size: 1rem;
+  text-align: center;
+}
+
+.dark .loading, .dark .no-data {
+  color: #b3b3b3;
+}
+
+.no-data {
+  background: rgba(0, 0, 0, 0.03);
+  border-radius: 8px;
+}
+
+.dark .no-data {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+/* Modal styles */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.dark .modal-overlay {
+  background-color: rgba(0, 0, 0, 0.7);
+}
+
+.modal-content {
+  background-color: white;
+  border-radius: 12px;
+  width: 500px;
+  max-width: 90%;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+}
+
+.dark .modal-content {
+  background-color: #242424;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.5rem;
+  border-bottom: 1px solid #eee;
+}
+
+.dark .modal-header {
+  border-bottom: 1px solid #333;
+}
+
+.modal-header h3 {
+  margin: 0;
+  font-size: 1.25rem;
+  color: #333;
+}
+
+.dark .modal-header h3 {
+  color: #fff;
+}
+
+.close-button {
+  background: none;
+  border: none;
+  color: #666;
+  cursor: pointer;
+  font-size: 1.2rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: color 0.2s ease;
+}
+
+.dark .close-button {
+  color: #b3b3b3;
+}
+
+.close-button:hover {
+  color: #512da8;
+}
+
+.dark .close-button:hover {
+  color: #7c4dff;
+}
+
+.modal-body {
+  padding: 1.5rem;
+}
+
+.modal-body p {
+  margin: 0.5rem 0;
+  line-height: 1.5;
+  color: #333;
+}
+
+.dark .modal-body p {
+  color: #b3b3b3;
+}
+
+.modal-body p strong {
+  color: #333;
+  font-weight: 600;
+}
+
+.dark .modal-body p strong {
+  color: #fff;
+}
+
+.progress-bar {
+  height: 12px;
+  background-color: #eee;
+  border-radius: 6px;
+  margin-top: 1rem;
+  overflow: hidden;
+}
+
+.dark .progress-bar {
+  background-color: #333;
+}
+
+.progress-bar-fill {
+  height: 100%;
+  background-color: #20c997;
+  border-radius: 6px;
+  transition: width 0.3s ease;
+}
+
+.dark .progress-bar-fill {
+  background-color: #00c851;
 }
 
 @media (max-width: 1200px) {
@@ -108,5 +336,11 @@
 
   .chart-wrapper {
     height: 250px;
+  }
+}
+
+@media (min-width: 1200px) {
+  .progress-page {
+    padding: 2rem;
   }
 } 
