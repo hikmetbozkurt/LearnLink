@@ -1,0 +1,101 @@
+.assignment-content {
+  width: 100%;
+  height: 100%;
+}
+
+.view-options {
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+  margin-bottom: 8px;
+  margin-top: -8px;
+  margin-right: 8px;
+}
+
+.view-btn {
+  background: #f5f5f5;
+  border: none;
+  border-radius: 4px;
+  padding: 6px 12px;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.view-btn.active {
+  background: #512da8;
+  color: white;
+}
+
+.assignments-list.grid {
+  display: grid;
+  gap: 20px;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+}
+
+.assignments-list.list {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.assignments-list.list .assignment-card {
+  flex-direction: row;
+  align-items: center;
+  padding: 15px 20px;
+}
+
+.assignments-list.list .assignment-header {
+  width: 15%;
+  margin-bottom: 0;
+  margin-right: 20px;
+}
+
+.assignments-list.list .assignment-title {
+  width: 25%;
+  margin-bottom: 0;
+  margin-right: 20px;
+}
+
+.assignments-list.list .assignment-course {
+  width: 20%;
+  margin-bottom: 0;
+  margin-right: 20px;
+}
+
+.assignments-list.list .assignment-dates {
+  width: 25%;
+  margin-top: 0;
+}
+
+.assignments-list.list .assignment-grade {
+  width: 15%;
+  margin-top: 0;
+  text-align: right;
+}
+
+.no-assignments {
+  text-align: center;
+  padding: 40px;
+  background-color: #f9f9f9;
+  border-radius: 8px;
+  color: #666;
+}
+
+/* Responsive styles */
+@media (max-width: 1024px) {
+  .assignments-list.list .assignment-card {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  
+  .assignments-list.list .assignment-header,
+  .assignments-list.list .assignment-title,
+  .assignments-list.list .assignment-course,
+  .assignments-list.list .assignment-dates,
+  .assignments-list.list .assignment-grade {
+    width: 100%;
+    margin-right: 0;
+    margin-bottom: 10px;
+  }
+} 
