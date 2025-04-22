@@ -105,6 +105,7 @@
   padding: 1.5rem;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
   height: fit-content;
+  position: relative;
 }
 
 .dark .chart-container {
@@ -114,13 +115,12 @@
 
 .chart-header {
   display: flex;
-  justify-content: space-between;
-  align-items: center;
+  flex-direction: column;
   margin-bottom: 1.5rem;
 }
 
 .chart-header h2 {
-  margin: 0;
+  margin: 0 0 0.5rem 0;
   font-size: 1.25rem;
   color: #333;
 }
@@ -129,7 +129,21 @@
   color: #fff;
 }
 
-.filter-button {
+.chart-description {
+  font-size: 0.9rem;
+  color: #666;
+  margin: 0 0 1rem 0;
+  line-height: 1.4;
+}
+
+.dark .chart-description {
+  color: #b3b3b3;
+}
+
+.chart-header .filter-button {
+  position: absolute;
+  top: 1.5rem;
+  right: 1.5rem;
   background: none;
   border: none;
   color: #512da8;
@@ -142,7 +156,7 @@
   transition: all 0.2s ease;
 }
 
-.dark .filter-button {
+.dark .chart-header .filter-button {
   color: #7c4dff;
 }
 
