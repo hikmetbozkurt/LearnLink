@@ -73,16 +73,18 @@ export const deleteMessage = asyncHandler(async (req, res) => {
 
 export const getUserMessageStats = asyncHandler(async (req, res) => {
   try {
+    const userId = req.user.user_id;
+
+    // Get counts of messages sent by the current user, categorized by type
     const result = await pool.query(`
-      SELECT u.user_id, u.name, COUNT(m.id) as message_count 
-      FROM users u
-      LEFT JOIN messages m ON u.user_id = m.sender_id
-      GROUP BY u.user_id, u.name
-      ORDER BY message_count DESC
-      LIMIT 20
-    `);
+      SELECT 
+        COUNT(CASE WHEN dm_id IS NOT NULL THEN 1 ELSE NULL END) as direct_messages,
+        COUNT(CASE WHEN chatroom_id IS NOT NULL THEN 1 ELSE NULL END) as group_messages
+      FROM messages
+      WHERE sender_id = $1
+    `, [userId]);
     
-    res.json(result.rows);
+    res.json(result.rows[0] || { direct_messages: 0, group_messages: 0 });
   } catch (error) {
     console.error('Error fetching user message statistics:', error);
     res.status(500).json({ message: 'Failed to fetch user message statistics' });
