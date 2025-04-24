@@ -1,4 +1,3 @@
-
 import express from 'express';
 import cors from 'cors';
 import path from 'path';
@@ -12,6 +11,7 @@ import chatroomRoutes from './routes/chatroomRoutes.js';
 import courseRoutes from './routes/courseRoutes.js';
 import notificationRoutes from './routes/notificationRoutes.js';
 import directMessageRoutes from './routes/directMessageRoutes.js';
+import messageRoutes from './routes/messageRoutes.js';
 import postRoutes from './routes/postRoutes.js';
 import commentRoutes from './routes/commentRoutes.js';
 import eventRoutes from './routes/eventRoutes.js';
@@ -41,6 +41,7 @@ app.use("/api/chatrooms", chatroomRoutes);
 app.use("/api/courses", courseRoutes);
 app.use("/api/notifications", notificationRoutes);
 app.use("/api/direct-messages", directMessageRoutes);
+app.use("/api/messages", messageRoutes);
 app.use("/api", postRoutes);
 app.use("/api", commentRoutes);
 app.use("/api/events", eventRoutes);

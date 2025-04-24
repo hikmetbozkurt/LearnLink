@@ -4,6 +4,12 @@ import multer from "multer";
 import path from "path";
 import fs from "fs";
 import pool from "../config/database.js";
+import {
+  createPost,
+  getCoursePosts,
+  getUserPostStats,
+  getPostActivityOverTime
+} from '../controllers/postController.js';
 
 const router = express.Router();
 
@@ -441,5 +447,9 @@ router.delete("/posts/:postId", async (req, res) => {
     });
   }
 });
+
+// Stats routes
+router.get('/stats/posts', getUserPostStats);
+router.get('/stats/posts/activity', getPostActivityOverTime);
 
 export default router;

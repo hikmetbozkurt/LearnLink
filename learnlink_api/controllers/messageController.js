@@ -70,3 +70,23 @@ export const deleteMessage = asyncHandler(async (req, res) => {
   
   res.json({ message: 'Message deleted successfully' });
 });
+
+export const getUserMessageStats = asyncHandler(async (req, res) => {
+  try {
+    const userId = req.user.user_id;
+
+    // Get counts of messages sent by the current user, categorized by type
+    const result = await pool.query(`
+      SELECT 
+        COUNT(CASE WHEN dm_id IS NOT NULL THEN 1 ELSE NULL END) as direct_messages,
+        COUNT(CASE WHEN chatroom_id IS NOT NULL THEN 1 ELSE NULL END) as group_messages
+      FROM messages
+      WHERE sender_id = $1
+    `, [userId]);
+    
+    res.json(result.rows[0] || { direct_messages: 0, group_messages: 0 });
+  } catch (error) {
+    console.error('Error fetching user message statistics:', error);
+    res.status(500).json({ message: 'Failed to fetch user message statistics' });
+  }
+});

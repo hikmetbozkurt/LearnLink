@@ -1,18 +1,10 @@
-import { Request, Response } from 'express';
-import { pool } from '../config/db';
-import { uploadFile } from '../utils/fileUpload';
+import asyncHandler from '../utils/asyncHandler.js';
+import pool from '../config/database.js';
 
-interface AuthRequest extends Request {
-  user: {
-    id: number;
-    username: string;
-  };
-}
-
-export const createPost = async (req: AuthRequest, res: Response) => {
+export const createPost = asyncHandler(async (req, res) => {
   const { courseId } = req.params;
   const { content, type } = req.body;
-  const userId = req.user.id;
+  const userId = req.user.user_id || req.user.id;
 
   try {
     // Kullanıcının kursa erişimi var mı kontrol et
@@ -27,8 +19,9 @@ export const createPost = async (req: AuthRequest, res: Response) => {
     }
 
     let fileUrl = null;
-    if (req.file && (type === 'pdf' || type === 'video')) {
-      fileUrl = await uploadFile(req.file);
+    if (req.file) {
+      // Simply use the file path directly instead of calling uploadFile
+      fileUrl = req.file.path;
     }
 
     // Post oluştur
@@ -69,11 +62,11 @@ export const createPost = async (req: AuthRequest, res: Response) => {
     console.error('Error creating post:', error);
     res.status(500).json({ message: 'Failed to create post' });
   }
-};
+});
 
-export const getCoursePosts = async (req: AuthRequest, res: Response) => {
+export const getCoursePosts = asyncHandler(async (req, res) => {
   const { courseId } = req.params;
-  const userId = req.user.id;
+  const userId = req.user.user_id || req.user.id;
 
   try {
     // Kullanıcının kursa erişimi var mı kontrol et
@@ -118,4 +111,72 @@ export const getCoursePosts = async (req: AuthRequest, res: Response) => {
     console.error('Error fetching posts:', error);
     res.status(500).json({ message: 'Failed to fetch posts' });
   }
-}; 
+});
+
+export const getUserPostStats = asyncHandler(async (req, res) => {
+  // Use either user_id or id, depending on what's available
+  const userId = req.user.user_id || req.user.id;
+
+  try {
+    // Get post statistics for the logged-in user
+    const result = await pool.query(
+      `SELECT 
+        COUNT(*) as total_posts,
+        COUNT(DISTINCT course_id) as courses_posted_in,
+        MAX(created_at) as last_post_date
+       FROM posts
+       WHERE author_id = $1`,
+      [userId]
+    );
+
+    // Get average comments per post
+    const commentsResult = await pool.query(
+      `SELECT 
+        COALESCE(AVG(comment_count), 0) as avg_comments_per_post
+       FROM (
+         SELECT 
+           p.post_id,
+           COUNT(c.comment_id) as comment_count
+         FROM posts p
+         LEFT JOIN comments c ON p.post_id = c.post_id
+         WHERE p.author_id = $1
+         GROUP BY p.post_id
+       ) AS post_comments`,
+      [userId]
+    );
+
+    const stats = {
+      ...result.rows[0],
+      avg_comments_per_post: commentsResult.rows[0]?.avg_comments_per_post || 0
+    };
+
+    res.json(stats);
+  } catch (error) {
+    console.error('Error fetching user post statistics:', error);
+    res.status(500).json({ message: 'Failed to fetch post statistics' });
+  }
+});
+
+export const getPostActivityOverTime = asyncHandler(async (req, res) => {
+  const userId = req.user.user_id || req.user.id;
+
+  try {
+    // Get post activity over time (last 6 months)
+    const result = await pool.query(
+      `SELECT 
+        DATE_TRUNC('month', created_at) as month,
+        COUNT(*) as post_count
+       FROM posts
+       WHERE author_id = $1
+         AND created_at > NOW() - INTERVAL '6 months'
+       GROUP BY DATE_TRUNC('month', created_at)
+       ORDER BY month ASC`,
+      [userId]
+    );
+
+    res.json(result.rows);
+  } catch (error) {
+    console.error('Error fetching post activity over time:', error);
+    res.status(500).json({ message: 'Failed to fetch post activity' });
+  }
+}); 

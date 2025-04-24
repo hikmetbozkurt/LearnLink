@@ -260,3 +260,29 @@ export const leaveCourse = asyncHandler(async (req, res) => {
     res.status(500).json({ message: "Internal server error" });
   }
 });
+
+export const getCourseCompletionStats = asyncHandler(async (req, res) => {
+  try {
+    // Get the number of courses each user owns
+    const result = await pool.query(`
+      SELECT 
+        u.user_id,
+        u.name,
+        COUNT(c.course_id) as course_count
+      FROM 
+        users u
+      LEFT JOIN 
+        courses c ON u.user_id = c.instructor_id
+      GROUP BY 
+        u.user_id, u.name
+      ORDER BY 
+        course_count DESC
+      LIMIT 20
+    `);
+    
+    res.json(result.rows);
+  } catch (error) {
+    console.error('Error fetching user course statistics:', error);
+    res.status(500).json({ message: 'Failed to fetch user course statistics' });
+  }
+});
