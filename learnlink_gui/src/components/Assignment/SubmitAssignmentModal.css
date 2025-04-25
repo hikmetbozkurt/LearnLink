@@ -1,0 +1,100 @@
+.submit-modal .modal-header h2 {
+  color: #2e7d32;
+}
+
+.file-upload-group {
+  margin-bottom: 30px;
+}
+
+.file-upload-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 120px;
+  border: 2px dashed #e0e0e0;
+  border-radius: 8px;
+  transition: all 0.2s ease;
+  background-color: #f9f9f9;
+}
+
+.file-upload-container:hover {
+  border-color: #512da8;
+  background-color: #f5f5f5;
+}
+
+.file-upload-label {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  color: #666;
+}
+
+.file-upload-label svg {
+  font-size: 2rem;
+  color: #512da8;
+}
+
+.file-input {
+  display: none;
+}
+
+.file-preview {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 15px;
+  background-color: #f5f5f5;
+  border-radius: 8px;
+}
+
+.file-info {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.file-icon {
+  color: #512da8;
+  font-size: 1.2rem;
+}
+
+.file-name {
+  font-weight: 500;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 300px;
+}
+
+.file-size {
+  color: #666;
+  font-size: 0.85rem;
+}
+
+.remove-file-button {
+  background: none;
+  border: none;
+  font-size: 1rem;
+  color: #d32f2f;
+  cursor: pointer;
+  padding: 5px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.remove-file-button:hover {
+  background-color: #ffebee;
+  border-radius: 50%;
+}
+
+.validation-message {
+  color: #f57c00;
+  font-size: 0.9rem;
+  margin-top: 0;
+  margin-bottom: 20px;
+} 

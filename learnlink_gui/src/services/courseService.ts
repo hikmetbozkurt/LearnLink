@@ -2,6 +2,11 @@ import api from '../api/axiosConfig';
 import { Course } from '../types/course';
 import { Post } from '../types/post';
 
+// Cache for admin courses to prevent frequent API calls
+let adminCoursesCache: any[] = [];
+let adminCoursesCacheTimestamp = 0;
+const CACHE_DURATION = 60000; // 1 minute in milliseconds
+
 interface CreateCourseResponse {
   success: boolean;
   course?: Course;
@@ -27,13 +32,54 @@ export const courseService = {
   },
 
   getMyCourses: async (): Promise<Course[]> => {
+    const token = localStorage.getItem('token');
+    if (!token) throw new Error('No authentication token found');
+    
     try {
-      // Hem admin olduğum hem de üye olduğum kursları getir
       const response = await api.get('/api/courses/my-courses');
+      console.log("getMyCourses response:", response.data);
+      
+      // Debug which courses have is_admin set
+      if (Array.isArray(response.data)) {
+        const adminCourses = response.data.filter(course => course.is_admin);
+        console.log("Admin courses:", adminCourses);
+        console.log("Non-admin courses:", response.data.filter(course => !course.is_admin));
+      }
+      
       return response.data;
-    } catch (error: any) {
-      console.error('Error fetching my courses:', error);
-      throw new Error(error.response?.data?.message || 'Failed to fetch my courses');
+    } catch (error) {
+      console.error('Error fetching user courses:', error);
+      throw error;
+    }
+  },
+
+  getAdminCourses: async (): Promise<Course[]> => {
+    const token = localStorage.getItem('token');
+    if (!token) throw new Error('No authentication token found');
+    
+    const now = Date.now();
+    // Return cached data if it's still fresh
+    if (adminCoursesCache.length > 0 && now - adminCoursesCacheTimestamp < CACHE_DURATION) {
+      console.log("Using cached admin courses", adminCoursesCache);
+      return adminCoursesCache;
+    }
+    
+    try {
+      console.log("Fetching courses where user is admin");
+      const response = await api.get('/api/courses/my-courses');
+      
+      // Filter courses where user is admin
+      const adminCourses = response.data.filter((course: Course) => course.is_admin);
+      console.log("Admin courses found:", adminCourses);
+      
+      // Update the cache
+      adminCoursesCache = adminCourses;
+      adminCoursesCacheTimestamp = now;
+      
+      return adminCourses;
+    } catch (error) {
+      console.error('Error fetching admin courses:', error);
+      throw error;
     }
   },
 

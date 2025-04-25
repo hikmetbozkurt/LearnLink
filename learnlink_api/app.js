@@ -15,6 +15,7 @@ import messageRoutes from './routes/messageRoutes.js';
 import postRoutes from './routes/postRoutes.js';
 import commentRoutes from './routes/commentRoutes.js';
 import eventRoutes from './routes/eventRoutes.js';
+import assignmentRoutes from './routes/assignmentRoutes.js';
 
 
 const app = express();
@@ -45,5 +46,6 @@ app.use("/api/messages", messageRoutes);
 app.use("/api", postRoutes);
 app.use("/api", commentRoutes);
 app.use("/api/events", eventRoutes);
+app.use("/api/assignments", assignmentRoutes);
 
 export default app;
