@@ -48,6 +48,25 @@ export const courseService = {
     }
   },
 
+  getAdminCourses: async (): Promise<Course[]> => {
+    const token = localStorage.getItem('token');
+    if (!token) throw new Error('No authentication token found');
+    
+    try {
+      console.log("Fetching courses where user is admin");
+      const response = await api.get('/api/courses/my-courses');
+      
+      // Filter courses where user is admin
+      const adminCourses = response.data.filter((course: Course) => course.is_admin);
+      console.log("Admin courses found:", adminCourses);
+      
+      return adminCourses;
+    } catch (error) {
+      console.error('Error fetching admin courses:', error);
+      throw error;
+    }
+  },
+
   createCourse: async (courseData: {
     title: string;
     description: string;

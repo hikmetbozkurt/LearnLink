@@ -1,4 +1,5 @@
 import axios from 'axios';
+import api from '../api/axiosConfig';
 
 export interface Notification {
   notification_id: string;
@@ -19,9 +20,7 @@ export const notificationService = {
     if (!token) throw new Error('No authentication token found');
     
     try {
-      const response = await axios.get('/api/notifications', {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      const response = await api.get('/api/notifications');
       return response.data;
     } catch (error) {
       console.error('Error fetching notifications:', error);
@@ -35,9 +34,7 @@ export const notificationService = {
     if (!token) throw new Error('No authentication token found');
     
     try {
-      await axios.put(`/api/notifications/${notificationId}/read`, {}, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      await api.put(`/api/notifications/${notificationId}/read`, {});
     } catch (error) {
       console.error(`Error marking notification ${notificationId} as read:`, error);
       throw error;
@@ -50,9 +47,7 @@ export const notificationService = {
     if (!token) throw new Error('No authentication token found');
     
     try {
-      await axios.put('/api/notifications/read-all', {}, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      await api.put('/api/notifications/read-all', {});
     } catch (error) {
       console.error('Error marking all notifications as read:', error);
       throw error;
@@ -65,13 +60,20 @@ export const notificationService = {
     if (!token) throw new Error('No authentication token found');
     
     try {
-      await axios.post('/api/notifications/assignment', {
+      console.log("Creating assignment notification with:", {
         course_id: courseId,
         assignment_id: assignmentId,
         title: assignmentTitle
-      }, {
-        headers: { Authorization: `Bearer ${token}` }
       });
+      
+      // Use api config instead of axios directly
+      await api.post('/api/notifications/assignment', {
+        course_id: courseId,
+        assignment_id: assignmentId,
+        title: assignmentTitle
+      });
+      
+      console.log("Assignment notification created successfully");
     } catch (error) {
       console.error('Error creating assignment notification:', error);
       throw error;
@@ -84,9 +86,7 @@ export const notificationService = {
     if (!token) throw new Error('No authentication token found');
     
     try {
-      await axios.delete(`/api/notifications/${notificationId}`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      await api.delete(`/api/notifications/${notificationId}`);
     } catch (error) {
       console.error(`Error deleting notification ${notificationId}:`, error);
       throw error;
@@ -99,9 +99,7 @@ export const notificationService = {
     if (!token) throw new Error('No authentication token found');
     
     try {
-      await axios.delete('/api/notifications/clear', {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      await api.delete('/api/notifications/clear');
     } catch (error) {
       console.error('Error clearing all notifications:', error);
       throw error;

@@ -1,14 +1,27 @@
-import React, { useState, useEffect } from 'react';
-import { format, isPast } from 'date-fns';
-import { FaArrowLeft, FaEdit, FaTrash, FaUpload, FaFileAlt, FaQuestionCircle, FaBook } from 'react-icons/fa';
-import DeadlineCountdown from './DeadlineCountdown';
-import SubmitAssignmentModal from './SubmitAssignmentModal';
-import CreateAssignmentModal from './CreateAssignmentModal';
-import ConfirmModal from '../ConfirmModal';
-import './AssignmentDetail.css';
+import React, { useState, useEffect, useContext } from "react";
+import { format, isPast } from "date-fns";
+import {
+  FaArrowLeft,
+  FaEdit,
+  FaTrash,
+  FaUpload,
+  FaFileAlt,
+  FaQuestionCircle,
+  FaBook,
+} from "react-icons/fa";
+import DeadlineCountdown from "./DeadlineCountdown";
+import SubmitAssignmentModal from "./SubmitAssignmentModal";
+import CreateAssignmentModal from "./CreateAssignmentModal";
+import ConfirmModal from "../ConfirmModal";
+import "./AssignmentDetail.css";
+import { NotificationContext } from "../../contexts/NotificationContext";
 
 // Import the Assignment type from the assignmentService
-import { assignmentService, Assignment, Submission } from '../../services/assignmentService';
+import {
+  assignmentService,
+  Assignment,
+  Submission,
+} from "../../services/assignmentService";
 
 interface AssignmentDetailProps {
   assignment: Assignment;
@@ -21,7 +34,7 @@ const AssignmentDetail: React.FC<AssignmentDetailProps> = ({
   assignment,
   isAdmin,
   onBack,
-  onUpdate
+  onUpdate,
 }) => {
   const [showSubmitModal, setShowSubmitModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
@@ -29,126 +42,234 @@ const AssignmentDetail: React.FC<AssignmentDetailProps> = ({
   const [submissions, setSubmissions] = useState<Submission[]>([]);
   const [userSubmission, setUserSubmission] = useState<Submission | null>(null);
   const [isLoading, setIsLoading] = useState(false);
-  
+  const [selectedUserSubmission, setSelectedUserSubmission] =
+    useState<Submission | null>(null);
+  const [gradingData, setGradingData] = useState<{
+    [key: string]: { grade: string; feedback: string };
+  }>({});
+  const [submittingGrades, setSubmittingGrades] = useState(false);
+
+  const { showNotification } = useContext(NotificationContext);
+
   useEffect(() => {
     if (assignment) {
       loadData();
     }
   }, [assignment]);
-  
+
   const loadData = async () => {
     setIsLoading(true);
-    
+    console.log("Loading data for assignment:", assignment);
+
     try {
       if (isAdmin) {
         // Load all submissions for this assignment
-        const result = await assignmentService.getSubmissions(assignment.assignment_id);
+        console.log(
+          `Admin view: Loading all submissions for assignment ${assignment.assignment_id}`
+        );
+        const result = await assignmentService.getSubmissions(
+          assignment.assignment_id
+        );
+        console.log("Submissions loaded:", result);
         setSubmissions(result);
+
+        // Check if the admin has also submitted this assignment
+        const userStr = localStorage.getItem("user");
+        if (userStr) {
+          const userData = JSON.parse(userStr);
+          const userId = userData.user_id || userData.id;
+
+          const adminSubmission = result.find(
+            (s) => s.user_id.toString() === userId.toString()
+          );
+
+          if (adminSubmission) {
+            console.log(
+              "Admin has also submitted this assignment:",
+              adminSubmission
+            );
+            setUserSubmission(adminSubmission);
+          }
+        }
       } else {
         // Load only the current user's submission
-        const result = await assignmentService.getUserSubmission(assignment.assignment_id);
+        console.log(
+          `User view: Loading submission for assignment ${assignment.assignment_id}`
+        );
+        const result = await assignmentService.getUserSubmission(
+          assignment.assignment_id
+        );
         if (result) {
+          console.log("User's submission found:", result);
           setUserSubmission(result);
+        } else {
+          console.log("No submission found for this user");
+          setUserSubmission(null);
         }
       }
     } catch (error) {
-      console.error('Error loading submissions:', error);
+      console.error("Error loading submissions:", error);
     } finally {
       setIsLoading(false);
     }
   };
-  
+
   const handleSubmit = async (submissionData: any) => {
     try {
-      await assignmentService.submitAssignment(assignment.assignment_id, submissionData);
+      await assignmentService.submitAssignment(
+        assignment.assignment_id,
+        submissionData
+      );
       setShowSubmitModal(false);
       loadData();
       onUpdate();
     } catch (error) {
-      console.error('Error submitting assignment:', error);
+      console.error("Error submitting assignment:", error);
     }
   };
-  
+
   const handleEdit = async (updatedData: Partial<Assignment>) => {
     try {
-      await assignmentService.updateAssignment(assignment.assignment_id, updatedData);
+      await assignmentService.updateAssignment(
+        assignment.assignment_id,
+        updatedData
+      );
       setShowEditModal(false);
       onUpdate();
     } catch (error) {
-      console.error('Error updating assignment:', error);
+      console.error("Error updating assignment:", error);
     }
   };
-  
+
   const handleDelete = async () => {
     try {
       await assignmentService.deleteAssignment(assignment.assignment_id);
       setShowDeleteConfirm(false);
       onBack();
     } catch (error) {
-      console.error('Error deleting assignment:', error);
+      console.error("Error deleting assignment:", error);
     }
   };
-  
-  const handleGrade = async (submissionId: string, grade: string | number, feedback: string) => {
+
+  const handleGrade = (
+    submissionId: string,
+    grade: string | number,
+    feedback: string
+  ) => {
+    setGradingData((prev) => ({
+      ...prev,
+      [submissionId]: { grade: grade.toString(), feedback },
+    }));
+
+    setSubmissions((prevSubmissions) =>
+      prevSubmissions.map((sub) =>
+        sub.submission_id === submissionId ? { ...sub, grade, feedback } : sub
+      )
+    );
+  };
+
+  const submitGrades = async (submissionId: string) => {
+    if (!gradingData[submissionId]) return;
+
     try {
+      setSubmittingGrades(true);
+      const { grade, feedback } = gradingData[submissionId];
+
       await assignmentService.gradeSubmission(
         assignment.assignment_id,
         submissionId,
         { grade, feedback }
       );
-      loadData();
+
+      showNotification("Submission graded successfully", "success");
+
+      const newGradingData = { ...gradingData };
+      delete newGradingData[submissionId];
+      setGradingData(newGradingData);
     } catch (error) {
-      console.error('Error grading submission:', error);
+      console.error("Error grading submission:", error);
+      showNotification("Failed to grade submission", "error");
+    } finally {
+      setSubmittingGrades(false);
     }
   };
-  
+
   const getAssignmentTypeIcon = () => {
-    switch(assignment.type) {
-      case 'quiz': return <FaQuestionCircle className="detail-type-icon" />;
-      case 'file': return <FaFileAlt className="detail-type-icon" />;
-      default: return <FaBook className="detail-type-icon" />;
+    switch (assignment.type) {
+      case "quiz":
+        return <FaQuestionCircle className="detail-type-icon" />;
+      case "file":
+        return <FaFileAlt className="detail-type-icon" />;
+      default:
+        return <FaBook className="detail-type-icon" />;
     }
   };
-  
+
   const getStatusText = () => {
+    console.log("Getting status text for assignment:", {
+      id: assignment.assignment_id,
+      title: assignment.title,
+      submitted: assignment.submitted,
+      userSubmission: !!userSubmission,
+      isPast: isPast(new Date(assignment.due_date)),
+    });
+
+    // First check user submission directly
     if (userSubmission) {
-      return userSubmission.grade ? 'Graded' : 'Submitted';
+      return userSubmission.grade ? "Graded" : "Submitted";
+    }
+
+    // Then check assignment metadata
+    if (assignment.submitted === true) {
+      return assignment.graded === true ? "Graded" : "Submitted";
     } else if (isPast(new Date(assignment.due_date))) {
-      return 'Missed';
+      return "Missed";
     } else {
-      return 'Pending';
+      return "Pending";
     }
   };
-  
+
   const getStatusClass = () => {
+    // First check user submission directly
     if (userSubmission) {
-      return userSubmission.grade ? 'status-graded' : 'status-submitted';
+      return userSubmission.grade ? "status-graded" : "status-submitted";
+    }
+
+    // Then check assignment metadata
+    if (assignment.submitted === true) {
+      return assignment.graded === true ? "status-graded" : "status-submitted";
     } else if (isPast(new Date(assignment.due_date))) {
-      return 'status-late';
+      return "status-late";
     } else {
-      return 'status-pending';
+      return "status-pending";
     }
   };
-  
+
   return (
     <div className="assignment-detail">
       <div className="detail-header">
         <button className="back-button" onClick={onBack}>
           <FaArrowLeft /> Back
         </button>
-        
+
         {isAdmin && (
           <div className="admin-actions">
-            <button className="edit-button" onClick={() => setShowEditModal(true)}>
+            <button
+              className="edit-button"
+              onClick={() => setShowEditModal(true)}
+            >
               <FaEdit /> Edit
             </button>
-            <button className="delete-button" onClick={() => setShowDeleteConfirm(true)}>
+            <button
+              className="delete-button"
+              onClick={() => setShowDeleteConfirm(true)}
+            >
               <FaTrash /> Delete
             </button>
           </div>
         )}
       </div>
-      
+
       <div className="detail-content">
         <div className="detail-main">
           <div className="detail-title-section">
@@ -160,43 +281,57 @@ const AssignmentDetail: React.FC<AssignmentDetailProps> = ({
               </span>
             )}
           </div>
-          
+
           <div className="detail-course">
             Course: <span>{assignment.course_name}</span>
           </div>
-          
+
           <div className="detail-due-date">
-            Due: {format(new Date(assignment.due_date), "MMMM d, yyyy 'at' h:mm a")}
+            Due:{" "}
+            {format(new Date(assignment.due_date), "MMMM d, yyyy 'at' h:mm a")}
             {!isPast(new Date(assignment.due_date)) && !userSubmission && (
               <DeadlineCountdown dueDate={new Date(assignment.due_date)} />
             )}
           </div>
-          
+
           <div className="detail-description">
             <h3>Instructions</h3>
-            <div className="description-content">
-              {assignment.description}
-            </div>
+            <div className="description-content">{assignment.description}</div>
           </div>
-          
-          {!isAdmin && !isPast(new Date(assignment.due_date)) && !userSubmission && (
-            <div className="detail-actions">
-              <button 
-                className="submit-button" 
-                onClick={() => setShowSubmitModal(true)}
-              >
-                <FaUpload /> Submit Assignment
-              </button>
-            </div>
-          )}
-          
+
+          {!isAdmin &&
+            !isPast(new Date(assignment.due_date)) &&
+            !userSubmission && (
+              <div className="detail-actions">
+                <button
+                  className="submit-button"
+                  onClick={() => setShowSubmitModal(true)}
+                >
+                  <FaUpload /> Submit Assignment
+                </button>
+              </div>
+            )}
+
           {userSubmission && !isAdmin && (
             <div className="user-submission">
               <h3>Your Submission</h3>
               <div className="submission-info">
-                <p>Submitted on: {format(new Date(userSubmission.timestamp), "MMMM d, yyyy 'at' h:mm a")}</p>
+                <p>
+                  Submitted on:{" "}
+                  {userSubmission.submitted_at
+                    ? format(
+                        new Date(userSubmission.submitted_at),
+                        "MMMM d, yyyy 'at' h:mm a"
+                      )
+                    : "Unknown date"}
+                </p>
                 {userSubmission.file_url && (
-                  <a href={userSubmission.file_url} target="_blank" rel="noopener noreferrer" className="submission-file">
+                  <a
+                    href={userSubmission.file_url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="submission-file"
+                  >
                     <FaFileAlt /> View Submitted File
                   </a>
                 )}
@@ -222,26 +357,45 @@ const AssignmentDetail: React.FC<AssignmentDetailProps> = ({
             </div>
           )}
         </div>
-        
+
         {isAdmin && (
           <div className="submissions-section">
-            <h3>Submissions {submissions.length > 0 ? `(${submissions.length})` : ''}</h3>
+            <div className="submissions-header">
+              <h3>Student Submissions ({submissions.length})</h3>
+            </div>
+
             {isLoading ? (
               <p>Loading submissions...</p>
             ) : submissions.length > 0 ? (
               <div className="submissions-list">
-                {submissions.map(submission => (
-                  <div key={submission.submission_id} className="submission-item">
+                {submissions.map((submission) => (
+                  <div
+                    key={submission.submission_id}
+                    className="submission-item"
+                  >
                     <div className="submission-header">
-                      <div className="submission-user">{submission.user_name}</div>
+                      <div className="submission-user">
+                        {submission.user_name}
+                      </div>
                       <div className="submission-date">
-                        {format(new Date(submission.timestamp), "MMM d, yyyy 'at' h:mm a")}
+                        Submitted:{" "}
+                        {submission.submitted_at
+                          ? format(
+                              new Date(submission.submitted_at),
+                              "MMM d, yyyy 'at' h:mm a"
+                            )
+                          : "Unknown date"}
                       </div>
                     </div>
-                    
+
                     <div className="submission-body">
                       {submission.file_url && (
-                        <a href={submission.file_url} target="_blank" rel="noopener noreferrer" className="submission-file">
+                        <a
+                          href={submission.file_url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="submission-file"
+                        >
                           <FaFileAlt /> View File
                         </a>
                       )}
@@ -251,29 +405,55 @@ const AssignmentDetail: React.FC<AssignmentDetailProps> = ({
                         </div>
                       )}
                     </div>
-                    
+
                     <div className="submission-grading">
-                      <input 
-                        type="text" 
-                        placeholder="Grade" 
-                        value={submission.grade || ''}
-                        onChange={(e) => handleGrade(
-                          submission.submission_id, 
-                          e.target.value,
-                          submission.feedback || ''
-                        )}
-                        className="grade-input"
-                      />
-                      <textarea 
-                        placeholder="Feedback"
-                        value={submission.feedback || ''}
-                        onChange={(e) => handleGrade(
-                          submission.submission_id,
-                          submission.grade || '',
-                          e.target.value
-                        )}
-                        className="feedback-input"
-                      />
+                      <div className="grading-fields">
+                        <label htmlFor={`grade-${submission.submission_id}`}>
+                          Grade:
+                        </label>
+                        <input
+                          id={`grade-${submission.submission_id}`}
+                          type="text"
+                          placeholder="Grade"
+                          value={submission.grade || ""}
+                          onChange={(e) =>
+                            handleGrade(
+                              submission.submission_id,
+                              e.target.value,
+                              submission.feedback || ""
+                            )
+                          }
+                          className="grade-input"
+                        />
+                      </div>
+                      <div className="grading-fields">
+                        <label htmlFor={`feedback-${submission.submission_id}`}>
+                          Feedback:
+                        </label>
+                        <textarea
+                          id={`feedback-${submission.submission_id}`}
+                          placeholder="Feedback"
+                          value={submission.feedback || ""}
+                          onChange={(e) =>
+                            handleGrade(
+                              submission.submission_id,
+                              submission.grade || "",
+                              e.target.value
+                            )
+                          }
+                          className="feedback-input"
+                        />
+                      </div>
+                      <button
+                        className="submit-grade-button"
+                        onClick={() => submitGrades(submission.submission_id)}
+                        disabled={
+                          submittingGrades ||
+                          !gradingData[submission.submission_id]
+                        }
+                      >
+                        {submittingGrades ? "Submitting..." : "Submit Grade"}
+                      </button>
                     </div>
                   </div>
                 ))}
@@ -284,7 +464,7 @@ const AssignmentDetail: React.FC<AssignmentDetailProps> = ({
           </div>
         )}
       </div>
-      
+
       {showSubmitModal && (
         <SubmitAssignmentModal
           assignmentId={assignment.assignment_id}
@@ -292,7 +472,7 @@ const AssignmentDetail: React.FC<AssignmentDetailProps> = ({
           onSubmit={handleSubmit}
         />
       )}
-      
+
       {showEditModal && (
         <CreateAssignmentModal
           isEdit={true}
@@ -301,7 +481,7 @@ const AssignmentDetail: React.FC<AssignmentDetailProps> = ({
           onSubmit={handleEdit}
         />
       )}
-      
+
       {showDeleteConfirm && (
         <ConfirmModal
           isOpen={showDeleteConfirm}
@@ -315,4 +495,4 @@ const AssignmentDetail: React.FC<AssignmentDetailProps> = ({
   );
 };
 
-export default AssignmentDetail; 
+export default AssignmentDetail;

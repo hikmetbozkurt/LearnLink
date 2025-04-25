@@ -1,7 +1,16 @@
-import React from 'react';
-import { FaSearch, FaPlus, FaTasks, FaCheck, FaHourglassHalf, FaClock, FaListAlt } from 'react-icons/fa';
-import { Course } from '../../types/course';
-import './AssignmentSidebar.css';
+import React from "react";
+import {
+  FaSearch,
+  FaPlus,
+  FaTasks,
+  FaCheck,
+  FaHourglassHalf,
+  FaClock,
+  FaListAlt,
+  FaHistory,
+} from "react-icons/fa";
+import { Course } from "../../types/course";
+import "./AssignmentSidebar.css";
 
 interface AssignmentSidebarProps {
   activeTab: string;
@@ -26,22 +35,22 @@ const AssignmentSidebar: React.FC<AssignmentSidebarProps> = ({
   onSearch,
   selectedCourse,
   setSelectedCourse,
-  userCourses
+  userCourses,
 }) => {
-  
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchQuery(e.target.value);
     onSearch();
   };
-  
+
   const tabs = [
     { id: "all", label: "All Assignments", icon: <FaListAlt /> },
     { id: "pending", label: "Pending", icon: <FaHourglassHalf /> },
     { id: "submitted", label: "Submitted", icon: <FaCheck /> },
     { id: "late", label: "Late", icon: <FaClock /> },
-    { id: "graded", label: "Graded", icon: <FaTasks /> }
+    { id: "past", label: "Past Assignments", icon: <FaHistory /> },
+    { id: "graded", label: "Graded", icon: <FaTasks /> },
   ];
-  
+
   return (
     <div className="assignment-sidebar">
       <div className="sidebar-header">
@@ -57,9 +66,9 @@ const AssignmentSidebar: React.FC<AssignmentSidebarProps> = ({
           />
         </div>
       </div>
-      
+
       <div className="sidebar-menu">
-        {tabs.map(tab => (
+        {tabs.map((tab) => (
           <div
             key={tab.id}
             className={`sidebar-item ${activeTab === tab.id ? "active" : ""}`}
@@ -70,23 +79,25 @@ const AssignmentSidebar: React.FC<AssignmentSidebarProps> = ({
           </div>
         ))}
       </div>
-      
+
       <div className="sidebar-filters">
         <h4>Filter by Course</h4>
         <select
           value={selectedCourse || ""}
-          onChange={(e) => setSelectedCourse(e.target.value === "" ? null : e.target.value)}
+          onChange={(e) =>
+            setSelectedCourse(e.target.value === "" ? null : e.target.value)
+          }
           className="course-filter"
         >
           <option value="">All Courses</option>
-          {userCourses.map(course => (
+          {userCourses.map((course) => (
             <option key={course.course_id} value={course.course_id}>
               {course.title}
             </option>
           ))}
         </select>
       </div>
-      
+
       {canCreateAssignments && (
         <div className="sidebar-footer">
           <button className="create-button" onClick={onCreateAssignment}>
@@ -99,4 +110,4 @@ const AssignmentSidebar: React.FC<AssignmentSidebarProps> = ({
   );
 };
 
-export default AssignmentSidebar; 
+export default AssignmentSidebar;

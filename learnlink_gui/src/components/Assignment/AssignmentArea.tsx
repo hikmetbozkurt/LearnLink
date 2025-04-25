@@ -1,21 +1,13 @@
-import React from 'react';
-import { Course } from '../../types/course';
-import './AssignmentArea.css';
-import AssignmentContent from './AssignmentContent';
-
-interface Assignment {
-  assignment_id: string;
-  title: string;
-  description: string;
-  due_date: string;
-  course_id: string;
-  course_name: string;
-  submitted: boolean;
-  graded: boolean;
-  grade?: string | number;
-  submission_count?: number;
-  type?: 'assignment' | 'quiz' | 'file';
-}
+import React, { useEffect } from "react";
+import { Course } from "../../types/course";
+import { Assignment } from "../../types/assignment";
+import "./AssignmentArea.css";
+import AllAssignmentsView from "./Views/AllAssignmentsView";
+import PendingAssignmentsView from "./Views/PendingAssignmentsView";
+import SubmittedAssignmentsView from "./Views/SubmittedAssignmentsView";
+import LateAssignmentsView from "./Views/LateAssignmentsView";
+import GradedAssignmentsView from "./Views/GradedAssignmentsView";
+import PastAssignmentsView from "./Views/PastAssignmentsView";
 
 interface AssignmentAreaProps {
   assignments: Assignment[];
@@ -30,17 +22,104 @@ const AssignmentArea: React.FC<AssignmentAreaProps> = ({
   userCourses,
   adminCourses,
   activeTab,
-  onAssignmentUpdated
+  onAssignmentUpdated,
 }) => {
+  useEffect(() => {
+    if (process.env.NODE_ENV === "development") {
+      console.log(`AssignmentArea - Active tab: ${activeTab}`);
+      console.log("AssignmentArea - Received assignments:", assignments);
+      console.log("AssignmentArea - Assignment data check:");
+      assignments.forEach((a) => {
+        console.log(
+          `Assignment ${a.assignment_id}: submitted=${a.submitted}, graded=${
+            a.graded
+          }, type=${typeof a.submitted}/${typeof a.graded}`
+        );
+      });
+    }
+  }, [activeTab, assignments]);
+
   // Get title based on active tab
   const getTabTitle = (): string => {
-    switch(activeTab) {
-      case "pending": return "Pending Assignments";
-      case "submitted": return "Submitted Assignments";
-      case "graded": return "Graded Assignments";
-      case "late": return "Late Assignments";
-      case "all": 
-      default: return "All Assignments";
+    switch (activeTab) {
+      case "pending":
+        return "Pending Assignments";
+      case "submitted":
+        return "Submitted Assignments";
+      case "graded":
+        return "Graded Assignments";
+      case "late":
+        return "Late Assignments";
+      case "past":
+        return "Past Assignments";
+      case "all":
+      default:
+        return "All Assignments";
+    }
+  };
+
+  // Render the appropriate view based on activeTab
+  const renderView = () => {
+    if (process.env.NODE_ENV === "development") {
+      console.log(`Rendering view for tab: ${activeTab}`);
+    }
+
+    switch (activeTab) {
+      case "pending":
+        return (
+          <PendingAssignmentsView
+            assignments={assignments}
+            userCourses={userCourses}
+            adminCourses={adminCourses}
+            onAssignmentUpdated={onAssignmentUpdated}
+          />
+        );
+      case "submitted":
+        return (
+          <SubmittedAssignmentsView
+            assignments={assignments}
+            userCourses={userCourses}
+            adminCourses={adminCourses}
+            onAssignmentUpdated={onAssignmentUpdated}
+          />
+        );
+      case "graded":
+        return (
+          <GradedAssignmentsView
+            assignments={assignments}
+            userCourses={userCourses}
+            adminCourses={adminCourses}
+            onAssignmentUpdated={onAssignmentUpdated}
+          />
+        );
+      case "late":
+        return (
+          <LateAssignmentsView
+            assignments={assignments}
+            userCourses={userCourses}
+            adminCourses={adminCourses}
+            onAssignmentUpdated={onAssignmentUpdated}
+          />
+        );
+      case "past":
+        return (
+          <PastAssignmentsView
+            assignments={assignments}
+            userCourses={userCourses}
+            adminCourses={adminCourses}
+            onAssignmentUpdated={onAssignmentUpdated}
+          />
+        );
+      case "all":
+      default:
+        return (
+          <AllAssignmentsView
+            assignments={assignments}
+            userCourses={userCourses}
+            adminCourses={adminCourses}
+            onAssignmentUpdated={onAssignmentUpdated}
+          />
+        );
     }
   };
 
@@ -50,17 +129,9 @@ const AssignmentArea: React.FC<AssignmentAreaProps> = ({
         <h2>{getTabTitle()}</h2>
       </div>
 
-      <div className="assignment-content">
-        <AssignmentContent
-          assignments={assignments}
-          userCourses={userCourses}
-          adminCourses={adminCourses}
-          activeTab={activeTab}
-          onAssignmentUpdated={onAssignmentUpdated}
-        />
-      </div>
+      <div className="assignment-content">{renderView()}</div>
     </div>
   );
 };
 
-export default AssignmentArea; 
+export default AssignmentArea;
