@@ -4,7 +4,7 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background-color: rgba(0, 0, 0, 0.5);
+  background-color: var(--modal-overlay);
   display: flex;
   justify-content: center;
   align-items: center;
@@ -13,12 +13,12 @@
 }
 
 .modal-content {
-  background: white;
+  background: var(--modal-background);
   padding: 24px;
   border-radius: 12px;
   width: 90%;
   max-width: 400px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 4px 20px var(--shadow);
   animation: modalSlideIn 0.3s ease-out;
 }
 
@@ -27,7 +27,7 @@
 }
 
 .modal-header h3 {
-  color: #333;
+  color: var(--text-primary);
   font-size: 1.2rem;
   font-weight: 600;
   margin: 0;
@@ -35,7 +35,7 @@
 
 .modal-body {
   margin-bottom: 24px;
-  color: #666;
+  color: var(--text-secondary);
   font-size: 1rem;
   line-height: 1.5;
 }
@@ -57,21 +57,22 @@
 }
 
 .modal-button.cancel {
-  background-color: #f5f5f5;
-  color: #666;
+  background-color: var(--surface);
+  color: var(--text-secondary);
+  border: 1px solid var(--border);
 }
 
 .modal-button.cancel:hover {
-  background-color: #e0e0e0;
+  background-color: var(--hover-background);
 }
 
 .modal-button.confirm {
-  background-color: #ff4444;
+  background-color: var(--error);
   color: white;
 }
 
 .modal-button.confirm:hover {
-  background-color: #ff1111;
+  opacity: 0.9;
 }
 
 @keyframes modalSlideIn {

@@ -8,14 +8,14 @@
   justify-content: space-between;
   align-items: center;
   padding-bottom: 16px;
-  border-bottom: 1px solid #eee;
+  border-bottom: 1px solid var(--border);
   margin-bottom: 20px;
 }
 
 .modal-header h2 {
   margin: 0;
   font-size: 1.5rem;
-  color: #333;
+  color: var(--text-primary);
   font-weight: 500;
 }
 
@@ -23,7 +23,7 @@
   background: none;
   border: none;
   font-size: 1.2rem;
-  color: #666;
+  color: var(--text-secondary);
   cursor: pointer;
   padding: 4px;
   border-radius: 50%;
@@ -31,7 +31,7 @@
 }
 
 .close-button:hover {
-  background-color: #f0f0f0;
+  background-color: var(--hover-background);
 }
 
 .post-type-selector {
@@ -45,22 +45,22 @@
   align-items: center;
   gap: 8px;
   padding: 8px 16px;
-  border: 1px solid #ddd;
+  border: 1px solid var(--border);
   border-radius: 6px;
-  background: white;
-  color: #666;
+  background: var(--card-background);
+  color: var(--text-secondary);
   cursor: pointer;
   transition: all 0.2s;
 }
 
 .type-button.active {
-  background: #512da8;
+  background: var(--primary);
   color: white;
-  border-color: #512da8;
+  border-color: var(--primary);
 }
 
 .type-button:hover:not(.active) {
-  background: #f0f0f0;
+  background: var(--hover-background);
 }
 
 .form-group {
@@ -71,28 +71,31 @@
   display: block;
   margin-bottom: 8px;
   font-weight: 500;
-  color: #333;
+  color: var(--text-primary);
 }
 
 .form-group textarea {
   width: 100%;
   padding: 12px;
-  border: 1px solid #ddd;
+  border: 1px solid var(--input-border);
   border-radius: 8px;
   resize: vertical;
   font-size: 1rem;
+  background-color: var(--input-background);
+  color: var(--text-primary);
 }
 
 .form-group input[type="file"] {
   width: 100%;
   padding: 8px;
-  border: 1px dashed #ddd;
+  border: 1px dashed var(--border);
   border-radius: 8px;
-  background: #f8f9fa;
+  background: var(--surface);
+  color: var(--text-primary);
 }
 
 .error-message {
-  color: #dc3545;
+  color: var(--error);
   margin-bottom: 16px;
   font-size: 0.9rem;
 }
@@ -115,42 +118,42 @@
 
 .cancel-button {
   background: none;
-  border: 1px solid #ddd;
-  color: #666;
+  border: 1px solid var(--border);
+  color: var(--text-secondary);
 }
 
 .submit-button {
-  background: #512da8;
+  background: var(--primary);
   border: none;
   color: white;
 }
 
 .submit-button:disabled {
-  background: #ccc;
+  background: var(--border);
   cursor: not-allowed;
 }
 
 .cancel-button:hover {
-  background: #f0f0f0;
+  background: var(--hover-background);
 }
 
 .submit-button:hover:not(:disabled) {
-  background: #4527a0;
+  background: var(--primary);
 }
 
 .file-input::file-selector-button {
   font-family: inherit;
   padding: 8px 12px;
-  border: 1px solid #ddd;
+  border: 1px solid var(--border);
   border-radius: 4px;
-  background-color: #f8f9fa;
+  background-color: var(--surface);
   cursor: pointer;
   margin-right: 8px;
-  color: #333;
+  color: var(--text-primary);
 }
 
 .file-input::file-selector-button:hover {
-  background-color: #e9ecef;
+  background-color: var(--hover-background);
 }
 
 .custom-file-input {
@@ -168,11 +171,11 @@
 .custom-file-input .file-label {
   display: inline-block;
   padding: 8px 12px;
-  background: #f8f9fa;
-  border: 1px solid #ddd;
+  background: var(--surface);
+  border: 1px solid var(--border);
   border-radius: 4px;
   cursor: pointer;
-  color: #333;
+  color: var(--text-primary);
   width: 100%;
   white-space: nowrap;
   overflow: hidden;
@@ -180,13 +183,13 @@
 }
 
 .custom-file-input .file-label:hover {
-  background: #e9ecef;
+  background: var(--hover-background);
 }
 
 .custom-file-input .file-label::before {
   content: 'Browse';
   display: inline-block;
-  background: #512da8;
+  background: var(--primary);
   color: white;
   padding: 8px 12px;
   margin-right: 8px;
@@ -200,7 +203,7 @@
 .content-area textarea {
   width: 100%;
   padding: 16px;
-  border: 1px solid #ddd;
+  border: 1px solid var(--border);
   border-radius: 8px;
   resize: vertical;
   font-size: 1rem;
@@ -220,15 +223,15 @@
   align-items: center;
   gap: 8px;
   padding: 8px 16px;
-  background: #f8f9fa;
-  border: 1px solid #ddd;
+  background: var(--surface);
+  border: 1px solid var(--border);
   border-radius: 20px;
   cursor: pointer;
   transition: all 0.2s;
 }
 
 .file-upload-label:hover {
-  background: #e9ecef;
+  background: var(--hover-background);
 }
 
 .selected-file {
@@ -236,14 +239,14 @@
   align-items: center;
   gap: 8px;
   padding: 4px 12px;
-  background: #e9ecef;
+  background: var(--surface);
   border-radius: 16px;
 }
 
 .remove-file {
   background: none;
   border: none;
-  color: #dc3545;
+  color: var(--error);
   cursor: pointer;
   padding: 4px;
   display: flex;

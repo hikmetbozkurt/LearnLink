@@ -1,6 +1,6 @@
 .course-header {
   padding: 20px;
-  background-color: #fff;
+  background-color: var(--surface);
   width: 100%;
 }
 
@@ -20,7 +20,7 @@
   margin: 0;
   font-size: 24px;
   font-weight: 500;
-  color: #333;
+  color: var(--text-primary);
 }
 
 .course-actions {
@@ -31,7 +31,7 @@
 
 .leave-course-btn {
   padding: 6px 12px;
-  background-color: #dc3545;
+  background-color: var(--error);
   color: white;
   border: none;
   border-radius: 4px;
@@ -41,7 +41,7 @@
 
 .create-post-btn {
   padding: 6px 12px;
-  background-color: #007bff;
+  background-color: var(--primary);
   color: white;
   border: none;
   border-radius: 4px;
@@ -58,18 +58,18 @@
 
 .info-item {
   font-size: 14px;
-  color: #666;
+  color: var(--text-secondary);
 }
 
 .info-item.admin {
-  background-color: #f8f9fa;
+  background-color: var(--surface);
   padding: 4px 8px;
   border-radius: 4px;
 }
 
 .course-detail-header {
   padding: 24px;
-  background: white;
+  background: var(--header-background);
 }
 
 .course-info {
@@ -86,7 +86,7 @@
 .title-row h1 {
   margin: 0;
   font-size: 24px;
-  color: #333;
+  color: var(--text-primary);
 }
 
 .action-buttons {
@@ -99,7 +99,7 @@
   align-items: center;
   gap: 12px;
   padding: 12px 24px;
-  background-color: #dc3545;
+  background-color: var(--error);
   color: white;
   border: none;
   border-radius: 8px;
@@ -109,12 +109,37 @@
   transition: all 0.3s ease;
 }
 
+.delete-course-button:hover {
+  opacity: 0.9;
+  transform: translateY(-2px);
+}
+
+.leave-course-button {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 24px;
+  background-color: var(--error);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 500;
+  font-size: 1rem;
+  transition: all 0.3s ease;
+}
+
+.leave-course-button:hover {
+  opacity: 0.9;
+  transform: translateY(-2px);
+}
+
 .create-post-btn {
   display: flex;
   align-items: center;
   gap: 12px;
   padding: 12px 24px;
-  background-color: #512da8;
+  background-color: var(--primary);
   color: white;
   border: none;
   border-radius: 8px;
@@ -130,32 +155,32 @@
 }
 
 .admin-label {
-  background-color: #f8f9fa;
+  background-color: var(--surface);
   padding: 4px 8px;
   border-radius: 4px;
-  color: #512da8;
+  color: var(--primary);
 }
 
 .members-label {
-  background-color: #f8f9fa;
+  background-color: var(--surface);
   padding: 4px 8px;
   border-radius: 4px;
-  color: #512da8;
+  color: var(--primary);
 }
 
 .course-info h1 {
   margin: 0 0 8px;
   font-size: 2rem;
-  color: #333;
+  color: var(--text-primary);
 }
 
 .instructor {
-  color: #666;
+  color: var(--text-secondary);
   margin: 0 0 8px;
 }
 
 .description {
-  color: #555;
+  color: var(--text-secondary);
   margin: 0;
 }
 
@@ -168,11 +193,11 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  color: #666;
+  color: var(--text-secondary);
 }
 
 .stat-icon {
-  color: #512da8;
+  color: var(--primary);
   font-size: 1.2rem;
 }
 

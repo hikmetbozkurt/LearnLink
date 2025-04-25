@@ -4,11 +4,14 @@
 }
 
 .post-card {
-  background: white;
+  background: var(--card-background);
   border-radius: 12px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  margin-bottom: 24px;
-  padding: 20px;
+  box-shadow: 0 2px 4px var(--shadow);
+  margin-bottom: 30px;
+  padding: 20px 20px 32px;
+  min-height: 180px;
+  display: flex;
+  flex-direction: column;
 }
 
 .post-header {
@@ -26,11 +29,11 @@
 
 .author {
   font-weight: 500;
-  color: #333;
+  color: var(--text-primary);
 }
 
 .date {
-  color: #666;
+  color: var(--text-secondary);
   font-size: 0.9rem;
   display: flex;
   align-items: center;
@@ -39,7 +42,7 @@
 
 .icon {
   font-size: 1rem;
-  color: #666;
+  color: var(--text-secondary);
 }
 
 .post-content {
@@ -48,13 +51,13 @@
   word-break: break-word;
   font-size: 1rem;
   line-height: 1.5;
-  color: #333;
+  color: var(--text-primary);
 }
 
 .file-content {
   margin: 16px 0;
   padding: 12px;
-  background: #f8f9fa;
+  background: var(--surface);
   border-radius: 8px;
 }
 
@@ -62,7 +65,7 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  color: #512da8;
+  color: var(--primary);
   text-decoration: none;
   font-size: 0.95rem;
   padding: 8px;
@@ -71,8 +74,8 @@
 }
 
 .file-link:hover {
-  background-color: #e9ecef;
-  color: #4527a0;
+  background-color: var(--hover-background);
+  color: var(--secondary);
 }
 
 .video-container {
@@ -83,7 +86,7 @@
   height: 0;
   overflow: hidden;
   border-radius: 8px;
-  background: #f8f9fa;
+  background: var(--surface);
 }
 
 .video-container iframe {
@@ -98,8 +101,9 @@
 .post-actions {
   display: flex;
   gap: 16px;
-  padding: 12px 0;
-  border-top: 1px solid #eee;
+  padding: 16px 0;
+  border-top: 1px solid var(--border);
+  margin-top: auto;
 }
 
 .comment-button {
@@ -108,7 +112,7 @@
   gap: 6px;
   background: none;
   border: none;
-  color: #666;
+  color: var(--text-secondary);
   cursor: pointer;
   padding: 6px 12px;
   border-radius: 4px;
@@ -116,19 +120,19 @@
 }
 
 .comment-button:hover {
-  background: #f0f0f0;
+  background: var(--hover-background);
 }
 
 .comments-section {
   margin-top: 16px;
   padding-top: 16px;
-  border-top: 1px solid #eee;
+  border-top: 1px solid var(--border);
 }
 
 .comment {
   margin-bottom: 16px;
   padding: 12px;
-  background: #f8f9fa;
+  background: var(--surface);
   border-radius: 8px;
 }
 
@@ -136,87 +140,164 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
+  margin-bottom: 8px;
 }
 
 .comment-info {
   display: flex;
-  gap: 10px;
   align-items: center;
+  gap: 8px;
 }
 
 .comment-author {
   font-weight: 500;
-  color: #333;
+  color: var(--text-primary);
 }
 
 .comment-date {
-  font-size: 0.85rem;
-  color: #666;
+  color: var(--text-secondary);
+  font-size: 0.8rem;
 }
 
 .comment-content {
+  color: var(--text-primary);
+  font-size: 0.95rem;
   margin: 0;
-  color: #444;
+  white-space: pre-wrap;
+  word-break: break-word;
 }
 
 .add-comment {
   margin-top: 16px;
-  display: flex;
-  gap: 12px;
 }
 
 .add-comment textarea {
-  flex: 1;
+  width: 100%;
   padding: 12px;
-  border: 1px solid #ddd;
+  border: 1px solid var(--border);
   border-radius: 8px;
+  margin-bottom: 8px;
+  background-color: var(--input-background);
+  color: var(--text-primary);
   resize: vertical;
-  min-height: 60px;
+  font-size: 0.95rem;
+  font-family: inherit;
+}
+
+.add-comment textarea:focus {
+  outline: none;
+  border-color: var(--primary);
 }
 
 .add-comment button {
-  align-self: flex-start;
   padding: 8px 16px;
-  background: #512da8;
+  background-color: var(--primary);
   color: white;
   border: none;
-  border-radius: 6px;
+  border-radius: 4px;
   cursor: pointer;
-  transition: background-color 0.2s;
-}
-
-.add-comment button:hover {
-  background: #4527a0;
+  font-size: 0.9rem;
+  float: right;
 }
 
 .add-comment button:disabled {
-  background: #ccc;
+  background-color: var(--border);
   cursor: not-allowed;
 }
 
 .delete-button {
   background: none;
   border: none;
-  color: #dc3545;
+  color: var(--error);
   cursor: pointer;
-  padding: 8px;
+  padding: 4px;
+  border-radius: 50%;
+  font-size: 0.9rem;
+  transition: all 0.2s;
   display: flex;
   align-items: center;
-  border-radius: 50%;
-  transition: all 0.2s;
+  justify-content: center;
 }
 
 .delete-button:hover {
-  background-color: rgba(220, 53, 69, 0.1);
-}
-
-.delete-button .icon {
-  font-size: 1.1rem;
+  background-color: var(--hover-background);
 }
 
 .delete-button.small {
-  padding: 3px;
-  font-size: 0.9em;
+  font-size: 0.8rem;
+}
+
+/* For image files */
+.image-content {
+  margin: 16px 0;
+  text-align: center;
+}
+
+.post-image {
+  max-width: 100%;
+  max-height: 400px;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px var(--shadow);
+}
+
+/* For attachments */
+.attachment-list {
+  margin: 16px 0;
+}
+
+.attachment-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  background: var(--surface);
+  border-radius: 8px;
+  margin-bottom: 8px;
+}
+
+.file-icon {
+  color: var(--primary);
+  font-size: 1.2rem;
+}
+
+.file-info {
+  flex: 1;
+}
+
+.file-name {
+  font-weight: 500;
+  color: var(--text-primary);
+  margin-bottom: 4px;
+  word-break: break-all;
+}
+
+.file-size {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+}
+
+.download-button {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background-color: var(--surface);
+  color: var(--text-primary);
+  border: none;
+  border-radius: 4px;
+  padding: 8px 12px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.download-button:hover {
+  background-color: var(--hover-background);
+  color: var(--text-primary);
+}
+
+.download-button svg {
+  color: var(--primary);
+  font-size: 16px;
 }
 
 /* PDF dosyası için stil ekleyelim */
@@ -268,28 +349,4 @@
 
 .missing-icon {
   color: #999;
-}
-
-.download-button {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  background-color: #f0f2f5;
-  color: #444;
-  border: none;
-  border-radius: 4px;
-  padding: 8px 12px;
-  font-size: 14px;
-  cursor: pointer;
-  transition: background-color 0.2s;
-}
-
-.download-button:hover {
-  background-color: #e4e6e9;
-  color: #000;
-}
-
-.download-button svg {
-  color: #1877f2;
-  font-size: 16px;
 }
