@@ -5,6 +5,7 @@ import CreateAssignmentModal from '../components/Assignment/CreateAssignmentModa
 import { NotificationContext } from '../contexts/NotificationContext';
 import { AuthContext } from '../contexts/AuthContext';
 import { assignmentService, Assignment as ServiceAssignment } from '../services/assignmentService';
+import { notificationService } from '../services/notificationService';
 import { courseService } from '../services/courseService';
 import { Course } from '../types/course';
 import '../styles/pages/shared.css';
@@ -23,6 +24,8 @@ interface Assignment {
   grade?: string | number;
   submission_count?: number;
   type?: 'assignment' | 'quiz' | 'file';
+  points?: number;
+  grading_criteria?: string;
 }
 
 const AssignmentsPage: React.FC = () => {
@@ -132,14 +135,37 @@ const AssignmentsPage: React.FC = () => {
   };
 
   const handleCreateAssignment = async (assignmentData: Partial<ServiceAssignment>) => {
+    console.log("handleCreateAssignment called with:", assignmentData);
     try {
       // Only allow creating assignments for courses where user is admin
       if (!adminCourses.some(course => course.course_id === assignmentData.course_id)) {
+        console.error("Not an admin for this course:", assignmentData.course_id);
+        console.log("Available admin courses:", adminCourses);
         showNotification("You don't have permission to create assignments for this course", "error");
         return;
       }
       
+      console.log("Admin check passed, attempting to create assignment");
+      
+      // Create the assignment
+      console.log("Calling assignmentService.createAssignment");
       const result = await assignmentService.createAssignment(assignmentData);
+      console.log("Assignment created successfully:", result);
+      
+      // Create a notification for all course members
+      try {
+        console.log("Creating notification for assignment");
+        await notificationService.createAssignmentNotification(
+          result.course_id,
+          result.assignment_id,
+          result.title
+        );
+        console.log("Notification created successfully");
+      } catch (notificationError) {
+        console.error("Error creating notification:", notificationError);
+        // Don't return here, we still want to show success even if notification fails
+      }
+      
       showNotification("Assignment created successfully", "success");
       setShowCreateModal(false);
       loadAssignments();

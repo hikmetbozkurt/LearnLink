@@ -27,13 +27,24 @@ export const courseService = {
   },
 
   getMyCourses: async (): Promise<Course[]> => {
+    const token = localStorage.getItem('token');
+    if (!token) throw new Error('No authentication token found');
+    
     try {
-      // Hem admin olduğum hem de üye olduğum kursları getir
       const response = await api.get('/api/courses/my-courses');
+      console.log("getMyCourses response:", response.data);
+      
+      // Debug which courses have is_admin set
+      if (Array.isArray(response.data)) {
+        const adminCourses = response.data.filter(course => course.is_admin);
+        console.log("Admin courses:", adminCourses);
+        console.log("Non-admin courses:", response.data.filter(course => !course.is_admin));
+      }
+      
       return response.data;
-    } catch (error: any) {
-      console.error('Error fetching my courses:', error);
-      throw new Error(error.response?.data?.message || 'Failed to fetch my courses');
+    } catch (error) {
+      console.error('Error fetching user courses:', error);
+      throw error;
     }
   },
 

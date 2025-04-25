@@ -1,4 +1,5 @@
 import axios from 'axios';
+import api from '../api/axiosConfig';
 
 // Define types
 export interface Assignment {
@@ -35,9 +36,7 @@ export const assignmentService = {
     if (!token) throw new Error('No authentication token found');
     
     try {
-      const response = await axios.get('/api/assignments', {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      const response = await api.get('/api/assignments');
       return response.data;
     } catch (error) {
       console.error('Error fetching all assignments:', error);
@@ -58,9 +57,7 @@ export const assignmentService = {
       
       // Create an array of promises for each course
       const promises = courseIds.map(courseId => 
-        axios.get(`/api/assignments/course/${courseId}`, {
-          headers: { Authorization: `Bearer ${token}` }
-        })
+        api.get(`/api/assignments/course/${courseId}`)
       );
       
       // Wait for all promises to resolve
@@ -85,9 +82,7 @@ export const assignmentService = {
     if (!token) throw new Error('No authentication token found');
     
     try {
-      const response = await axios.get(`/api/assignments/${assignmentId}`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      const response = await api.get(`/api/assignments/${assignmentId}`);
       return response.data;
     } catch (error) {
       console.error(`Error fetching assignment ${assignmentId}:`, error);
@@ -98,12 +93,15 @@ export const assignmentService = {
   // Create a new assignment
   createAssignment: async (assignmentData: Partial<Assignment>): Promise<Assignment> => {
     const token = localStorage.getItem('token');
+    console.log("createAssignment called with data:", assignmentData);
+    console.log("Authentication token present:", !!token);
+    
     if (!token) throw new Error('No authentication token found');
     
     try {
-      const response = await axios.post('/api/assignments', assignmentData, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      console.log("Making POST request to /api/assignments");
+      const response = await api.post('/api/assignments', assignmentData);
+      console.log("Assignment creation API response:", response);
       return response.data;
     } catch (error) {
       console.error('Error creating assignment:', error);
@@ -117,9 +115,7 @@ export const assignmentService = {
     if (!token) throw new Error('No authentication token found');
     
     try {
-      const response = await axios.put(`/api/assignments/${assignmentId}`, assignmentData, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      const response = await api.put(`/api/assignments/${assignmentId}`, assignmentData);
       return response.data;
     } catch (error) {
       console.error(`Error updating assignment ${assignmentId}:`, error);
@@ -133,9 +129,7 @@ export const assignmentService = {
     if (!token) throw new Error('No authentication token found');
     
     try {
-      await axios.delete(`/api/assignments/${assignmentId}`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      await api.delete(`/api/assignments/${assignmentId}`);
     } catch (error) {
       console.error(`Error deleting assignment ${assignmentId}:`, error);
       throw error;
@@ -148,9 +142,8 @@ export const assignmentService = {
     if (!token) throw new Error('No authentication token found');
     
     try {
-      const response = await axios.post(`/api/assignments/${assignmentId}/submit`, submissionData, {
+      const response = await api.post(`/api/assignments/${assignmentId}/submit`, submissionData, {
         headers: { 
-          Authorization: `Bearer ${token}`,
           'Content-Type': 'multipart/form-data'
         }
       });
@@ -167,9 +160,7 @@ export const assignmentService = {
     if (!token) throw new Error('No authentication token found');
     
     try {
-      const response = await axios.get(`/api/assignments/${assignmentId}/submissions`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      const response = await api.get(`/api/assignments/${assignmentId}/submissions`);
       return response.data;
     } catch (error) {
       console.error(`Error fetching submissions for assignment ${assignmentId}:`, error);
@@ -186,9 +177,7 @@ export const assignmentService = {
       const userId = localStorage.getItem('userId');
       if (!userId) throw new Error('User ID not found');
       
-      const response = await axios.get(`/api/assignments/${assignmentId}/submissions/user`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      const response = await api.get(`/api/assignments/${assignmentId}/submissions/user`);
       
       return response.data || null;
     } catch (error) {
@@ -212,10 +201,9 @@ export const assignmentService = {
     if (!token) throw new Error('No authentication token found');
     
     try {
-      const response = await axios.post(
+      const response = await api.post(
         `/api/assignments/${assignmentId}/submissions/${submissionId}/grade`,
-        gradeData,
-        { headers: { Authorization: `Bearer ${token}` } }
+        gradeData
       );
       return response.data;
     } catch (error) {

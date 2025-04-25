@@ -1,4 +1,3 @@
-
 import express from 'express';
 import cors from 'cors';
 import path from 'path';
@@ -15,6 +14,7 @@ import directMessageRoutes from './routes/directMessageRoutes.js';
 import postRoutes from './routes/postRoutes.js';
 import commentRoutes from './routes/commentRoutes.js';
 import eventRoutes from './routes/eventRoutes.js';
+import assignmentRoutes from './routes/assignmentRoutes.js';
 
 
 const app = express();
@@ -44,5 +44,6 @@ app.use("/api/direct-messages", directMessageRoutes);
 app.use("/api", postRoutes);
 app.use("/api", commentRoutes);
 app.use("/api/events", eventRoutes);
+app.use("/api/assignments", assignmentRoutes);
 
 export default app;

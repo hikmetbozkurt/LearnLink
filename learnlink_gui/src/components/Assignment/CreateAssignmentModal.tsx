@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { FaTimes } from 'react-icons/fa';
+import { FaTimes, FaInfoCircle, FaCheck, FaExclamationTriangle } from 'react-icons/fa';
 import { Course } from '../../types/course';
 import { courseService } from '../../services/courseService';
 import './CreateAssignmentModal.css';
@@ -10,7 +10,9 @@ interface Assignment {
   description: string;
   due_date: string;
   course_id: string;
-  type: 'assignment' | 'quiz' | 'file';
+  type: 'assignment';
+  points: number;
+  grading_criteria?: string;
 }
 
 interface CreateAssignmentModalProps {
@@ -33,10 +35,15 @@ const CreateAssignmentModal: React.FC<CreateAssignmentModalProps> = ({
     description: '',
     due_date: '',
     course_id: '',
-    type: 'assignment'
+    type: 'assignment',
+    points: 100,
+    grading_criteria: ''
   });
+  
   const [courses, setCourses] = useState<Course[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [successMsg, setSuccessMsg] = useState('');
+  const [errorMsg, setErrorMsg] = useState('');
   
   useEffect(() => {
     // If it's edit mode and we have initial data, populate the form
@@ -52,7 +59,9 @@ const CreateAssignmentModal: React.FC<CreateAssignmentModalProps> = ({
       
       setFormData({
         ...initialData,
-        due_date: formattedDate
+        due_date: formattedDate,
+        points: initialData.points || 100,
+        grading_criteria: initialData.grading_criteria || ''
       });
     }
     
@@ -69,25 +78,98 @@ const CreateAssignmentModal: React.FC<CreateAssignmentModalProps> = ({
       const allCourses = await courseService.getMyCourses();
       // Filter courses where user is admin
       const adminCoursesList = allCourses.filter(course => course.is_admin);
+      console.log("Admin courses loaded in modal:", adminCoursesList);
       setCourses(adminCoursesList);
     } catch (error) {
       console.error('Error loading courses:', error);
+      setErrorMsg('Failed to load your admin courses. Please try again.');
     }
   };
   
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: value
-    }));
+    
+    // Reset any error message when user makes changes
+    setErrorMsg('');
+    
+    // Convert points to number
+    if (name === 'points') {
+      setFormData(prev => ({
+        ...prev,
+        [name]: parseInt(value) || 0
+      }));
+    } else {
+      setFormData(prev => ({
+        ...prev,
+        [name]: value
+      }));
+    }
   };
   
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    console.log("Form submitted with data:", formData);
+    
+    // Clear previous errors
+    setErrorMsg('');
+    
+    // Validate form data
+    if (!formData.title.trim()) {
+      setErrorMsg("Title is required");
+      return;
+    }
+    if (!formData.description.trim()) {
+      setErrorMsg("Description is required");
+      return;
+    }
+    if (!formData.due_date) {
+      setErrorMsg("Due date is required");
+      return;
+    }
+    if (!formData.course_id) {
+      setErrorMsg("Please select a course");
+      return;
+    }
+    
+    // Verify the selected course exists in admin courses
+    console.log("Checking if course is admin course:", {
+      selectedCourseId: formData.course_id,
+      adminCourses: courses.map(c => ({ id: c.course_id, title: c.title }))
+    });
+    
+    const isAdmin = courses.some(course => course.course_id.toString() === formData.course_id.toString());
+    console.log("Is admin for selected course:", isAdmin);
+    
+    if (!isAdmin) {
+      console.error("Selected course is not in admin courses list", {
+        selectedCourse: formData.course_id,
+        availableCourses: courses.map(c => ({ id: c.course_id, title: c.title }))
+      });
+      setErrorMsg("You must select a course where you are an admin to create an assignment");
+      return;
+    }
+    
+    console.log("Form validation passed, proceeding with submission");
     setIsLoading(true);
     
-    onSubmit(formData);
+    try {
+      console.log("About to call onSubmit with data:", formData);
+      // Log what onSubmit is
+      console.log("onSubmit is:", typeof onSubmit, onSubmit);
+      
+      await onSubmit(formData);
+      console.log("onSubmit completed successfully");
+      setSuccessMsg(isEdit ? 'Assignment updated successfully!' : 'Assignment created successfully!');
+      
+      // Close after a brief delay
+      setTimeout(() => {
+        onClose();
+      }, 1500);
+    } catch (error) {
+      console.error('Error submitting assignment:', error);
+      setErrorMsg(`Failed to create assignment: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      setIsLoading(false);
+    }
   };
   
   return (
@@ -101,25 +183,39 @@ const CreateAssignmentModal: React.FC<CreateAssignmentModalProps> = ({
         </div>
         
         <form onSubmit={handleSubmit}>
+          {successMsg && (
+            <div className="success-message">
+              <FaCheck /> {successMsg}
+            </div>
+          )}
+          
+          {errorMsg && (
+            <div className="error-message">
+              <FaExclamationTriangle /> {errorMsg}
+            </div>
+          )}
+          
           <div className="form-group">
-            <label htmlFor="title">Title</label>
+            <label htmlFor="title">Assignment Title</label>
             <input
               type="text"
               id="title"
               name="title"
               value={formData.title}
               onChange={handleInputChange}
+              placeholder="Enter a descriptive title"
               required
             />
           </div>
           
           <div className="form-group">
-            <label htmlFor="description">Description</label>
+            <label htmlFor="description">Instructions</label>
             <textarea
               id="description"
               name="description"
               value={formData.description}
               onChange={handleInputChange}
+              placeholder="Provide detailed instructions for students"
               rows={5}
               required
             />
@@ -139,19 +235,31 @@ const CreateAssignmentModal: React.FC<CreateAssignmentModalProps> = ({
             </div>
             
             <div className="form-group">
-              <label htmlFor="type">Assignment Type</label>
-              <select
-                id="type"
-                name="type"
-                value={formData.type}
+              <label htmlFor="points">Points</label>
+              <input
+                type="number"
+                id="points"
+                name="points"
+                value={formData.points}
                 onChange={handleInputChange}
+                min="0"
+                max="1000"
                 required
-              >
-                <option value="assignment">Regular Assignment</option>
-                <option value="file">File Upload</option>
-                <option value="quiz">Quiz</option>
-              </select>
+              />
+              <p className="field-hint">Maximum points students can earn</p>
             </div>
+          </div>
+          
+          <div className="form-group">
+            <label htmlFor="grading_criteria">Grading Criteria (Optional)</label>
+            <textarea
+              id="grading_criteria"
+              name="grading_criteria"
+              value={formData.grading_criteria}
+              onChange={handleInputChange}
+              placeholder="Explain how this assignment will be graded"
+              rows={3}
+            />
           </div>
           
           <div className="form-group">
@@ -172,11 +280,20 @@ const CreateAssignmentModal: React.FC<CreateAssignmentModalProps> = ({
               ))}
             </select>
             {courses.length === 0 && (
-              <p className="no-courses-message">
-                You don't have any courses where you're an admin. 
+              <div className="no-courses-message">
+                <FaInfoCircle /> You don't have any courses where you're an admin. 
                 You need to be a course admin to create assignments.
-              </p>
+              </div>
             )}
+            <p className="field-hint">You can only create assignments for courses where you are an admin.</p>
+          </div>
+          
+          <div className="assignment-info-box">
+            <FaInfoCircle className="info-icon" />
+            <div>
+              <p><strong>About Text Assignments</strong></p>
+              <p>Students will submit their responses as text entries. This is ideal for short essays, reflections, or questions that require paragraph-length answers.</p>
+            </div>
           </div>
           
           <div className="form-actions">
@@ -186,7 +303,7 @@ const CreateAssignmentModal: React.FC<CreateAssignmentModalProps> = ({
             <button 
               type="submit" 
               className="submit-button"
-              disabled={isLoading || courses.length === 0}
+              disabled={isLoading || courses.length === 0 || !!successMsg}
             >
               {isLoading ? 'Saving...' : isEdit ? 'Update Assignment' : 'Create Assignment'}
             </button>
