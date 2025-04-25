@@ -716,4 +716,71 @@
 .contact-form-container, 
 .close-modal-button {
   display: none !important;
+}
+
+.support-contact-section {
+  margin-top: 2rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--border);
+}
+
+.support-contact-section h3 {
+  font-size: 1.25rem;
+  margin-bottom: 1rem;
+  color: var(--text-primary);
+}
+
+.support-contact-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding: 1rem;
+  background-color: var(--background);
+  border-radius: 8px;
+  box-shadow: 0 1px 3px var(--shadow);
+}
+
+.support-contact-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.5rem;
+  color: var(--text-secondary);
+  transition: all 0.2s ease;
+}
+
+.support-contact-item:hover {
+  background-color: var(--hover);
+  border-radius: 6px;
+  color: var(--text-primary);
+}
+
+.support-contact-item svg {
+  font-size: 1.1rem;
+  color: var(--primary);
+}
+
+.support-contact-item span {
+  font-size: 0.95rem;
+}
+
+/* Mobile responsive adjustments */
+@media (max-width: 768px) {
+  .support-contact-section {
+    margin-top: 1.5rem;
+    padding-top: 1rem;
+  }
+  
+  .support-contact-section h3 {
+    font-size: 1.1rem;
+    margin-bottom: 0.75rem;
+  }
+  
+  .support-contact-info {
+    padding: 0.75rem;
+  }
+  
+  .support-contact-item {
+    padding: 0.4rem;
+  }
 } 

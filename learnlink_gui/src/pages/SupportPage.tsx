@@ -2,12 +2,10 @@ import React, { useState } from 'react';
 import '../styles/pages/shared.css';
 import '../styles/pages/support.css';
 import { 
-  FaQuestionCircle, 
   FaBook, 
   FaHeadset, 
   FaLock,
   FaChevronDown,
-  FaChevronUp,
   FaComments,
   FaUsers,
   FaCalendarAlt,
@@ -15,11 +13,8 @@ import {
   FaChartBar,
   FaUserGraduate,
   FaEnvelope,
-  FaPhone,
-  FaMobile,
-  FaTimes
+  FaMobile
 } from 'react-icons/fa';
-import { useToast } from '../components/ToastProvider';
 
 interface FAQItem {
   question: string;
@@ -36,14 +31,6 @@ interface FAQCategory {
 const SupportPage = () => {
   const [expandedFAQ, setExpandedFAQ] = useState<string | null>(null);
   const [expandedCategory, setExpandedCategory] = useState<string | null>('account');
-  const [contactModalOpen, setContactModalOpen] = useState<boolean>(false);
-  const [formData, setFormData] = useState({
-    name: '',
-    email: '',
-    subject: '',
-    message: ''
-  });
-  const { showToast } = useToast();
 
   const faqCategories: FAQCategory[] = [
     {
@@ -260,27 +247,6 @@ const SupportPage = () => {
     setExpandedFAQ(null); // Close any expanded FAQs when changing categories
   };
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: value
-    }));
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    // Here you would typically send the form data to your backend
-    showToast('Your message has been sent. We\'ll get back to you soon!', 'success');
-    setFormData({
-      name: '',
-      email: '',
-      subject: '',
-      message: ''
-    });
-    setContactModalOpen(false);
-  };
-
   return (
     <div className="support-container">
       <div className="page-header">
@@ -332,108 +298,26 @@ const SupportPage = () => {
                     </div>
                   ))}
                 </div>
-                <div className="contact-button-container">
-                  <button 
-                    className="contact-button" 
-                    onClick={() => setContactModalOpen(true)}
-                  >
-                    <FaEnvelope /> Still Have Questions?
-                  </button>
+                
+                {/* Contact Info Section (replacing the modal) */}
+                <div className="support-contact-section">
+                  <h3>Contact Information</h3>
+                  <div className="support-contact-info">
+                    <div className="support-contact-item">
+                      <FaEnvelope />
+                      <span>learnlink411@gmail.com</span>
+                    </div>
+                    <div className="support-contact-item">
+                      <FaMobile />
+                      <span>+90 544 350 90 60</span>
+                    </div>
+                  </div>
                 </div>
               </div>
             )
           ))}
         </div>
       </div>
-
-      {/* Contact Modal */}
-      {contactModalOpen && (
-        <div className="support-modal-overlay" onClick={() => setContactModalOpen(false)}>
-          <div className="support-contact-modal" onClick={(e) => e.stopPropagation()}>
-            <div className="support-modal-header">
-              <h2><FaEnvelope /> Contact Us</h2>
-              <button className="support-close-button" onClick={() => setContactModalOpen(false)}>
-                <FaTimes />
-              </button>
-            </div>
-            <div className="support-modal-content">
-              <div className="support-contact-info">
-                <div className="support-contact-item">
-                  <FaEnvelope />
-                  <span>learnlink411@gmail.com</span>
-                </div>
-                <div className="support-contact-item">
-                  <FaMobile />
-                  <span>+90 544 350 90 60</span>
-                </div>
-                <div className="support-contact-item">
-                  <FaPhone />
-                  <span>0 232 433 33 83</span>
-                </div>
-              </div>
-              
-              <div className="support-form-container">
-                <h3>Send Us a Message</h3>
-                <form className="support-contact-form" onSubmit={handleSubmit}>
-                  <div className="support-form-group">
-                    <label htmlFor="name">Name</label>
-                    <input
-                      type="text"
-                      id="name"
-                      name="name"
-                      value={formData.name}
-                      onChange={handleInputChange}
-                      required
-                      placeholder="Your name"
-                    />
-                  </div>
-                  
-                  <div className="support-form-group">
-                    <label htmlFor="email">Email</label>
-                    <input
-                      type="email"
-                      id="email"
-                      name="email"
-                      value={formData.email}
-                      onChange={handleInputChange}
-                      required
-                      placeholder="Your email address"
-                    />
-                  </div>
-                  
-                  <div className="support-form-group">
-                    <label htmlFor="subject">Subject</label>
-                    <input
-                      type="text"
-                      id="subject"
-                      name="subject"
-                      value={formData.subject}
-                      onChange={handleInputChange}
-                      required
-                      placeholder="What is your question about?"
-                    />
-                  </div>
-                  
-                  <div className="support-form-group">
-                    <label htmlFor="message">Message</label>
-                    <textarea
-                      id="message"
-                      name="message"
-                      value={formData.message}
-                      onChange={handleInputChange}
-                      required
-                      placeholder="Describe your issue in detail"
-                      rows={4}
-                    />
-                  </div>
-                  
-                  <button type="submit" className="support-submit-button">Send Message</button>
-                </form>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 };
