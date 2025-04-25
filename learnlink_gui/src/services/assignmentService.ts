@@ -28,6 +28,7 @@ export interface Submission {
   submitted_at: string;
   grade?: string | number;
   feedback?: string;
+  graded_at?: string;
 }
 
 // Create a service with methods for interacting with the assignment API
@@ -71,19 +72,6 @@ export const assignmentService = {
         assignments = [...assignments, ...response.data];
       });
       
-      // Log the raw response
-      if (process.env.NODE_ENV === "development") {
-        console.log("Raw assignments from API:", assignments);
-        
-        // Check type of data on each assignment
-        assignments.forEach(assignment => {
-          console.log(`Assignment ${assignment.assignment_id} raw data types:`, {
-            submitted: `${assignment.submitted} (${typeof assignment.submitted})`,
-            graded: `${assignment.graded} (${typeof assignment.graded})`
-          });
-        });
-      }
-      
       // Get user information
       const userStr = localStorage.getItem('user');
       if (!userStr) throw new Error('User data not found');
@@ -91,8 +79,6 @@ export const assignmentService = {
       const userData = JSON.parse(userStr);
       const userId = userData.user_id || userData.id;
       const isAdmin = userData.is_admin || false;
-      
-      console.log("Current user:", { userId, isAdmin });
       
       // For each assignment, process submission status
       const processedAssignments = await Promise.all(assignments.map(async (assignment) => {
@@ -109,6 +95,7 @@ export const assignmentService = {
           // If user is admin for this assignment's course, fetch all submissions
           if (isAdmin) {
             try {
+              console.log(`Fetching submissions for assignment ${assignment.assignment_id}`);
               const submissions = await assignmentService.getSubmissions(assignment.assignment_id);
               console.log(`Found ${submissions.length} submissions for assignment ${assignment.assignment_id}`);
               
@@ -121,6 +108,8 @@ export const assignmentService = {
                 // Check if user's submission is graded
                 graded: submissions.some(s => s.user_id.toString() === userId.toString() && !!s.grade)
               };
+              
+              console.log(`Assignment ${assignment.assignment_id} updated with submission_count: ${assignmentWithDefaults.submission_count}`);
               
               // If user has a submission, find their grade
               const userSubmission = submissions.find(s => s.user_id.toString() === userId.toString());
@@ -151,14 +140,6 @@ export const assignmentService = {
           assignmentWithDefaults.submitted = Boolean(assignmentWithDefaults.submitted);
           assignmentWithDefaults.graded = Boolean(assignmentWithDefaults.graded);
           
-          if (process.env.NODE_ENV === "development") {
-            console.log(`Processed assignment ${assignment.assignment_id}:`, {
-              submitted: assignmentWithDefaults.submitted,
-              graded: assignmentWithDefaults.graded,
-              type: `${typeof assignmentWithDefaults.submitted}/${typeof assignmentWithDefaults.graded}`
-            });
-          }
-          
           return assignmentWithDefaults;
         } catch (error) {
           console.error(`Error processing assignment ${assignment.assignment_id}:`, error);
@@ -170,7 +151,6 @@ export const assignmentService = {
         }
       }));
       
-      console.log("Enhanced assignments with submission data:", processedAssignments);
       return processedAssignments;
     } catch (error) {
       console.error('Error fetching assignments by courses:', error);
@@ -195,21 +175,9 @@ export const assignmentService = {
   // Create a new assignment
   createAssignment: async (assignmentData: Partial<Assignment>): Promise<Assignment> => {
     const token = localStorage.getItem('token');
-    console.log("createAssignment called with data:", assignmentData);
-    console.log("Authentication token present:", !!token);
-    
     if (!token) throw new Error('No authentication token found');
     
     try {
-      console.log("Making POST request to /api/assignments");
-      console.log("API base URL:", api.defaults.baseURL);
-      console.log("Full request data:", {
-        url: '/api/assignments',
-        method: 'POST',
-        data: assignmentData,
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      
       // Ensure the data is properly formatted
       const formattedData = {
         ...assignmentData,
@@ -230,16 +198,14 @@ export const assignmentService = {
       }
       
       const response = await api.post('/api/assignments', formattedData);
-      console.log("Assignment creation API response:", response);
       return response.data;
     } catch (error) {
       console.error('Error creating assignment:', error);
       if (axios.isAxiosError(error)) {
-        console.log('API error details:', {
+        console.error('API error details:', {
           status: error.response?.status,
           statusText: error.response?.statusText,
-          data: error.response?.data,
-          headers: error.response?.headers
+          data: error.response?.data
         });
       }
       throw error;
@@ -297,13 +263,33 @@ export const assignmentService = {
     if (!token) throw new Error('No authentication token found');
     
     try {
-      console.log(`Fetching all submissions for assignment ${assignmentId}`);
+      console.log(`Requesting submissions for assignment ${assignmentId}`);
       const response = await api.get(`/api/assignments/${assignmentId}/submissions`);
-      console.log(`Retrieved ${response.data.length} submissions for assignment ${assignmentId}`);
-      return response.data;
+      
+      console.log("Submissions API response:", response);
+      
+      // Handle different response structures
+      let submissions: Submission[] = [];
+      
+      if (Array.isArray(response.data)) {
+        submissions = response.data;
+      } else if (response.data && typeof response.data === 'object') {
+        // Try to extract submissions from common response patterns
+        if (Array.isArray(response.data.data)) {
+          submissions = response.data.data;
+        } else if (Array.isArray(response.data.submissions)) {
+          submissions = response.data.submissions;
+        } else if (response.data.rows && Array.isArray(response.data.rows)) {
+          submissions = response.data.rows;
+        }
+      }
+      
+      // Log the parsed submissions
+      console.log(`Found ${submissions.length} submissions for assignment ${assignmentId}:`, submissions);
+      
+      return submissions;
     } catch (error) {
       if (axios.isAxiosError(error) && error.response?.status === 404) {
-        console.log(`No submissions found for assignment ${assignmentId}`);
         return [];
       }
       console.error(`Error fetching submissions for assignment ${assignmentId}:`, error);
@@ -329,16 +315,12 @@ export const assignmentService = {
         throw new Error('User ID not found in user data');
       }
       
-      console.log(`Fetching submission for assignment ${assignmentId} for user ${userId}`);
-      
       try {
         const response = await api.get(`/api/assignments/${assignmentId}/submissions/user`);
-        console.log(`Submission data for assignment ${assignmentId}:`, response.data);
         return response.data || null;
       } catch (requestError) {
         // If 404, user hasn't submitted yet
         if (axios.isAxiosError(requestError) && requestError.response?.status === 404) {
-          console.log(`No submission found for assignment ${assignmentId}`);
           return null;
         }
         // Rethrow other errors

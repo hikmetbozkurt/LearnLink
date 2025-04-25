@@ -24,21 +24,6 @@ const AssignmentArea: React.FC<AssignmentAreaProps> = ({
   activeTab,
   onAssignmentUpdated,
 }) => {
-  useEffect(() => {
-    if (process.env.NODE_ENV === "development") {
-      console.log(`AssignmentArea - Active tab: ${activeTab}`);
-      console.log("AssignmentArea - Received assignments:", assignments);
-      console.log("AssignmentArea - Assignment data check:");
-      assignments.forEach((a) => {
-        console.log(
-          `Assignment ${a.assignment_id}: submitted=${a.submitted}, graded=${
-            a.graded
-          }, type=${typeof a.submitted}/${typeof a.graded}`
-        );
-      });
-    }
-  }, [activeTab, assignments]);
-
   // Get title based on active tab
   const getTabTitle = (): string => {
     switch (activeTab) {
@@ -60,10 +45,6 @@ const AssignmentArea: React.FC<AssignmentAreaProps> = ({
 
   // Render the appropriate view based on activeTab
   const renderView = () => {
-    if (process.env.NODE_ENV === "development") {
-      console.log(`Rendering view for tab: ${activeTab}`);
-    }
-
     switch (activeTab) {
       case "pending":
         return (

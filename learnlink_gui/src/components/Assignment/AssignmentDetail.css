@@ -183,6 +183,13 @@
   border-radius: 8px;
 }
 
+.user-submission .submission-info {
+  padding: 20px;
+  background-color: #f9f9f9;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
 .submission-file {
   display: inline-flex;
   align-items: center;
@@ -293,70 +300,182 @@
 
 .submission-grading {
   border-top: 1px dashed #e0e0e0;
-  padding-top: 15px;
-  margin-top: 10px;
+  padding-top: 20px;
+  margin-top: 15px;
+  display: grid;
+  grid-template-columns: 1fr 2fr;
+  gap: 20px;
+  align-items: start;
+}
+
+.grading-container {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 15px;
+  width: 100%;
 }
 
 .grading-fields {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 8px;
+  width: 100%;
 }
 
 .grading-fields label {
-  font-size: 0.85rem;
-  font-weight: 500;
-  color: #555;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #444;
+  margin-bottom: 4px;
 }
 
-.grade-input {
-  padding: 8px 12px;
+.max-points {
+  font-weight: 400;
+  font-style: italic;
+  color: #666;
+  font-size: 0.85em;
+}
+
+.icon-grade,
+.icon-feedback {
+  color: #512da8;
+  margin-right: 6px;
+  font-size: 0.9em;
+}
+
+.grade-input,
+.feedback-input {
+  padding: 10px 14px;
   border: 1px solid #ddd;
-  border-radius: 4px;
-  font-size: 14px;
+  border-radius: 8px;
+  font-size: 15px;
   width: 100%;
+  transition: border-color 0.3s;
 }
 
 .feedback-input {
-  padding: 8px 12px;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  font-size: 14px;
-  min-height: 80px;
+  min-height: 120px;
   resize: vertical;
-  width: 100%;
+  line-height: 1.5;
+}
+
+.grade-input:focus,
+.feedback-input:focus {
+  border-color: #512da8;
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(81, 45, 168, 0.2);
+}
+
+.grade-input:disabled,
+.feedback-input:disabled {
+  background-color: #f5f5f5;
+  color: #666;
+  cursor: not-allowed;
+  border-color: #ddd;
+}
+
+.grade-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 15px;
 }
 
 .submit-grade-button {
-  margin-top: 8px;
-  background-color: #4a6fa5;
-  color: white;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 10px;
+  padding: 10px 18px;
   border: none;
-  border-radius: 4px;
-  padding: 8px 12px;
-  font-size: 14px;
+  border-radius: 8px;
+  background-color: #512da8;
+  color: white;
+  font-size: 15px;
   font-weight: 500;
   cursor: pointer;
   transition: background-color 0.2s;
-  align-self: flex-end;
 }
 
 .submit-grade-button:hover:not(:disabled) {
-  background-color: #3a5a8c;
+  background-color: #4527a0;
 }
 
 .submit-grade-button:disabled {
   background-color: #cccccc;
   cursor: not-allowed;
+  opacity: 0.7;
 }
 
-.no-submissions {
-  text-align: center;
-  padding: 30px 0;
-  color: #666;
+/* Style for when submission is already graded */
+.graded-button {
+  background-color: #4caf50 !important;
+  opacity: 1 !important; 
+  cursor: default !important;
+}
+
+/* Styling for displayed feedback */
+.user-submission .submission-grade {
+  margin-top: 20px;
+  padding: 20px;
+  background: linear-gradient(to right, #fbfcff, #f5f7ff);
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  border-left: 4px solid #512da8;
+}
+
+.submission-grade h4 {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #444;
+  margin-bottom: 8px;
+}
+
+.grade-value {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #512da8;
+  margin: 5px 0 15px;
+}
+
+.submission-feedback {
+  margin-top: 15px;
+  padding: 15px;
+  background-color: #f0f7ff;
+  border-radius: 8px;
+  border-left: 4px solid #512da8;
+}
+
+.submission-feedback h4 {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #444;
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.submission-feedback p {
+  white-space: pre-line;
+  line-height: 1.5;
+  color: #333;
+  font-size: 0.95rem;
+}
+
+.user-submission .submission-feedback {
+  margin-top: 20px;
+  padding: 20px;
+  background: linear-gradient(to right, #f5f9ff, #edf4ff);
+  border-radius: 12px;
+  border-left: 4px solid #512da8;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+/* For mobile devices */
+@media (max-width: 768px) {
+  .submission-grading {
+    grid-template-columns: 1fr;
+  }
 }
 
 @media (max-width: 1024px) {

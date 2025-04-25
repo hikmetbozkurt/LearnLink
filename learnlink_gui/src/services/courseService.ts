@@ -2,6 +2,11 @@ import api from '../api/axiosConfig';
 import { Course } from '../types/course';
 import { Post } from '../types/post';
 
+// Cache for admin courses to prevent frequent API calls
+let adminCoursesCache: any[] = [];
+let adminCoursesCacheTimestamp = 0;
+const CACHE_DURATION = 60000; // 1 minute in milliseconds
+
 interface CreateCourseResponse {
   success: boolean;
   course?: Course;
@@ -52,6 +57,13 @@ export const courseService = {
     const token = localStorage.getItem('token');
     if (!token) throw new Error('No authentication token found');
     
+    const now = Date.now();
+    // Return cached data if it's still fresh
+    if (adminCoursesCache.length > 0 && now - adminCoursesCacheTimestamp < CACHE_DURATION) {
+      console.log("Using cached admin courses", adminCoursesCache);
+      return adminCoursesCache;
+    }
+    
     try {
       console.log("Fetching courses where user is admin");
       const response = await api.get('/api/courses/my-courses');
@@ -59,6 +71,10 @@ export const courseService = {
       // Filter courses where user is admin
       const adminCourses = response.data.filter((course: Course) => course.is_admin);
       console.log("Admin courses found:", adminCourses);
+      
+      // Update the cache
+      adminCoursesCache = adminCourses;
+      adminCoursesCacheTimestamp = now;
       
       return adminCourses;
     } catch (error) {

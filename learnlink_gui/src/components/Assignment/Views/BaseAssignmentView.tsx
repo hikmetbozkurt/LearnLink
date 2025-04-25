@@ -38,23 +38,7 @@ const BaseAssignmentView: React.FC<BaseAssignmentViewProps> = ({
     return utilIsAdminForCourse(courseId, adminCourses);
   };
 
-  // Log assignments for debugging
-  useEffect(() => {
-    if (process.env.NODE_ENV === "development") {
-      console.log(`${viewName} - all assignments:`, assignments);
-      console.log(`${viewName} - filtered assignments:`, filteredAssignments);
-      console.log("User is admin:", isUserAdmin);
-      console.log(
-        "Admin courses:",
-        adminCourses.map((c) => c.course_id)
-      );
-    }
-  }, [assignments, filteredAssignments, adminCourses, isUserAdmin, viewName]);
-
   const handleAssignmentClick = (assignment: Assignment) => {
-    if (process.env.NODE_ENV === "development") {
-      console.log(`${viewName} - Assignment clicked:`, assignment);
-    }
     setSelectedAssignment(assignment);
   };
 

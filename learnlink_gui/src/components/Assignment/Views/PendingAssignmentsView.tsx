@@ -18,11 +18,6 @@ const PendingAssignmentsView: React.FC<PendingAssignmentsViewProps> = ({
   adminCourses,
   onAssignmentUpdated,
 }) => {
-  // Log the input assignments
-  if (process.env.NODE_ENV === "development") {
-    console.log("PendingAssignmentsView - Input assignments:", assignments);
-  }
-
   // Filter for pending assignments (not submitted and not past due date)
   const filterPendingAssignments = (
     assignments: Assignment[]
@@ -32,30 +27,11 @@ const PendingAssignmentsView: React.FC<PendingAssignmentsViewProps> = ({
       const isPastDueDate = isPastDue(assignment.due_date);
 
       // An assignment is pending if it's not submitted and not past due
-      const isEligible = !isSubmitted && !isPastDueDate;
-
-      // Log each assignment evaluation
-      if (process.env.NODE_ENV === "development") {
-        console.log(`Pending check - Assignment ${assignment.assignment_id}:`, {
-          submitted: isSubmitted,
-          pastDue: isPastDueDate,
-          eligible: isEligible,
-        });
-      }
-
-      return isEligible;
+      return !isSubmitted && !isPastDueDate;
     });
   };
 
   const filteredAssignments = filterPendingAssignments(assignments);
-
-  // Log the filtered assignments
-  if (process.env.NODE_ENV === "development") {
-    console.log(
-      "PendingAssignmentsView - Filtered pending assignments:",
-      filteredAssignments
-    );
-  }
 
   return (
     <BaseAssignmentView

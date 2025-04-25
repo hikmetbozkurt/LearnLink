@@ -8,6 +8,9 @@ import {
   FaFileAlt,
   FaQuestionCircle,
   FaBook,
+  FaCommentAlt,
+  FaStar,
+  FaCheck,
 } from "react-icons/fa";
 import DeadlineCountdown from "./DeadlineCountdown";
 import SubmitAssignmentModal from "./SubmitAssignmentModal";
@@ -55,22 +58,18 @@ const AssignmentDetail: React.FC<AssignmentDetailProps> = ({
     if (assignment) {
       loadData();
     }
-  }, [assignment]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [assignment.assignment_id]); // Only re-run when assignment ID changes, not on every render
 
   const loadData = async () => {
     setIsLoading(true);
-    console.log("Loading data for assignment:", assignment);
 
     try {
       if (isAdmin) {
         // Load all submissions for this assignment
-        console.log(
-          `Admin view: Loading all submissions for assignment ${assignment.assignment_id}`
-        );
         const result = await assignmentService.getSubmissions(
           assignment.assignment_id
         );
-        console.log("Submissions loaded:", result);
         setSubmissions(result);
 
         // Check if the admin has also submitted this assignment
@@ -84,26 +83,17 @@ const AssignmentDetail: React.FC<AssignmentDetailProps> = ({
           );
 
           if (adminSubmission) {
-            console.log(
-              "Admin has also submitted this assignment:",
-              adminSubmission
-            );
             setUserSubmission(adminSubmission);
           }
         }
       } else {
         // Load only the current user's submission
-        console.log(
-          `User view: Loading submission for assignment ${assignment.assignment_id}`
-        );
         const result = await assignmentService.getUserSubmission(
           assignment.assignment_id
         );
         if (result) {
-          console.log("User's submission found:", result);
           setUserSubmission(result);
         } else {
-          console.log("No submission found for this user");
           setUserSubmission(null);
         }
       }
@@ -156,6 +146,25 @@ const AssignmentDetail: React.FC<AssignmentDetailProps> = ({
     grade: string | number,
     feedback: string
   ) => {
+    // Only allow valid grades
+    if (typeof grade === "string") {
+      // Remove non-numeric characters
+      const numericGrade = grade.replace(/[^0-9.]/g, "");
+
+      // Convert to number and validate
+      let validatedGrade = numericGrade;
+      if (numericGrade !== "") {
+        const gradeNum = parseFloat(numericGrade);
+        // Cannot be negative
+        if (gradeNum < 0) validatedGrade = "0";
+        // Cannot exceed assignment max points
+        if (gradeNum > parseFloat(assignment.points?.toString() || "100"))
+          validatedGrade = assignment.points?.toString() || "100";
+      }
+
+      grade = validatedGrade;
+    }
+
     setGradingData((prev) => ({
       ...prev,
       [submissionId]: { grade: grade.toString(), feedback },
@@ -175,13 +184,48 @@ const AssignmentDetail: React.FC<AssignmentDetailProps> = ({
       setSubmittingGrades(true);
       const { grade, feedback } = gradingData[submissionId];
 
+      // Additional validation before submission
+      let validGrade = grade;
+      if (typeof grade === "string") {
+        // Remove any non-numeric characters
+        const numericGrade = grade.replace(/[^0-9.]/g, "");
+
+        if (numericGrade === "") {
+          showNotification("Please enter a valid numeric grade", "error");
+          setSubmittingGrades(false);
+          return;
+        }
+
+        // Convert to number and validate
+        const gradeNum = parseFloat(numericGrade);
+        // Cannot be negative
+        if (gradeNum < 0) validGrade = "0";
+        // Cannot exceed assignment max points
+        if (gradeNum > parseFloat(assignment.points?.toString() || "100"))
+          validGrade = assignment.points?.toString() || "100";
+      }
+
       await assignmentService.gradeSubmission(
         assignment.assignment_id,
         submissionId,
-        { grade, feedback }
+        { grade: validGrade, feedback }
       );
 
       showNotification("Submission graded successfully", "success");
+
+      // Update the submission in the UI to show it's been graded
+      setSubmissions((prevSubmissions) =>
+        prevSubmissions.map((sub) =>
+          sub.submission_id === submissionId
+            ? {
+                ...sub,
+                grade: validGrade,
+                feedback,
+                graded_at: new Date().toISOString(),
+              }
+            : sub
+        )
+      );
 
       const newGradingData = { ...gradingData };
       delete newGradingData[submissionId];
@@ -206,14 +250,6 @@ const AssignmentDetail: React.FC<AssignmentDetailProps> = ({
   };
 
   const getStatusText = () => {
-    console.log("Getting status text for assignment:", {
-      id: assignment.assignment_id,
-      title: assignment.title,
-      submitted: assignment.submitted,
-      userSubmission: !!userSubmission,
-      isPast: isPast(new Date(assignment.due_date)),
-    });
-
     // First check user submission directly
     if (userSubmission) {
       return userSubmission.grade ? "Graded" : "Submitted";
@@ -343,11 +379,16 @@ const AssignmentDetail: React.FC<AssignmentDetailProps> = ({
                 )}
                 {userSubmission.grade && (
                   <div className="submission-grade">
-                    <h4>Grade:</h4>
-                    <p>{userSubmission.grade}</p>
+                    <h4>
+                      <FaStar className="icon-grade" /> Grade:
+                    </h4>
+                    <p className="grade-value">{userSubmission.grade}</p>
                     {userSubmission.feedback && (
                       <div className="submission-feedback">
-                        <h4>Feedback:</h4>
+                        <h4>
+                          <FaCommentAlt className="icon-feedback" /> Instructor
+                          Feedback:
+                        </h4>
                         <p>{userSubmission.feedback}</p>
                       </div>
                     )}
@@ -407,53 +448,99 @@ const AssignmentDetail: React.FC<AssignmentDetailProps> = ({
                     </div>
 
                     <div className="submission-grading">
-                      <div className="grading-fields">
-                        <label htmlFor={`grade-${submission.submission_id}`}>
-                          Grade:
-                        </label>
-                        <input
-                          id={`grade-${submission.submission_id}`}
-                          type="text"
-                          placeholder="Grade"
-                          value={submission.grade || ""}
-                          onChange={(e) =>
-                            handleGrade(
-                              submission.submission_id,
-                              e.target.value,
-                              submission.feedback || ""
-                            )
-                          }
-                          className="grade-input"
-                        />
+                      <div className="grading-container">
+                        <div className="grading-fields">
+                          <label htmlFor={`grade-${submission.submission_id}`}>
+                            <FaStar className="icon-grade" /> Grade:{" "}
+                            <span className="max-points">
+                              (Max: {assignment.points || 100} points)
+                            </span>
+                          </label>
+                          <input
+                            id={`grade-${submission.submission_id}`}
+                            type="text"
+                            placeholder={`Enter grade (0-${
+                              assignment.points || 100
+                            })`}
+                            value={submission.grade || ""}
+                            onChange={(e) =>
+                              handleGrade(
+                                submission.submission_id,
+                                e.target.value,
+                                submission.feedback || ""
+                              )
+                            }
+                            className="grade-input"
+                            disabled={Boolean(
+                              submission.graded_at &&
+                                !gradingData[submission.submission_id]
+                            )}
+                          />
+                        </div>
                       </div>
-                      <div className="grading-fields">
-                        <label htmlFor={`feedback-${submission.submission_id}`}>
-                          Feedback:
-                        </label>
-                        <textarea
-                          id={`feedback-${submission.submission_id}`}
-                          placeholder="Feedback"
-                          value={submission.feedback || ""}
-                          onChange={(e) =>
-                            handleGrade(
-                              submission.submission_id,
-                              submission.grade || "",
-                              e.target.value
-                            )
-                          }
-                          className="feedback-input"
-                        />
+
+                      <div className="grading-container">
+                        <div className="grading-fields">
+                          <label
+                            htmlFor={`feedback-${submission.submission_id}`}
+                          >
+                            <FaCommentAlt className="icon-feedback" /> Feedback:
+                          </label>
+                          <textarea
+                            id={`feedback-${submission.submission_id}`}
+                            placeholder="Provide detailed feedback for the student"
+                            value={submission.feedback || ""}
+                            onChange={(e) =>
+                              handleGrade(
+                                submission.submission_id,
+                                submission.grade || "",
+                                e.target.value
+                              )
+                            }
+                            className="feedback-input"
+                            disabled={Boolean(
+                              submission.graded_at &&
+                                !gradingData[submission.submission_id]
+                            )}
+                          />
+                        </div>
+
+                        <div className="grade-actions">
+                          <button
+                            className={`submit-grade-button ${
+                              submission.graded_at &&
+                              !gradingData[submission.submission_id]
+                                ? "graded-button"
+                                : ""
+                            }`}
+                            onClick={() =>
+                              submitGrades(submission.submission_id)
+                            }
+                            disabled={
+                              submittingGrades ||
+                              (!gradingData[submission.submission_id] &&
+                                submission.graded_at) ||
+                              gradingData[submission.submission_id]?.grade ===
+                                "" ||
+                              gradingData[submission.submission_id]?.grade ===
+                                undefined
+                            }
+                          >
+                            {submittingGrades ? (
+                              "Submitting..."
+                            ) : submission.graded_at &&
+                              !gradingData[submission.submission_id] ? (
+                              <>
+                                <FaCheck /> Graded
+                              </>
+                            ) : (
+                              <>
+                                <FaEdit /> Submit Grade
+                              </>
+                            )}
+                          </button>
+                        </div>
                       </div>
-                      <button
-                        className="submit-grade-button"
-                        onClick={() => submitGrades(submission.submission_id)}
-                        disabled={
-                          submittingGrades ||
-                          !gradingData[submission.submission_id]
-                        }
-                      >
-                        {submittingGrades ? "Submitting..." : "Submit Grade"}
-                      </button>
                     </div>
                   </div>
                 ))}

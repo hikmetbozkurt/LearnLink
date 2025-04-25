@@ -29,14 +29,6 @@ const AssignmentCard: React.FC<AssignmentCardProps> = ({
   isAdmin,
   onClick,
 }) => {
-  useEffect(() => {
-    if (process.env.NODE_ENV === "development") {
-      console.log("Rendering assignment card for:", assignment);
-      console.log("Submitted status:", assignment.submitted);
-      console.log("Graded status:", assignment.graded);
-    }
-  }, [assignment]);
-
   // Safely parse the due date
   const getDueDate = () => {
     try {
@@ -50,14 +42,16 @@ const AssignmentCard: React.FC<AssignmentCardProps> = ({
   const dueDate = getDueDate();
 
   const getStatusClass = () => {
-    // Check for explicit boolean values
-    if (assignment.submitted === true) {
-      return assignment.graded === true ? "status-graded" : "status-submitted";
+    // For course admin, check submission count
+    if (isAdmin) {
+      return assignment.submission_count && assignment.submission_count > 0
+        ? "status-has-submissions"
+        : "status-no-submissions";
     }
 
-    // Then check for truthy values (for backward compatibility)
-    if (assignment.submitted) {
-      return assignment.graded ? "status-graded" : "status-submitted";
+    // For regular user, check their submission status
+    if (assignment.submitted === true) {
+      return assignment.graded === true ? "status-graded" : "status-submitted";
     }
 
     // Not submitted
@@ -69,30 +63,32 @@ const AssignmentCard: React.FC<AssignmentCardProps> = ({
   };
 
   const getStatusText = () => {
-    // Check for explicit boolean values
+    // For regular user, check their submission status
     if (assignment.submitted === true) {
       return assignment.graded === true ? "Graded" : "Submitted";
-    }
-
-    // Then check for truthy values (for backward compatibility)
-    if (assignment.submitted) {
-      return assignment.graded ? "Graded" : "Submitted";
     }
 
     // Not submitted
     if (isPast(dueDate)) {
       return "Late";
     } else {
-      return "Pending";
+      return "Not Submitted";
     }
   };
 
   const getStatusForAdmin = () => {
     if (isAdmin) {
-      return assignment.submission_count
-        ? `${assignment.submission_count} submissions`
-        : "No submissions";
+      if (typeof assignment.submission_count !== "undefined") {
+        // Show singular or plural based on count
+        return assignment.submission_count === 1
+          ? "1 Submission"
+          : `${assignment.submission_count} Submissions`;
+      } else {
+        return "0 Submissions";
+      }
     }
+
+    // For regular users, show their submission status
     return getStatusText();
   };
 
@@ -109,7 +105,10 @@ const AssignmentCard: React.FC<AssignmentCardProps> = ({
   };
 
   return (
-    <div className="assignment-card" onClick={onClick}>
+    <div
+      className={`assignment-card ${isAdmin ? "admin-created" : ""}`}
+      onClick={onClick}
+    >
       <div className="assignment-header">
         <div className="assignment-type-icon">{getTypeIcon()}</div>
         <span className={`assignment-status ${getStatusClass()}`}>
@@ -117,7 +116,10 @@ const AssignmentCard: React.FC<AssignmentCardProps> = ({
         </span>
       </div>
 
-      <h3 className="assignment-title">{assignment.title}</h3>
+      <h3 className="assignment-title">
+        {assignment.title}
+        {isAdmin && <span className="admin-badge">Creator</span>}
+      </h3>
 
       <div className="assignment-course">{assignment.course_name}</div>
 
@@ -126,12 +128,22 @@ const AssignmentCard: React.FC<AssignmentCardProps> = ({
           Due: {format(dueDate, "MMM d, yyyy 'at' h:mm a")}
         </div>
 
-        {!assignment.submitted && !isPast(dueDate) && (
+        {!assignment.submitted && !isPast(dueDate) && !isAdmin && (
           <DeadlineCountdown dueDate={dueDate} />
         )}
       </div>
 
-      {assignment.submitted && assignment.graded && (
+      {isAdmin && (
+        <div className="assignment-admin-info">
+          {typeof assignment.submission_count !== "undefined"
+            ? `${assignment.submission_count} student submission${
+                assignment.submission_count !== 1 ? "s" : ""
+              }`
+            : "No submissions yet"}
+        </div>
+      )}
+
+      {assignment.submitted && assignment.graded && !isAdmin && (
         <div className="assignment-grade">
           Grade: <strong>{assignment.grade}</strong>
         </div>

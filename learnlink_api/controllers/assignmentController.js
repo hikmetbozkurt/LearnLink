@@ -201,16 +201,31 @@ export const updateAssignment = asyncHandler(async (req, res) => {
 
 export const deleteAssignment = asyncHandler(async (req, res) => {
   const { id } = req.params;
-  const result = await pool.query(
-    "DELETE FROM assignments WHERE assignment_id = $1 RETURNING *",
-    [id]
-  );
 
-  if (result.rows.length === 0) {
-    return res.status(404).json({ message: "Assignment not found" });
+  try {
+    // First, delete all submissions for this assignment
+    console.log(`Deleting all submissions for assignment ${id}`);
+    await pool.query("DELETE FROM submissions WHERE assignment_id = $1", [id]);
+
+    // Then delete the assignment
+    console.log(`Deleting assignment ${id}`);
+    const result = await pool.query(
+      "DELETE FROM assignments WHERE assignment_id = $1 RETURNING *",
+      [id]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ message: "Assignment not found" });
+    }
+
+    res.json({ message: "Assignment deleted successfully" });
+  } catch (error) {
+    console.error(`Error deleting assignment ${id}:`, error);
+    res.status(500).json({
+      message: "Failed to delete assignment",
+      error: error.message,
+    });
   }
-
-  res.json({ message: "Assignment deleted successfully" });
 });
 
 export const getAssignments = asyncHandler(async (req, res) => {

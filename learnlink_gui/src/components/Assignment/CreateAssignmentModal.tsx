@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import {
   FaTimes,
   FaInfoCircle,
@@ -46,40 +46,12 @@ const CreateAssignmentModal: React.FC<CreateAssignmentModalProps> = ({
     grading_criteria: "",
   });
 
-  const [courses, setCourses] = useState<Course[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [successMsg, setSuccessMsg] = useState("");
   const [errorMsg, setErrorMsg] = useState("");
+  const [courses, setCourses] = useState<Course[]>([]);
 
-  useEffect(() => {
-    // If it's edit mode and we have initial data, populate the form
-    if (isEdit && initialData) {
-      // Format the date string to YYYY-MM-DDThh:mm
-      const dueDate = new Date(initialData.due_date);
-      const year = dueDate.getFullYear();
-      const month = String(dueDate.getMonth() + 1).padStart(2, "0");
-      const day = String(dueDate.getDate()).padStart(2, "0");
-      const hours = String(dueDate.getHours()).padStart(2, "0");
-      const minutes = String(dueDate.getMinutes()).padStart(2, "0");
-      const formattedDate = `${year}-${month}-${day}T${hours}:${minutes}`;
-
-      setFormData({
-        ...initialData,
-        due_date: formattedDate,
-        points: initialData.points || 100,
-        grading_criteria: initialData.grading_criteria || "",
-      });
-    }
-
-    // Load courses where user is admin if not provided
-    if (adminCourses.length === 0) {
-      loadAdminCourses();
-    } else {
-      setCourses(adminCourses);
-    }
-  }, [isEdit, initialData, adminCourses]);
-
-  const loadAdminCourses = async () => {
+  const loadAdminCourses = useCallback(async () => {
     console.log("Loading admin courses");
     setIsLoading(true);
     try {
@@ -92,7 +64,43 @@ const CreateAssignmentModal: React.FC<CreateAssignmentModalProps> = ({
     } finally {
       setIsLoading(false);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    // If it's edit mode and we have initial data, populate the form
+    if (isEdit && initialData) {
+      try {
+        // Format the date string to YYYY-MM-DDThh:mm
+        const dueDate = new Date(initialData.due_date);
+        const year = dueDate.getFullYear();
+        const month = String(dueDate.getMonth() + 1).padStart(2, "0");
+        const day = String(dueDate.getDate()).padStart(2, "0");
+        const hours = String(dueDate.getHours()).padStart(2, "0");
+        const minutes = String(dueDate.getMinutes()).padStart(2, "0");
+        const formattedDate = `${year}-${month}-${day}T${hours}:${minutes}`;
+
+        // Use a single state update to prevent multiple re-renders
+        setFormData({
+          ...initialData,
+          due_date: formattedDate,
+          points: initialData.points || 100,
+          grading_criteria: initialData.grading_criteria || "",
+        });
+      } catch (error) {
+        console.error("Error formatting date:", error);
+      }
+    }
+  }, [isEdit, initialData]); // First useEffect dependencies
+
+  useEffect(() => {
+    if (isEdit) {
+      if (initialData && initialData.course_id) {
+        loadAdminCourses();
+      }
+    } else {
+      loadAdminCourses();
+    }
+  }, [isEdit, initialData, loadAdminCourses]);
 
   const handleInputChange = (
     e: React.ChangeEvent<
@@ -160,95 +168,95 @@ const CreateAssignmentModal: React.FC<CreateAssignmentModalProps> = ({
     console.log("Form validation passed, proceeding with submission");
     setIsLoading(true);
 
-    // First try a direct API call before using the callback
+    // Prepare the data for submission
+    const submissionData = {
+      ...formData,
+      points:
+        typeof formData.points === "string"
+          ? parseInt(formData.points)
+          : formData.points || 100,
+      course_id: formData.course_id.toString(),
+    };
+
     try {
-      console.log("Attempting direct API call to create assignment");
-      const token = localStorage.getItem("token");
-      if (!token) {
-        throw new Error("No authentication token found");
-      }
+      let result;
 
-      const apiUrl = "http://localhost:5001/api/assignments";
-      console.log("API URL:", apiUrl);
-
-      // Format the data for the request
-      const submissionData = {
-        ...formData,
-        points:
-          typeof formData.points === "string"
-            ? parseInt(formData.points)
-            : formData.points || 100,
-        course_id: formData.course_id.toString(),
-      };
-
-      console.log("Sending data:", submissionData);
-
-      const response = await fetch(apiUrl, {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(submissionData),
-      });
-
-      console.log("Direct API response status:", response.status);
-
-      if (response.ok) {
-        const result = await response.json();
+      if (isEdit && initialData && initialData.assignment_id) {
+        // Update existing assignment
         console.log(
-          "Assignment created successfully via direct API call:",
-          result
+          `Updating assignment ${initialData.assignment_id} with data:`,
+          submissionData
         );
-        setSuccessMsg("Assignment created successfully!");
 
-        // Close after a brief delay
-        setTimeout(() => {
-          onClose();
-        }, 1500);
+        const token = localStorage.getItem("token");
+        if (!token) {
+          throw new Error("No authentication token found");
+        }
 
-        return; // Skip the callback
+        const apiUrl = `http://localhost:5001/api/assignments/${initialData.assignment_id}`;
+
+        const response = await fetch(apiUrl, {
+          method: "PUT",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(submissionData),
+        });
+
+        if (response.ok) {
+          result = await response.json();
+          console.log("Assignment updated successfully:", result);
+          setSuccessMsg("Assignment updated successfully!");
+        } else {
+          const errorText = await response.text();
+          console.error("API error:", errorText);
+          throw new Error(`API error: ${response.status} ${errorText}`);
+        }
       } else {
-        const errorText = await response.text();
-        console.error("API error:", errorText);
-        throw new Error(`API error: ${response.status} ${errorText}`);
+        // Create new assignment
+        console.log("Creating new assignment with data:", submissionData);
+
+        const token = localStorage.getItem("token");
+        if (!token) {
+          throw new Error("No authentication token found");
+        }
+
+        const apiUrl = "http://localhost:5001/api/assignments";
+
+        const response = await fetch(apiUrl, {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(submissionData),
+        });
+
+        if (response.ok) {
+          result = await response.json();
+          console.log("Assignment created successfully:", result);
+          setSuccessMsg("Assignment created successfully!");
+        } else {
+          const errorText = await response.text();
+          console.error("API error:", errorText);
+          throw new Error(`API error: ${response.status} ${errorText}`);
+        }
       }
-    } catch (directError) {
-      console.error("Direct API call failed:", directError);
-      // Continue with the regular onSubmit callback as fallback
-    }
 
-    // If direct call failed, try the regular callback
-    try {
-      console.log("About to call onSubmit with data:", formData);
-      // Log what onSubmit is
-      console.log("onSubmit is:", typeof onSubmit, onSubmit);
+      // Call the onSubmit callback to trigger the loadAssignments function
+      onSubmit(result);
 
-      // Prepare the finalized data
-      const submissionData = {
-        ...formData,
-        // Ensure course_id is treated as a string to avoid type issues
-        course_id: formData.course_id.toString(),
-      };
-
-      await onSubmit(submissionData);
-      console.log("onSubmit completed successfully");
-      setSuccessMsg(
-        isEdit
-          ? "Assignment updated successfully!"
-          : "Assignment created successfully!"
-      );
-
-      // Close after a brief delay
-      setTimeout(() => {
-        onClose();
-      }, 1500);
+      // Close the modal after successful submission
+      onClose();
     } catch (error) {
       console.error("Error submitting assignment:", error);
       const errorMessage =
         error instanceof Error ? error.message : "Unknown error";
       console.log("Error details:", errorMessage);
-      setErrorMsg(`Failed to create assignment: ${errorMessage}`);
+      setErrorMsg(
+        `Failed to ${isEdit ? "update" : "create"} assignment: ${errorMessage}`
+      );
       setIsLoading(false);
     }
   };

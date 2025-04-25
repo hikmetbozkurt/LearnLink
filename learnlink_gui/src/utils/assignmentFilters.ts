@@ -56,16 +56,18 @@ export const filterPendingAssignments = (
   return assignments.filter((a) => {
     const dueDate = a.due_date ? parseISO(a.due_date) : new Date();
     const isPastDue = isPast(dueDate);
+    const isSubmitted = ensureBoolean(a.submitted);
+    const isGraded = ensureBoolean(a.graded);
     
     // For admin users, show unsubmitted assignments from courses they manage
     if (isAdminForCourse(a.course_id, adminCourses)) {
-      return !a.submitted && !a.graded && !isPastDue;
+      return !isSubmitted && !isGraded && !isPastDue;
     }
 
     // For regular users, show their unsubmitted assignments from enrolled courses
     return (
-      !a.submitted &&
-      !a.graded &&
+      !isSubmitted &&
+      !isGraded &&
       !isPastDue &&
       userCourses.some(
         (course) => course.course_id.toString() === a.course_id.toString()
@@ -85,21 +87,22 @@ export const filterLateAssignments = (
   return assignments.filter((a) => {
     const dueDate = a.due_date ? parseISO(a.due_date) : new Date();
     const isPastDue = isPast(dueDate);
+    const isSubmitted = ensureBoolean(a.submitted);
     
     // For admins, show assignments that are past due with missing submissions
     if (isAdminForCourse(a.course_id, adminCourses)) {
-      return !a.submitted && isPastDue;
+      return !isSubmitted && isPastDue;
     }
 
     // For regular users, only show their own assignments that are not submitted and past due
-    return !a.submitted && isPastDue && userCourses.some(
+    return !isSubmitted && isPastDue && userCourses.some(
       (course) => course.course_id.toString() === a.course_id.toString()
     );
   });
 };
 
 /**
- * Filters submitted assignments (submitted but not graded)
+ * Filters submitted assignments (submitted but not necessarily graded)
  */
 export const filterSubmittedAssignments = (
   assignments: Assignment[],
@@ -107,14 +110,14 @@ export const filterSubmittedAssignments = (
   adminCourses: Course[]
 ): Assignment[] => {
   return assignments.filter((a) => {
-    // For admin, show all assignments that have at least one non-graded submission
+    // For admins, show all assignments that have at least one submission
     if (isAdminForCourse(a.course_id, adminCourses)) {
-      // Has submissions but not all are graded
-      return a.submission_count && a.submission_count > 0 && !a.graded;
+      return (a.submission_count && a.submission_count > 0);
     }
     
-    // For regular users, only show their own submitted but not graded assignments
-    return a.submitted && !a.graded && userCourses.some(
+    // For regular users, show their own submitted assignments (both graded and ungraded)
+    const isSubmitted = ensureBoolean(a.submitted);
+    return isSubmitted && userCourses.some(
       (course) => course.course_id.toString() === a.course_id.toString()
     );
   });
@@ -129,13 +132,16 @@ export const filterGradedAssignments = (
   adminCourses: Course[]
 ): Assignment[] => {
   return assignments.filter((a) => {
+    const isSubmitted = ensureBoolean(a.submitted);
+    const isGraded = ensureBoolean(a.graded);
+    
     // For admins, show all graded assignments from courses they manage
     if (isAdminForCourse(a.course_id, adminCourses)) {
-      return a.graded;
+      return isGraded;
     }
 
     // For regular users, show only their graded assignments
-    return a.submitted && a.graded && userCourses.some(
+    return isSubmitted && isGraded && userCourses.some(
       (course) => course.course_id.toString() === a.course_id.toString()
     );
   });

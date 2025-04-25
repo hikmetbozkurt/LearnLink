@@ -129,6 +129,13 @@ const AssignmentsPage: React.FC = () => {
     setCurrentPage(1);
   }, [activeTab, selectedCourse, searchQuery]);
 
+  // Refresh assignments when the create modal is closed
+  useEffect(() => {
+    if (!showCreateModal) {
+      loadAssignments();
+    }
+  }, [showCreateModal]);
+
   // Set up auto-refresh for assignments
   useEffect(() => {
     // Refresh assignments every 5 minutes to keep data fresh
@@ -169,25 +176,20 @@ const AssignmentsPage: React.FC = () => {
   const loadAssignments = async () => {
     setIsLoading(true);
     try {
-      if (process.env.NODE_ENV === "development") {
-        console.log(
-          "Loading assignments for courses:",
-          userCourses.map((c) => c.title)
-        );
-      }
-
       // Get assignments for all courses user is a member of
       const courseIds = userCourses.map((course) => course.course_id);
+
+      if (courseIds.length === 0) {
+        console.warn("No course IDs found for user, can't load assignments");
+        setAssignments([]);
+        setIsLoading(false);
+        return;
+      }
+
       const allAssignments = await assignmentService.getAssignmentsByCourses(
         courseIds
       );
 
-      if (process.env.NODE_ENV === "development") {
-        console.log(
-          `Loaded ${allAssignments.length} assignments`,
-          allAssignments
-        );
-      }
       setAssignments(allAssignments);
     } catch (error) {
       console.error("Error loading assignments:", error);
@@ -228,23 +230,9 @@ const AssignmentsPage: React.FC = () => {
         points: a.points || 100,
       };
 
-      // Debug log each assignment's submission and grading status
-      if (process.env.NODE_ENV === "development") {
-        console.log(
-          `Assignment ${a.assignment_id} - submitted: ${
-            processedAssignment.submitted
-          }, graded: ${
-            processedAssignment.graded
-          }, type=${typeof processedAssignment.submitted}/${typeof processedAssignment.graded}`
-        );
-      }
-
       return processedAssignment;
     });
 
-    if (process.env.NODE_ENV === "development") {
-      console.log("Processed assignments:", processedAssignments);
-    }
     setFilteredAssignments(processedAssignments);
 
     // Update total pages
@@ -265,15 +253,6 @@ const AssignmentsPage: React.FC = () => {
   const handleCreateAssignment = async (
     assignmentData: Partial<ServiceAssignment>
   ) => {
-    if (process.env.NODE_ENV === "development") {
-      console.log("==== handleCreateAssignment called ====");
-      console.log("Received data:", JSON.stringify(assignmentData));
-      console.log(
-        "User token:",
-        localStorage.getItem("token") ? "Present" : "Missing"
-      );
-    }
-
     try {
       // Only allow creating assignments for courses where user is admin
       if (
@@ -285,9 +264,6 @@ const AssignmentsPage: React.FC = () => {
           "Not an admin for this course:",
           assignmentData.course_id
         );
-        if (process.env.NODE_ENV === "development") {
-          console.log("Available admin courses:", adminCourses);
-        }
         showNotification(
           "You don't have permission to create assignments for this course",
           "error"
@@ -295,35 +271,16 @@ const AssignmentsPage: React.FC = () => {
         return;
       }
 
-      if (process.env.NODE_ENV === "development") {
-        console.log("Admin check passed, attempting to create assignment");
-        console.log("Admin courses:", adminCourses);
-        // Create the assignment
-        console.log(
-          "About to call assignmentService.createAssignment with data:",
-          assignmentData
-        );
-      }
-
       try {
         const result = await assignmentService.createAssignment(assignmentData);
-        if (process.env.NODE_ENV === "development") {
-          console.log("Assignment created successfully:", result);
-        }
 
         // Create a notification for all course members
         try {
-          if (process.env.NODE_ENV === "development") {
-            console.log("Creating notification for assignment");
-          }
           await notificationService.createAssignmentNotification(
             result.course_id,
             result.assignment_id,
             result.title
           );
-          if (process.env.NODE_ENV === "development") {
-            console.log("Notification created successfully");
-          }
         } catch (notificationError) {
           console.error("Error creating notification:", notificationError);
           // Still show success for the assignment, but notify user about the notification issue
@@ -338,13 +295,6 @@ const AssignmentsPage: React.FC = () => {
         loadAssignments();
       } catch (apiError) {
         console.error("API Error in createAssignment:", apiError);
-        if (process.env.NODE_ENV === "development") {
-          console.log("Request details:", {
-            endpoint: "/api/assignments",
-            method: "POST",
-            data: assignmentData,
-          });
-        }
         showNotification(
           `Failed to create assignment: ${
             apiError instanceof Error ? apiError.message : "Unknown error"
