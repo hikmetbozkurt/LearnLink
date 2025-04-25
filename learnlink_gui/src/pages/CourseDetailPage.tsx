@@ -163,7 +163,9 @@ const CourseDetailPage = () => {
         onCreatePost={() => setShowCreatePost(true)}
         onLeaveCourse={handleLeaveCourse}
         onDeleteCourse={handleDeleteCourse}
-        isInstructor={course?.instructor_id === user?.user_id}
+        isInstructor={Boolean(
+          course?.is_admin || course?.instructor_id?.toString() === user?.user_id?.toString()
+        )}
       />
 
       <div className="course-detail-content">
@@ -175,8 +177,9 @@ const CourseDetailPage = () => {
           currentUserId={user?.user_id || user?.id}
           userName={user?.name}
           isAdmin={Boolean(
-            course?.instructor_id?.toString() ===
-              (user?.user_id || user?.id)?.toString() || user?.role === "admin"
+            course?.instructor_id?.toString() === (user?.user_id || user?.id)?.toString() 
+            || course?.is_admin 
+            || user?.role === "admin"
           )}
         />
       </div>

@@ -4,6 +4,7 @@ import "./CourseHeader.css";
 import ConfirmModal from "../ConfirmModal";
 import { useNavigate } from "react-router-dom";
 import { courseService } from "../../services/courseService";
+import { FaTrash, FaSignOutAlt, FaPlus } from "react-icons/fa";
 
 interface CourseHeaderProps {
   course: Course | null;
@@ -62,18 +63,26 @@ const CourseHeader: React.FC<CourseHeaderProps> = ({
             <h1>{course?.title}</h1>
             <div className="action-buttons">
               <button
-                className="delete-course-button"
+                className={isInstructor ? "delete-course-button" : "leave-course-button"}
                 onClick={handleActionClick}
               >
-                {isInstructor ? "Delete Course" : "Leave Course"}
+                {isInstructor ? (
+                  <>
+                    <FaTrash /> Delete Course
+                  </>
+                ) : (
+                  <>
+                    <FaSignOutAlt /> Leave Course
+                  </>
+                )}
               </button>
               <button className="create-post-btn" onClick={onCreatePost}>
-                + Create Post
+                <FaPlus /> Create Post
               </button>
             </div>
           </div>
           <div className="info-row">
-            <span className="admin-label">Admins : </span>
+            <span className="admin-label">Admin: {course?.instructor_name || 'Not specified'}</span>
             <span className="members-label">
               Members: {course?.student_count || 0} Students
             </span>

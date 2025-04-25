@@ -12,10 +12,14 @@ import {
   FaEnvelope
 } from 'react-icons/fa';
 import './Sidebar.css';
-import logo from '../../assets/images/learnlink-logo.png';
+import lightLogo from '../../assets/images/learnlink-logo.png';
+import darkLogo from '../../assets/images/learnlink-logo-dark.png';
+import { useTheme } from '../../context/ThemeContext';
 
 const Sidebar = () => {
   const location = useLocation();
+  const { isDarkMode } = useTheme();
+  const logo = isDarkMode ? darkLogo : lightLogo;
 
   const sections = [
     {

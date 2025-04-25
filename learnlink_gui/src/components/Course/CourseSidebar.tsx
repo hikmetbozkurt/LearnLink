@@ -1,5 +1,5 @@
 import React from "react";
-import { FaSearch, FaPlus } from "react-icons/fa";
+import { FaSearch, FaPlus, FaGraduationCap, FaBookOpen, FaChalkboardTeacher } from "react-icons/fa";
 import { useNavigate, useLocation } from "react-router-dom";
 import { Course } from "../../types/course";
 import "./CourseSidebar.css";
@@ -59,6 +59,7 @@ const CourseSidebar: React.FC<CourseSidebarProps> = ({
           className={`sidebar-item ${activeTab === "dashboard" ? "active" : ""}`}
           onClick={() => handleTabChange("dashboard")}
         >
+          <FaGraduationCap style={{ marginRight: '10px', fontSize: '1.2rem' }} />
           <span>Dashboard</span>
         </div>
         
@@ -67,6 +68,7 @@ const CourseSidebar: React.FC<CourseSidebarProps> = ({
             className={`sidebar-item ${activeTab === "myCourses" ? "active" : ""}`}
             onClick={() => handleTabChange("myCourses")}
           >
+            <FaBookOpen style={{ marginRight: '10px', fontSize: '1.2rem' }} />
             <span>My Courses</span>
           </div>
           
@@ -75,10 +77,13 @@ const CourseSidebar: React.FC<CourseSidebarProps> = ({
               {myCourses.map((course) => (
                 <div
                   key={course.course_id}
-                  className="course-list-item"
+                  className={`course-list-item ${location.pathname.includes(`/courses/${course.course_id}`) ? 'active' : ''}`}
                   onClick={() => handleCourseClick(course.course_id)}
                 >
-                  <span className="course-title">{course.title}</span>
+                  <span className="course-title">
+                    <FaChalkboardTeacher style={{ marginRight: '8px', fontSize: '0.9rem', opacity: '0.8' }} />
+                    {course.title}
+                  </span>
                   {course.is_admin && <span className="admin-badge">Admin</span>}
                 </div>
               ))}

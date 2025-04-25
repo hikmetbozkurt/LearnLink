@@ -3,15 +3,15 @@
   display: flex;
   flex-direction: column;
   height: 100%;
-  background-color: #fff;
+  background-color: var(--background);
   position: relative;
   overflow: hidden;
 }
 
 .course-header {
   padding: 24px;
-  border-bottom: 1px solid #e0e0e0;
-  background-color: #fff;
+  border-bottom: 1px solid var(--border);
+  background-color: var(--header-background);
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -20,14 +20,14 @@
 .course-header h2 {
   margin: 0;
   font-size: 1.5rem;
-  color: #333;
+  color: var(--text-primary);
   font-weight: 600;
 }
 
 .menu-button {
   background: none;
   border: none;
-  color: #666;
+  color: var(--text-secondary);
   cursor: pointer;
   padding: 8px;
   border-radius: 50%;
@@ -35,8 +35,8 @@
 }
 
 .menu-button:hover {
-  background-color: #f0f0f0;
-  color: #333;
+  background-color: var(--hover-background);
+  color: var(--text-primary);
 }
 
 .course-content {
@@ -52,17 +52,17 @@
 }
 
 .course-card {
-  background: white;
+  background: var(--card-background);
   border-radius: 12px;
   overflow: hidden;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 4px 6px var(--shadow);
   transition: all 0.3s ease;
   height: 100%;
 }
 
 .course-card:hover {
   transform: translateY(-4px);
-  box-shadow: 0 8px 12px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 8px 12px var(--shadow);
 }
 
 .card-header {
@@ -89,17 +89,17 @@
 .course-title {
   margin: 0 0 8px;
   font-size: 1.25rem;
-  color: #333;
+  color: var(--text-primary);
 }
 
 .course-instructor {
-  color: #666;
+  color: var(--text-secondary);
   font-size: 0.9rem;
   margin: 0 0 12px;
 }
 
 .course-description {
-  color: #555;
+  color: var(--text-secondary);
   font-size: 0.9rem;
   line-height: 1.5;
   margin: 0 0 16px;
@@ -114,20 +114,20 @@
   justify-content: space-between;
   margin-bottom: 16px;
   padding: 12px 0;
-  border-top: 1px solid #eee;
-  border-bottom: 1px solid #eee;
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
 }
 
 .stat-item {
   display: flex;
   align-items: center;
   gap: 8px;
-  color: #666;
+  color: var(--text-secondary);
   font-size: 0.9rem;
 }
 
 .stat-icon {
-  color: #512da8;
+  color: var(--primary);
 }
 
 .course-progress {
@@ -139,19 +139,19 @@
   justify-content: space-between;
   margin-bottom: 8px;
   font-size: 0.9rem;
-  color: #666;
+  color: var(--text-secondary);
 }
 
 .progress-bar {
   height: 6px;
-  background: #eee;
+  background: var(--surface);
   border-radius: 3px;
   overflow: hidden;
 }
 
 .progress-fill {
   height: 100%;
-  background: #512da8;
+  background: var(--primary);
   border-radius: 3px;
   transition: width 0.3s ease;
 }
@@ -161,7 +161,7 @@
   padding: 12px;
   border: none;
   border-radius: 8px;
-  background-color: #512da8;
+  background-color: var(--primary);
   color: white;
   font-weight: 500;
   cursor: pointer;
@@ -169,34 +169,34 @@
 }
 
 .join-button:hover {
-  background-color: #4527a0;
+  background-color: var(--secondary);
 }
 
 .join-button.full {
-  background-color: #dc3545;
+  background-color: var(--error);
   cursor: not-allowed;
   opacity: 0.8;
 }
 
 .join-button.enrolled {
-  background-color: #28a745;
+  background-color: var(--success);
   cursor: default;
 }
 
 .join-button.enrolled:hover {
-  background-color: #28a745;
+  background-color: var(--success);
 }
 
 .no-courses {
   text-align: center;
   padding: 40px;
-  background: #f8f9fa;
+  background: var(--surface);
   border-radius: 12px;
-  color: #666;
+  color: var(--text-secondary);
 }
 
 .admin-badge {
-  background-color: #512da8;
+  background-color: var(--primary);
   color: white;
   padding: 4px 8px;
   border-radius: 4px;
@@ -223,15 +223,15 @@
 .view-details-button {
   width: 100%;
   padding: 12px;
-  border: 1px solid #512da8;
+  border: 1px solid var(--primary);
   border-radius: 8px;
-  background-color: white;
-  color: #512da8;
+  background-color: transparent;
+  color: var(--primary);
   font-weight: 500;
   cursor: pointer;
   transition: all 0.3s ease;
 }
 
 .view-details-button:hover {
-  background-color: #f0f0f0;
+  background-color: var(--hover-background);
 } 
