@@ -329,14 +329,6 @@ const HomePage = () => {
           </div>
           <div className="section-content activity-stats">
             <div className="activity-item">
-              <FaComments className="activity-icon" />
-              <div className="activity-info">
-                <span className="activity-label">Chatrooms</span>
-                <span className="activity-value">{stats.totalChatrooms}</span>
-              </div>
-            </div>
-            
-            <div className="activity-item">
               <FaUserFriends className="activity-icon" />
               <div className="activity-info">
                 <span className="activity-label">Connections</span>

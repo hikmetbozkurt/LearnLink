@@ -33,15 +33,10 @@ const EventModal: React.FC<EventModalProps> = ({
   selectedDate,
   events
 }) => {
-  console.log("EventModal rendered with", { 
-    isOpen, 
-    selectedDate: selectedDate?.toString(), 
-    eventCount: events?.length,
-    eventsList: events
-  });
-
   const { setShouldRefreshEvents } = useEvent();
-  const [showForm, setShowForm] = useState(false); 
+  // Eğer olay yoksa direkt ekleme formunu göster
+  const [isAddingEvent, setIsAddingEvent] = useState(events.length === 0);
+  const [editingEventId, setEditingEventId] = useState<number | null>(null);
   const [formData, setFormData] = useState<FormData>({
     title: '',
     description: '',
@@ -50,13 +45,39 @@ const EventModal: React.FC<EventModalProps> = ({
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  useEffect(() => {
+    // Modal açıldığında form verilerini sıfırla
+    if (isOpen) {
+      setFormData({
+        title: '',
+        description: '',
+        time: '12:00',
+        type: 'assignment'
+      });
+      
+      // Eğer olay yoksa direkt form göster
+      if (events.length === 0) {
+        setIsAddingEvent(true);
+      }
+    }
+  }, [isOpen, events.length]);
+
   if (!isOpen) return null;
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
     
     try {
+      // Tarih ve saat birleştir
       const dateTime = new Date(selectedDate);
       const [hours, minutes] = formData.time.split(':');
       dateTime.setHours(parseInt(hours, 10), parseInt(minutes, 10));
@@ -68,11 +89,24 @@ const EventModal: React.FC<EventModalProps> = ({
         type: formData.type
       };
 
-      await eventService.createEvent(eventData);
-      console.log('Event created successfully');
-      
+      console.log('Creating event with data:', eventData);
+
+      if (editingEventId) {
+        await eventService.updateEvent(editingEventId, eventData);
+      } else {
+        await eventService.createEvent(eventData);
+      }
+
+      // Form ve modal durumlarını sıfırla
+      setFormData({
+        title: '',
+        description: '',
+        time: '12:00',
+        type: 'assignment'
+      });
+      setIsAddingEvent(false);
+      setEditingEventId(null);
       setShouldRefreshEvents(true);
-      setShowForm(false);
       onClose();
     } catch (error) {
       console.error('Error saving event:', error);
@@ -81,19 +115,17 @@ const EventModal: React.FC<EventModalProps> = ({
     }
   };
 
-  const getEventTypeColor = (type: string) => {
-    const colors: Record<string, string> = {
-      'assignment': '#4CAF50',
-      'exam': '#f44336',
-      'meeting': '#2196F3',
-      'other': '#9C27B0'
-    };
-    return colors[type] || colors.other;
-  };
-
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
+  const getEventTypeColor = (type: Event['type']) => {
+    switch (type) {
+      case 'assignment':
+        return '#4CAF50';
+      case 'exam':
+        return '#f44336';
+      case 'meeting':
+        return '#2196F3';
+      default:
+        return '#9C27B0';
+    }
   };
 
   return (
@@ -103,7 +135,6 @@ const EventModal: React.FC<EventModalProps> = ({
           <div>
             <h2>{format(selectedDate, 'MMMM d, yyyy')}</h2>
             <p>{format(selectedDate, 'EEEE')}</p>
-            <p>Event count: {events.length}</p>
           </div>
           <button className="close-button" onClick={onClose}>
             <FaTimes />
@@ -111,83 +142,16 @@ const EventModal: React.FC<EventModalProps> = ({
         </div>
         
         <div className="event-modal-content">
-          {showForm ? (
-            <form onSubmit={handleSubmit} className="add-event-form">
-              <h3>Add New Event</h3>
-              <div className="form-group">
-                <label htmlFor="title">Title</label>
-                <input 
-                  type="text" 
-                  id="title" 
-                  name="title" 
-                  value={formData.title} 
-                  onChange={handleChange} 
-                  required 
-                />
-              </div>
+          {!isAddingEvent ? (
+            <>
+              <button 
+                className="add-event-button" 
+                onClick={() => setIsAddingEvent(true)}
+              >
+                <FaPlus /> Add Event
+              </button>
               
-              <div className="form-group">
-                <label htmlFor="description">Description</label>
-                <textarea 
-                  id="description" 
-                  name="description" 
-                  value={formData.description} 
-                  onChange={handleChange} 
-                  required 
-                />
-              </div>
-              
-              <div className="form-group">
-                <label htmlFor="time">Time</label>
-                <input 
-                  type="time" 
-                  id="time" 
-                  name="time" 
-                  value={formData.time} 
-                  onChange={handleChange} 
-                  required 
-                />
-              </div>
-              
-              <div className="form-group">
-                <label htmlFor="type">Type</label>
-                <select 
-                  id="type" 
-                  name="type" 
-                  value={formData.type} 
-                  onChange={handleChange}
-                >
-                  <option value="assignment">Assignment</option>
-                  <option value="exam">Exam</option>
-                  <option value="meeting">Meeting</option>
-                  <option value="other">Other</option>
-                </select>
-              </div>
-              
-              <div className="form-actions">
-                <button 
-                  type="button" 
-                  onClick={() => setShowForm(false)} 
-                  className="cancel-button"
-                >
-                  Cancel
-                </button>
-                <button 
-                  type="submit" 
-                  className="submit-button" 
-                  disabled={isSubmitting}
-                >
-                  {isSubmitting ? 'Saving...' : 'Add Event'}
-                </button>
-              </div>
-            </form>
-          ) : (
-            <div>
-              <h3>Events for {format(selectedDate, 'MMMM d, yyyy')}</h3>
-              
-              {events.length === 0 ? (
-                <p className="no-events-message">No events scheduled for this day.</p>
-              ) : (
+              {events.length > 0 ? (
                 <div className="events-list">
                   {events.map(event => (
                     <div key={event.id} className="event-item">
@@ -196,26 +160,107 @@ const EventModal: React.FC<EventModalProps> = ({
                         style={{ backgroundColor: getEventTypeColor(event.type) }}
                       />
                       <div className="event-details">
-                        <h4>{event.title}</h4>
-                        <p>{event.description}</p>
-                        <p className="event-time">
-                          <FaClock /> {format(new Date(event.date), 'h:mm a')}
-                        </p>
+                        <h3>{event.title}</h3>
+                        <p className="event-description">{event.description}</p>
+                        <div className="event-meta">
+                          <span>
+                            <FaCalendar /> {format(new Date(event.date), 'MMM d, yyyy')}
+                          </span>
+                          <span>
+                            <FaClock /> {format(new Date(event.date), 'h:mm a')}
+                          </span>
+                          <span className="event-type">
+                            <FaInfoCircle /> {event.type.charAt(0).toUpperCase() + event.type.slice(1)}
+                          </span>
+                        </div>
                       </div>
                     </div>
                   ))}
                 </div>
+              ) : (
+                <div className="no-events">
+                  <p>No events scheduled for this day</p>
+                </div>
               )}
+            </>
+          ) : (
+            <form onSubmit={handleSubmit} className="add-event-form event-modal-form">
+              <div className="form-group">
+                <label htmlFor="title">Event Title</label>
+                <input
+                  type="text"
+                  id="title"
+                  name="title"
+                  value={formData.title}
+                  onChange={handleInputChange}
+                  required
+                />
+              </div>
               
-              <div className="add-event-button-container">
-                <button 
-                  className="add-event-button"
-                  onClick={() => setShowForm(true)}
+              <div className="form-group">
+                <label htmlFor="description">Description</label>
+                <textarea
+                  id="description"
+                  name="description"
+                  value={formData.description}
+                  onChange={handleInputChange}
+                  required
+                />
+              </div>
+              
+              <div className="form-group">
+                <label htmlFor="time">Time</label>
+                <input
+                  type="time"
+                  id="time"
+                  name="time"
+                  value={formData.time}
+                  onChange={handleInputChange}
+                  required
+                />
+              </div>
+              
+              <div className="form-group">
+                <label htmlFor="type">Event Type</label>
+                <select
+                  id="type"
+                  name="type"
+                  value={formData.type}
+                  onChange={handleInputChange}
                 >
-                  <FaPlus /> Add Event
+                  <option value="assignment">Assignment</option>
+                  <option value="exam">Exam</option>
+                  <option value="meeting">Meeting</option>
+                  <option value="other">Other</option>
+                </select>
+              </div>
+              
+              <div className="form-actions button-group">
+                <button
+                  type="button"
+                  onClick={() => {
+                    // Eğer etkinlik varsa listeye dön, yoksa modalı kapat
+                    if (events.length > 0) {
+                      setIsAddingEvent(false);
+                    } else {
+                      onClose();
+                    }
+                  }}
+                  className="cancel-button"
+                  disabled={isSubmitting}
+                >
+                  {events.length > 0 ? 'Back to Events' : 'Cancel'}
+                </button>
+                
+                <button 
+                  type="submit" 
+                  className="submit-button"
+                  disabled={isSubmitting}
+                >
+                  {isSubmitting ? 'Saving...' : (editingEventId ? 'Update Event' : 'Add Event')}
                 </button>
               </div>
-            </div>
+            </form>
           )}
         </div>
       </div>

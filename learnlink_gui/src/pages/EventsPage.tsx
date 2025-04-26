@@ -114,23 +114,13 @@ const EventsPage: React.FC = () => {
 
   const loadEvents = async () => {
     try {
-      console.log('Loading events...');
       const fetchedEvents = await eventService.getAllEvents();
-      console.log('Events loaded:', fetchedEvents);
-      console.log('Browser Timezone:', Intl.DateTimeFormat().resolvedOptions().timeZone);
+      console.log('Events loaded:', fetchedEvents.length);
       
       const formattedEvents = fetchedEvents.map(event => {
         // Parse the UTC date and add 3 hours for Turkey timezone
         const utcDate = new Date(event.date);
         const localDate = new Date(utcDate.getTime() + (3 * 60 * 60 * 1000));
-        
-        console.log('Event Processing:', {
-          eventId: event.event_id,
-          originalDate: event.date,
-          utcDate,
-          localDate,
-          displayTime: format(localDate, 'HH:mm')
-        });
         
         return {
           id: event.event_id,
@@ -145,7 +135,6 @@ const EventsPage: React.FC = () => {
         };
       });
 
-      console.log('Formatted events:', formattedEvents);
       setEvents(formattedEvents);
       await checkTodayEvents(formattedEvents);
     } catch (error) {
@@ -167,11 +156,9 @@ const EventsPage: React.FC = () => {
 
   useEffect(() => {
     if (selectedEventDate) {
-      console.log('Selected event date changed:', selectedEventDate);
       const dayEvents = events.filter(event => 
         isSameDay(new Date(event.date), selectedEventDate)
       );
-      console.log('Events for selected date:', dayEvents);
       setSelectedDate(selectedEventDate);
       setSelectedEvents(dayEvents);
       setIsModalOpen(true);
@@ -180,26 +167,13 @@ const EventsPage: React.FC = () => {
   }, [selectedEventDate, events]);
 
   const handleDayClick = (date: Date, dayEvents: CalendarEvent[]) => {
-    console.log('Day clicked:', date, 'with events:', dayEvents);
-    
-    // Tıklanan günün olaylarını bulalım
+    // Seçilen günün eventlerini bul
     const matchingEvents = events.filter(event => 
       isSameDay(new Date(event.date), date)
     );
     
-    // Debug log ekleyelim
-    console.log('Matching events for selected day:', { 
-      date: date.toDateString(),
-      eventCount: matchingEvents.length, 
-      events: matchingEvents 
-    });
-    
-    // Seçilen tarihi ve olayları güncelleyelim
     setSelectedDate(date);
     setSelectedEvents(matchingEvents);
-    
-    // Modalı açalım
-    console.log('Opening modal with:', { date, eventsLength: matchingEvents.length });
     setIsModalOpen(true);
   };
 
@@ -230,7 +204,6 @@ const EventsPage: React.FC = () => {
           selectedDate={selectedDate}
           events={selectedEvents}
           onClose={() => {
-            console.log('Closing modal');
             setIsModalOpen(false);
             loadEvents(); // Refresh events when modal closes
           }}
