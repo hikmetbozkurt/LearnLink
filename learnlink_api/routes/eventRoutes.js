@@ -5,7 +5,8 @@ import {
     getEvents,
     updateEvent,
     deleteEvent,
-    deletePastEvents
+    deletePastEvents,
+    getUpcomingEvents
 } from '../controllers/eventController.js';
 
 const router = express.Router();
@@ -18,6 +19,9 @@ router.post('/', createEvent);
 
 // Get all events
 router.get('/', getEvents);
+
+// Get upcoming events for a specific user
+router.get('/upcoming/:userId', getUpcomingEvents);
 
 // Update an event
 router.put('/:event_id', updateEvent);

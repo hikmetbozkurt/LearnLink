@@ -6,7 +6,7 @@ import { NotificationContext } from '../contexts/NotificationContext';
 import { useEvent } from '../contexts/EventContext';
 import { format, isToday, startOfDay, isSameDay, parseISO, addMinutes } from 'date-fns';
 import '../styles/pages/events.css';
-import axios from 'axios';
+import api from '../api/axiosConfig';
 import { NotificationBellRef } from '../components/NotificationBell';
 
 // Calendar expects this type of Event
@@ -41,20 +41,26 @@ const EventsPage: React.FC = () => {
       const token = localStorage.getItem('token');
       if (!token) return;
 
-      const userId = localStorage.getItem('userId');
-      if (!userId) return;
+      const userString = localStorage.getItem('user');
+      if (!userString) return;
+      
+      const user = JSON.parse(userString);
+      const userId = user.user_id || user.id;
+      
+      if (!userId) {
+        console.error('No user ID found');
+        return;
+      }
 
       const time = format(event.date, 'HH:mm');
       const content = `You have a ${event.type} today at ${time}: ${event.title}`;
 
       // Create notification in the backend
-      await axios.post('/api/notifications', {
-        recipient_id: parseInt(userId),
+      await api.post('/api/notifications', {
+        recipient_id: parseInt(userId.toString()),
         content: content,
         type: 'event',
         reference_id: event.id
-      }, {
-        headers: { Authorization: `Bearer ${token}` }
       });
 
       // Add notification to the notification bell
@@ -75,9 +81,6 @@ const EventsPage: React.FC = () => {
       showNotification(content, 'success');
     } catch (error) {
       console.error('Error creating notification:', error);
-      if (axios.isAxiosError(error)) {
-        console.error('Notification creation error details:', error.response?.data);
-      }
     }
   };
 
@@ -110,11 +113,10 @@ const EventsPage: React.FC = () => {
   };
 
   const loadEvents = async () => {
-    const token = localStorage.getItem('token');
-    if (!token) return;
-
     try {
+      console.log('Loading events...');
       const fetchedEvents = await eventService.getAllEvents();
+      console.log('Events loaded:', fetchedEvents);
       console.log('Browser Timezone:', Intl.DateTimeFormat().resolvedOptions().timeZone);
       
       const formattedEvents = fetchedEvents.map(event => {
@@ -143,12 +145,11 @@ const EventsPage: React.FC = () => {
         };
       });
 
+      console.log('Formatted events:', formattedEvents);
       setEvents(formattedEvents);
       await checkTodayEvents(formattedEvents);
     } catch (error) {
-      if (axios.isAxiosError(error)) {
-        console.error('Error loading events:', error.response?.data);
-      }
+      console.error('Error loading events:', error);
     }
   };
 
@@ -166,9 +167,11 @@ const EventsPage: React.FC = () => {
 
   useEffect(() => {
     if (selectedEventDate) {
+      console.log('Selected event date changed:', selectedEventDate);
       const dayEvents = events.filter(event => 
         isSameDay(new Date(event.date), selectedEventDate)
       );
+      console.log('Events for selected date:', dayEvents);
       setSelectedDate(selectedEventDate);
       setSelectedEvents(dayEvents);
       setIsModalOpen(true);
@@ -177,12 +180,26 @@ const EventsPage: React.FC = () => {
   }, [selectedEventDate, events]);
 
   const handleDayClick = (date: Date, dayEvents: CalendarEvent[]) => {
-    // Convert CalendarEvent[] back to Event[]
+    console.log('Day clicked:', date, 'with events:', dayEvents);
+    
+    // Tıklanan günün olaylarını bulalım
     const matchingEvents = events.filter(event => 
-      dayEvents.some(dayEvent => dayEvent.id === event.id)
+      isSameDay(new Date(event.date), date)
     );
+    
+    // Debug log ekleyelim
+    console.log('Matching events for selected day:', { 
+      date: date.toDateString(),
+      eventCount: matchingEvents.length, 
+      events: matchingEvents 
+    });
+    
+    // Seçilen tarihi ve olayları güncelleyelim
     setSelectedDate(date);
     setSelectedEvents(matchingEvents);
+    
+    // Modalı açalım
+    console.log('Opening modal with:', { date, eventsLength: matchingEvents.length });
     setIsModalOpen(true);
   };
 
@@ -212,7 +229,11 @@ const EventsPage: React.FC = () => {
           isOpen={isModalOpen}
           selectedDate={selectedDate}
           events={selectedEvents}
-          onClose={() => setIsModalOpen(false)}
+          onClose={() => {
+            console.log('Closing modal');
+            setIsModalOpen(false);
+            loadEvents(); // Refresh events when modal closes
+          }}
         />
       )}
     </div>

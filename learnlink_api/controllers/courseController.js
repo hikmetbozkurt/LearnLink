@@ -286,3 +286,56 @@ export const getCourseCompletionStats = asyncHandler(async (req, res) => {
     res.status(500).json({ message: 'Failed to fetch user course statistics' });
   }
 });
+
+export const getUserCourses = asyncHandler(async (req, res) => {
+  try {
+    let { userId } = req.params;
+    
+    console.log(`[getUserCourses] Request received for userId: ${userId}, type: ${typeof userId}`);
+    
+    if (!userId) {
+      console.log('[getUserCourses] No userId provided');
+      return res.status(400).json({ message: "User ID is required" });
+    }
+
+    // Convert userId to number if it's a string
+    if (typeof userId === 'string') {
+      userId = parseInt(userId, 10);
+      console.log(`[getUserCourses] Converted userId to number: ${userId}`);
+      
+      if (isNaN(userId)) {
+        console.log('[getUserCourses] Invalid userId (not a number)');
+        return res.status(400).json({ message: "Invalid user ID" });
+      }
+    }
+
+    // Get courses where the user is enrolled or is the instructor
+    const query = `
+      SELECT DISTINCT 
+        c.*,
+        u.name as instructor_name,
+        CASE WHEN c.instructor_id = $1 THEN true ELSE false END as is_admin
+      FROM courses c
+      JOIN users u ON c.instructor_id = u.user_id
+      LEFT JOIN enrollments e ON c.course_id = e.course_id
+      WHERE c.instructor_id = $1 OR e.user_id = $1
+    `;
+    
+    console.log(`[getUserCourses] Executing query with userId: ${userId}`);
+    console.log(`[getUserCourses] Query: ${query}`);
+    
+    const result = await pool.query(query, [userId]);
+    
+    console.log(`[getUserCourses] Query result rows: ${result.rows.length}`);
+    
+    res.json(result.rows);
+  } catch (error) {
+    console.error("Error fetching user courses:", error);
+    console.error("Error stack:", error.stack);
+    res.status(500).json({ 
+      message: "Failed to fetch courses",
+      error: error.message,
+      stack: error.stack
+    });
+  }
+});

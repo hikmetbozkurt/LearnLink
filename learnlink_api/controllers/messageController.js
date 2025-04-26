@@ -90,3 +90,54 @@ export const getUserMessageStats = asyncHandler(async (req, res) => {
     res.status(500).json({ message: 'Failed to fetch user message statistics' });
   }
 });
+
+export const getUserMessageStatsByUserId = asyncHandler(async (req, res) => {
+  try {
+    let { userId } = req.params;
+    
+    console.log(`[getUserMessageStatsByUserId] Request received for userId: ${userId}, type: ${typeof userId}`);
+    
+    if (!userId) {
+      console.log('[getUserMessageStatsByUserId] No userId provided');
+      return res.status(400).json({ message: 'User ID is required' });
+    }
+
+    // Convert userId to number if it's a string
+    if (typeof userId === 'string') {
+      userId = parseInt(userId, 10);
+      console.log(`[getUserMessageStatsByUserId] Converted userId to number: ${userId}`);
+      
+      if (isNaN(userId)) {
+        console.log('[getUserMessageStatsByUserId] Invalid userId (not a number)');
+        return res.status(400).json({ message: 'Invalid user ID' });
+      }
+    }
+
+    // Get total message count for the user (sent and received)
+    const query = `
+      SELECT 
+        COUNT(*) as total
+      FROM messages
+      WHERE sender_id = $1 OR recipient_id = $1
+    `;
+    
+    console.log(`[getUserMessageStatsByUserId] Executing query with userId: ${userId}`);
+    
+    const result = await pool.query(query, [userId]);
+    
+    const total = parseInt(result.rows[0]?.total || 0);
+    console.log(`[getUserMessageStatsByUserId] Found ${total} messages for user ${userId}`);
+    
+    res.json({ 
+      total: total
+    });
+  } catch (error) {
+    console.error('Error fetching user message statistics by userId:', error);
+    console.error('Error stack:', error.stack);
+    res.status(500).json({ 
+      message: 'Failed to fetch user message statistics',
+      error: error.message,
+      stack: error.stack
+    });
+  }
+});

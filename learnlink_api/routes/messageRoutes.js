@@ -6,7 +6,8 @@ import {
   updateMessage,
   deleteMessage,
   getAllMessages,
-  getUserMessageStats
+  getUserMessageStats,
+  getUserMessageStatsByUserId
 } from '../controllers/messageController.js';
 import { sendDirectMessage } from '../controllers/directMessageController.js';
 
@@ -15,8 +16,9 @@ const router = express.Router();
 // All routes require authentication
 router.use(authenticateToken);
 
-// Stats route
+// Stats routes
 router.get('/stats/user-messages', getUserMessageStats);
+router.get('/stats/:userId', getUserMessageStatsByUserId);
 
 // Direct message routes
 router.post('/direct/:id/messages', sendDirectMessage);
