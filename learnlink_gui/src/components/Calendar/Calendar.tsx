@@ -1,5 +1,17 @@
 import React, { useState } from 'react';
-import { format, addMonths, subMonths, startOfMonth, endOfMonth, eachDayOfInterval, isSameMonth } from 'date-fns';
+import { 
+  format, 
+  addMonths, 
+  subMonths, 
+  startOfMonth, 
+  endOfMonth, 
+  eachDayOfInterval,
+  isSameMonth,
+  startOfWeek,
+  endOfWeek,
+  addDays,
+  isSameDay
+} from 'date-fns';
 import { FaChevronLeft, FaChevronRight } from 'react-icons/fa';
 import './Calendar.css';
 
@@ -24,11 +36,14 @@ const Calendar: React.FC<CalendarProps> = ({ events, onDayClick }) => {
 
   const monthStart = startOfMonth(currentDate);
   const monthEnd = endOfMonth(currentDate);
-  const daysInMonth = eachDayOfInterval({ start: monthStart, end: monthEnd });
+  const calendarStart = startOfWeek(monthStart, { weekStartsOn: 1 }); // Pazartesi başlangıç
+  const calendarEnd = endOfWeek(monthEnd, { weekStartsOn: 1 }); // Pazartesi başlangıç
+
+  const calendarDays = eachDayOfInterval({ start: calendarStart, end: calendarEnd });
 
   const getEventsForDay = (date: Date): Event[] => {
     return events.filter(event => 
-      format(new Date(event.date), 'yyyy-MM-dd') === format(date, 'yyyy-MM-dd')
+      isSameDay(new Date(event.date), date)
     );
   };
 
@@ -78,7 +93,7 @@ const Calendar: React.FC<CalendarProps> = ({ events, onDayClick }) => {
           ))}
         </div>
         <div className="calendar-days">
-          {daysInMonth.map((date, idx) => {
+          {calendarDays.map((date, idx) => {
             const dayEvents = getEventsForDay(date);
             return (
               <div

@@ -4,7 +4,14 @@ import pool from '../config/database.js';
 export const getAllMessages = asyncHandler(async (req, res) => {
   const userId = req.user.user_id;
   const result = await pool.query(
-    'SELECT * FROM messages WHERE sender_id = $1 OR recipient_id = $1 ORDER BY created_at DESC',
+    `SELECT m.* FROM messages m
+     LEFT JOIN direct_messages dm ON m.dm_id = dm.id
+     WHERE m.sender_id = $1 
+     OR (m.dm_id IS NOT NULL AND (dm.user1_id = $1 OR dm.user2_id = $1))
+     OR m.chatroom_id IN (
+        SELECT chatroom_id FROM chatroom_members WHERE user_id = $1
+     )
+     ORDER BY m.created_at DESC`,
     [userId]
   );
   res.json(result.rows);
@@ -15,7 +22,15 @@ export const getMessage = asyncHandler(async (req, res) => {
   const userId = req.user.user_id;
   
   const result = await pool.query(
-    'SELECT * FROM messages WHERE message_id = $1 AND (sender_id = $2 OR recipient_id = $2)',
+    `SELECT m.* FROM messages m
+     LEFT JOIN direct_messages dm ON m.dm_id = dm.id
+     WHERE m.id = $1 AND (
+        m.sender_id = $2 
+        OR (m.dm_id IS NOT NULL AND (dm.user1_id = $2 OR dm.user2_id = $2))
+        OR m.chatroom_id IN (
+           SELECT chatroom_id FROM chatroom_members WHERE user_id = $2
+        )
+     )`,
     [id, userId]
   );
   
@@ -27,12 +42,17 @@ export const getMessage = asyncHandler(async (req, res) => {
 });
 
 export const createMessage = asyncHandler(async (req, res) => {
-  const { recipient_id, content } = req.body;
+  const { chatroom_id, dm_id, content } = req.body;
   const userId = req.user.user_id;
   
+  // Validate that either chatroom_id or dm_id is provided
+  if (!chatroom_id && !dm_id) {
+    return res.status(400).json({ message: 'Either chatroom_id or dm_id must be provided' });
+  }
+  
   const result = await pool.query(
-    'INSERT INTO messages (sender_id, recipient_id, content) VALUES ($1, $2, $3) RETURNING *',
-    [userId, recipient_id, content]
+    'INSERT INTO messages (sender_id, chatroom_id, dm_id, content) VALUES ($1, $2, $3, $4) RETURNING *',
+    [userId, chatroom_id || null, dm_id || null, content]
   );
   
   res.status(201).json(result.rows[0]);
@@ -44,7 +64,7 @@ export const updateMessage = asyncHandler(async (req, res) => {
   const { content } = req.body;
   
   const result = await pool.query(
-    'UPDATE messages SET content = $1 WHERE message_id = $2 AND sender_id = $3 RETURNING *',
+    'UPDATE messages SET content = $1 WHERE id = $2 AND sender_id = $3 RETURNING *',
     [content, id, userId]
   );
   
@@ -60,7 +80,7 @@ export const deleteMessage = asyncHandler(async (req, res) => {
   const userId = req.user.user_id;
   
   const result = await pool.query(
-    'DELETE FROM messages WHERE message_id = $1 AND sender_id = $2 RETURNING *',
+    'DELETE FROM messages WHERE id = $1 AND sender_id = $2 RETURNING *',
     [id, userId]
   );
   
@@ -88,5 +108,61 @@ export const getUserMessageStats = asyncHandler(async (req, res) => {
   } catch (error) {
     console.error('Error fetching user message statistics:', error);
     res.status(500).json({ message: 'Failed to fetch user message statistics' });
+  }
+});
+
+export const getUserMessageStatsByUserId = asyncHandler(async (req, res) => {
+  try {
+    let { userId } = req.params;
+    
+    console.log(`[getUserMessageStatsByUserId] Request received for userId: ${userId}, type: ${typeof userId}`);
+    
+    if (!userId) {
+      console.log('[getUserMessageStatsByUserId] No userId provided');
+      return res.status(400).json({ message: 'User ID is required' });
+    }
+
+    // Convert userId to number if it's a string
+    if (typeof userId === 'string') {
+      userId = parseInt(userId, 10);
+      console.log(`[getUserMessageStatsByUserId] Converted userId to number: ${userId}`);
+      
+      if (isNaN(userId)) {
+        console.log('[getUserMessageStatsByUserId] Invalid userId (not a number)');
+        return res.status(400).json({ message: 'Invalid user ID' });
+      }
+    }
+
+    // Get total message count for the user (sent messages and received messages in DMs)
+    const query = `
+      SELECT 
+        COUNT(*) as total
+      FROM messages m
+      LEFT JOIN direct_messages dm ON m.dm_id = dm.id
+      WHERE m.sender_id = $1 
+      OR (m.dm_id IS NOT NULL AND (dm.user1_id = $1 OR dm.user2_id = $1))
+      OR m.chatroom_id IN (
+         SELECT chatroom_id FROM chatroom_members WHERE user_id = $1
+      )
+    `;
+    
+    console.log(`[getUserMessageStatsByUserId] Executing query with userId: ${userId}`);
+    
+    const result = await pool.query(query, [userId]);
+    
+    const total = parseInt(result.rows[0]?.total || 0);
+    console.log(`[getUserMessageStatsByUserId] Found ${total} messages for user ${userId}`);
+    
+    res.json({ 
+      total: total
+    });
+  } catch (error) {
+    console.error('Error fetching user message statistics by userId:', error);
+    console.error('Error stack:', error.stack);
+    res.status(500).json({ 
+      message: 'Failed to fetch user message statistics',
+      error: error.message,
+      stack: error.stack
+    });
   }
 });

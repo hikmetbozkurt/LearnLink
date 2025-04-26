@@ -58,6 +58,60 @@ export const getEvents = async (req, res) => {
     }
 };
 
+// Get upcoming events for a specific user
+export const getUpcomingEvents = async (req, res) => {
+    try {
+        let { userId } = req.params;
+        
+        console.log(`[getUpcomingEvents] Request received for userId: ${userId}, type: ${typeof userId}`);
+        
+        if (!userId) {
+            console.log('[getUpcomingEvents] No userId provided');
+            return res.status(400).json({ error: 'User ID is required' });
+        }
+
+        // Convert userId to number if it's a string
+        if (typeof userId === 'string') {
+            userId = parseInt(userId, 10);
+            console.log(`[getUpcomingEvents] Converted userId to number: ${userId}`);
+            
+            if (isNaN(userId)) {
+                console.log('[getUpcomingEvents] Invalid userId (not a number)');
+                return res.status(400).json({ error: 'Invalid user ID' });
+            }
+        }
+
+        console.log(`[getUpcomingEvents] Fetching upcoming events for user: ${userId}`);
+
+        const query = `
+            SELECT *
+            FROM events
+            WHERE (created_by = $1 OR events.course_id IN (
+                SELECT course_id 
+                FROM enrollments 
+                WHERE user_id = $1
+            ))
+            AND date >= NOW()
+            ORDER BY date ASC
+        `;
+        
+        console.log(`[getUpcomingEvents] Executing query with userId: ${userId}`);
+        
+        const result = await pool.query(query, [userId]);
+        console.log(`[getUpcomingEvents] Found ${result.rows.length} upcoming events for user ${userId}`);
+        
+        res.json(result.rows);
+    } catch (error) {
+        console.error('Error fetching upcoming events:', error);
+        console.error('Error stack:', error.stack);
+        res.status(500).json({ 
+            error: 'Failed to fetch upcoming events',
+            details: error.message,
+            stack: error.stack
+        });
+    }
+};
+
 // Update an event
 export const updateEvent = async (req, res) => {
     try {

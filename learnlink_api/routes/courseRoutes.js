@@ -10,12 +10,13 @@ router.use(authenticateToken);
 // Stats route
 router.get("/stats/completion", courseController.getCourseCompletionStats);
 
-// Özel route'ları önce tanımla
+// User-specific routes
 router.get("/my-courses", courseController.getMyCourses);
+router.get("/user/:userId", courseController.getUserCourses);
 router.post("/:courseId/join", courseController.joinCourse);
 router.delete("/:courseId/leave", courseController.leaveCourse);
 
-// Genel route'lar
+// General routes
 router
   .route("/")
   .get(courseController.getAllCourses)

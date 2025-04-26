@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { format } from 'date-fns';
-import { FaTimes, FaCalendar, FaClock, FaInfoCircle } from 'react-icons/fa';
+import { FaTimes, FaCalendar, FaClock, FaInfoCircle, FaPlus } from 'react-icons/fa';
 import './EventModal.css';
 import eventService from '../../services/eventService';
 import { useEvent } from '../../contexts/EventContext';
@@ -34,6 +34,7 @@ const EventModal: React.FC<EventModalProps> = ({
   events
 }) => {
   const { setShouldRefreshEvents } = useEvent();
+  // Eğer olay yoksa direkt ekleme formunu göster
   const [isAddingEvent, setIsAddingEvent] = useState(events.length === 0);
   const [editingEventId, setEditingEventId] = useState<number | null>(null);
   const [formData, setFormData] = useState<FormData>({
@@ -42,6 +43,24 @@ const EventModal: React.FC<EventModalProps> = ({
     time: '12:00',
     type: 'assignment'
   });
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  useEffect(() => {
+    // Modal açıldığında form verilerini sıfırla
+    if (isOpen) {
+      setFormData({
+        title: '',
+        description: '',
+        time: '12:00',
+        type: 'assignment'
+      });
+      
+      // Eğer olay yoksa direkt form göster
+      if (events.length === 0) {
+        setIsAddingEvent(true);
+      }
+    }
+  }, [isOpen, events.length]);
 
   if (!isOpen) return null;
 
@@ -55,12 +74,10 @@ const EventModal: React.FC<EventModalProps> = ({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setIsSubmitting(true);
     
     try {
-      const token = localStorage.getItem('token');
-      if (!token) return;
-
-      // Combine date and time
+      // Tarih ve saat birleştir
       const dateTime = new Date(selectedDate);
       const [hours, minutes] = formData.time.split(':');
       dateTime.setHours(parseInt(hours, 10), parseInt(minutes, 10));
@@ -72,13 +89,15 @@ const EventModal: React.FC<EventModalProps> = ({
         type: formData.type
       };
 
+      console.log('Creating event with data:', eventData);
+
       if (editingEventId) {
         await eventService.updateEvent(editingEventId, eventData);
       } else {
         await eventService.createEvent(eventData);
       }
 
-      // Reset form and states
+      // Form ve modal durumlarını sıfırla
       setFormData({
         title: '',
         description: '',
@@ -91,6 +110,8 @@ const EventModal: React.FC<EventModalProps> = ({
       onClose();
     } catch (error) {
       console.error('Error saving event:', error);
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -121,40 +142,47 @@ const EventModal: React.FC<EventModalProps> = ({
         </div>
         
         <div className="event-modal-content">
-          {events.length > 0 && !isAddingEvent ? (
-            <div className="events-list">
-              {events.map(event => (
-                <div key={event.id} className="event-item">
-                  <div 
-                    className="event-type-indicator"
-                    style={{ backgroundColor: getEventTypeColor(event.type) }}
-                  />
-                  <div className="event-details">
-                    <h3>{event.title}</h3>
-                    <p className="event-description">{event.description}</p>
-                    <div className="event-meta">
-                      <span>
-                        <FaCalendar /> {format(new Date(event.date), 'MMM d, yyyy')}
-                      </span>
-                      <span>
-                        <FaClock /> {format(new Date(event.date), 'h:mm a')}
-                      </span>
-                      <span className="event-type">
-                        <FaInfoCircle /> {event.type.charAt(0).toUpperCase() + event.type.slice(1)}
-                      </span>
+          {!isAddingEvent ? (
+            <>
+              <button 
+                className="add-event-button" 
+                onClick={() => setIsAddingEvent(true)}
+              >
+                <FaPlus /> Add Event
+              </button>
+              
+              {events.length > 0 ? (
+                <div className="events-list">
+                  {events.map(event => (
+                    <div key={event.id} className="event-item">
+                      <div 
+                        className="event-type-indicator"
+                        style={{ backgroundColor: getEventTypeColor(event.type) }}
+                      />
+                      <div className="event-details">
+                        <h3>{event.title}</h3>
+                        <p className="event-description">{event.description}</p>
+                        <div className="event-meta">
+                          <span>
+                            <FaCalendar /> {format(new Date(event.date), 'MMM d, yyyy')}
+                          </span>
+                          <span>
+                            <FaClock /> {format(new Date(event.date), 'h:mm a')}
+                          </span>
+                          <span className="event-type">
+                            <FaInfoCircle /> {event.type.charAt(0).toUpperCase() + event.type.slice(1)}
+                          </span>
+                        </div>
+                      </div>
                     </div>
-                  </div>
+                  ))}
                 </div>
-              ))}
-              <div className="add-event-button-container">
-                <button 
-                  className="add-event-button"
-                  onClick={() => setIsAddingEvent(true)}
-                >
-                  Add Event
-                </button>
-              </div>
-            </div>
+              ) : (
+                <div className="no-events">
+                  <p>No events scheduled for this day</p>
+                </div>
+              )}
+            </>
           ) : (
             <form onSubmit={handleSubmit} className="add-event-form event-modal-form">
               <div className="form-group">
@@ -168,6 +196,7 @@ const EventModal: React.FC<EventModalProps> = ({
                   required
                 />
               </div>
+              
               <div className="form-group">
                 <label htmlFor="description">Description</label>
                 <textarea
@@ -178,6 +207,7 @@ const EventModal: React.FC<EventModalProps> = ({
                   required
                 />
               </div>
+              
               <div className="form-group">
                 <label htmlFor="time">Time</label>
                 <input
@@ -189,6 +219,7 @@ const EventModal: React.FC<EventModalProps> = ({
                   required
                 />
               </div>
+              
               <div className="form-group">
                 <label htmlFor="type">Event Type</label>
                 <select
@@ -203,19 +234,30 @@ const EventModal: React.FC<EventModalProps> = ({
                   <option value="other">Other</option>
                 </select>
               </div>
+              
               <div className="form-actions button-group">
                 <button
                   type="button"
                   onClick={() => {
-                    setIsAddingEvent(false);
-                    setEditingEventId(null);
+                    // Eğer etkinlik varsa listeye dön, yoksa modalı kapat
+                    if (events.length > 0) {
+                      setIsAddingEvent(false);
+                    } else {
+                      onClose();
+                    }
                   }}
                   className="cancel-button"
+                  disabled={isSubmitting}
                 >
-                  Cancel
+                  {events.length > 0 ? 'Back to Events' : 'Cancel'}
                 </button>
-                <button type="submit" className="submit-button">
-                  {editingEventId ? 'Update Event' : 'Add Event'}
+                
+                <button 
+                  type="submit" 
+                  className="submit-button"
+                  disabled={isSubmitting}
+                >
+                  {isSubmitting ? 'Saving...' : (editingEventId ? 'Update Event' : 'Add Event')}
                 </button>
               </div>
             </form>

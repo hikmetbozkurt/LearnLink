@@ -9,6 +9,7 @@ router.use(authenticateToken);
 
 // Chatroom routes
 router.get('/', chatroomController.getAllChatrooms);
+router.get('/user/:userId', chatroomController.getUserChatrooms);
 router.post('/', chatroomController.createChatroom);
 router.post('/:chatroomId/join', chatroomController.joinChatroom);
 router.get('/:chatroomId/messages', chatroomController.getChatroomMessages);

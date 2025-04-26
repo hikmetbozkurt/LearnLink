@@ -22,6 +22,49 @@ export const chatroomController = {
     }
   },
 
+  // Kullanıcının katıldığı chat odalarını getir
+  getUserChatrooms: async (req, res) => {
+    try {
+      const { userId } = req.params;
+      
+      console.log(`Getting chatrooms for user ${userId}`);
+
+      const result = await pool.query(`
+        SELECT c.*, 
+          (SELECT COUNT(*) FROM chatroom_members WHERE chatroom_id = c.id) as member_count,
+          (
+            SELECT json_build_object(
+              'id', m.id,
+              'content', m.content,
+              'created_at', m.created_at,
+              'sender_id', m.sender_id,
+              'sender_name', u.name
+            )
+            FROM messages m
+            JOIN users u ON m.sender_id = u.user_id
+            WHERE m.chatroom_id = c.id
+            ORDER BY m.created_at DESC
+            LIMIT 1
+          ) as last_message
+        FROM chatrooms c
+        JOIN chatroom_members cm ON c.id = cm.chatroom_id
+        WHERE cm.user_id = $1
+        GROUP BY c.id
+        ORDER BY c.last_message_at DESC
+      `, [userId]);
+      
+      // Eğer hiç chatroom yoksa boş array döndür
+      if (result.rows.length === 0) {
+        return res.json([]);
+      }
+      
+      res.json(result.rows);
+    } catch (error) {
+      console.error("Error getting user chatrooms:", error);
+      res.status(500).json({ message: "Failed to get user chatrooms" });
+    }
+  },
+
   // Yeni chat odası oluştur
   createChatroom: async (req, res) => {
     const { name, description } = req.body;

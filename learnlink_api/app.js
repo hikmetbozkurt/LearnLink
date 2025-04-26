@@ -34,6 +34,12 @@ app.use('/uploads', express.static(uploadsPath));
 // Serve static files from uploads folder
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
+// Add request logging middleware
+app.use((req, res, next) => {
+  console.log(`${new Date().toISOString()} - ${req.method} ${req.originalUrl}`);
+  next();
+});
+
 // Routes
 app.use("/api/auth", authRoutes);
 app.use("/api/users", userRoutes);
@@ -47,5 +53,41 @@ app.use("/api", postRoutes);
 app.use("/api", commentRoutes);
 app.use("/api/events", eventRoutes);
 app.use("/api/assignments", assignmentRoutes);
+
+// Add a test route to check API connectivity
+app.get('/api/test', (req, res) => {
+  res.json({ 
+    success: true,
+    message: 'API is working',
+    timestamp: new Date().toISOString()
+  });
+});
+
+// Global error handler
+app.use((err, req, res, next) => {
+  console.error(`Error handling request: ${req.method} ${req.originalUrl}`);
+  console.error('Error details:', err);
+  console.error('Error stack:', err.stack);
+  
+  res.status(err.status || 500).json({
+    error: {
+      message: err.message || 'Internal Server Error',
+      status: err.status || 500,
+      stack: process.env.NODE_ENV === 'development' ? err.stack : undefined
+    }
+  });
+});
+
+// Handle 404 errors
+app.use((req, res) => {
+  console.log(`404 Not Found: ${req.method} ${req.originalUrl}`);
+  res.status(404).json({ 
+    error: {
+      message: 'Not Found',
+      status: 404,
+      path: req.originalUrl
+    }
+  });
+});
 
 export default app;
