@@ -9,27 +9,27 @@
   position: relative;
 }
 
-.page-header {
+.support-container .page-header {
   text-align: center;
   margin-bottom: 2rem;
   padding-bottom: 1.5rem;
   border-bottom: 1px solid var(--border);
 }
 
-.page-title {
+.support-container .page-title {
   font-size: 2rem;
   margin-bottom: 0.5rem;
   color: var(--text-primary);
 }
 
-.page-subtitle {
+.support-container .page-subtitle {
   font-size: 1.1rem;
   color: var(--text-secondary);
   max-width: 800px;
   margin: 0 auto;
 }
 
-.support-content {
+.support-container .support-content {
   display: flex;
   gap: 3%;
   margin-bottom: 3rem;
@@ -38,7 +38,7 @@
 }
 
 /* Category Sidebar */
-.category-sidebar {
+.support-container .category-sidebar {
   flex: 0 0 28%;
   background-color: var(--surface);
   border-radius: 12px;
@@ -49,7 +49,7 @@
   top: 2rem;
 }
 
-.category-sidebar h2 {
+.support-container .category-sidebar h2 {
   font-size: 1.25rem;
   margin-bottom: 1.5rem;
   padding-bottom: 0.75rem;
@@ -57,7 +57,7 @@
   color: var(--text-primary);
 }
 
-.category-item {
+.support-container .category-item {
   display: flex;
   align-items: center;
   gap: 0.75rem;
@@ -71,18 +71,18 @@
   overflow: hidden;
 }
 
-.category-item:hover {
+.support-container .category-item:hover {
   background-color: var(--hover);
   color: var(--text-primary);
 }
 
-.category-item.active {
+.support-container .category-item.active {
   background-color: var(--primary-light);
   color: var(--primary);
   font-weight: 500;
 }
 
-.category-icon {
+.support-container .category-icon {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -90,7 +90,7 @@
   flex-shrink: 0;
 }
 
-.category-title {
+.support-container .category-title {
   font-size: 0.9rem;
   white-space: nowrap;
   text-overflow: ellipsis;
@@ -98,25 +98,25 @@
 }
 
 /* Courses & Learning kategorisi için özel stil */
-.category-item[data-category="courses"] .category-title {
+.support-container .category-item[data-category="courses"] .category-title {
   letter-spacing: -0.02em;
 }
 
 @media (max-width: 1100px) and (min-width: 993px) {
-  .category-title {
+  .support-container .category-title {
     font-size: 0.85rem;
     letter-spacing: -0.02em;
   }
 }
 
 /* FAQ Main Content */
-.faq-main-content {
+.support-container .faq-main-content {
   flex: 1;
   position: relative;
   width: 100%;
 }
 
-.faq-category-section {
+.support-container .faq-category-section {
   background-color: var(--surface);
   border-radius: 12px;
   padding: 4%;
@@ -124,7 +124,7 @@
   width: 100%;
 }
 
-.faq-category-section h2 {
+.support-container .faq-category-section h2 {
   font-size: 1.5rem;
   margin-bottom: 1.5rem;
   color: var(--text-primary);
@@ -132,14 +132,14 @@
   border-bottom: 1px solid var(--border);
 }
 
-.faq-list {
+.support-container .faq-list {
   display: flex;
   flex-direction: column;
   gap: 0;
   margin: 0;
 }
 
-.faq-item {
+.support-container .faq-item {
   background-color: var(--background);
   border-radius: 8px;
   overflow: hidden;
@@ -148,15 +148,15 @@
   margin-bottom: 0.5rem;
 }
 
-.faq-item:last-child {
+.support-container .faq-item:last-child {
   margin-bottom: 0;
 }
 
-.faq-item:hover {
+.support-container .faq-item:hover {
   box-shadow: 0 2px 6px var(--shadow);
 }
 
-.faq-question {
+.support-container .faq-question {
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -168,7 +168,7 @@
   z-index: 1;
 }
 
-.faq-question svg {
+.support-container .faq-question svg {
   font-size: 0.85rem;
   color: var(--text-secondary);
   transition: transform 0.2s ease;
@@ -176,7 +176,7 @@
   margin-left: 10px;
 }
 
-.faq-answer {
+.support-container .faq-answer {
   padding: 0 1.25rem 1.25rem;
   color: var(--text-secondary);
   line-height: 1.6;
@@ -199,7 +199,7 @@
 }
 
 /* Contact Button */
-.contact-button-container {
+.support-container .contact-button-container {
   display: flex;
   justify-content: center;
   margin-top: 2rem;
@@ -207,7 +207,7 @@
   border-top: 1px solid var(--border-light);
 }
 
-.contact-button {
+.support-container .contact-button {
   display: flex;
   align-items: center;
   gap: 0.5rem;
@@ -223,13 +223,13 @@
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
-.contact-button:hover {
+.support-container .contact-button:hover {
   transform: translateY(-2px);
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
 }
 
 /* Support Modal Styles */
-.support-modal-overlay {
+.support-container .support-modal-overlay {
   position: fixed;
   top: 0;
   left: 0;
@@ -244,7 +244,7 @@
   padding: 1rem;
 }
 
-.support-contact-modal {
+.support-container .support-contact-modal {
   background-color: var(--surface);
   border-radius: 15px;
   width: 100%;
@@ -270,7 +270,7 @@
   }
 }
 
-.support-modal-header {
+.support-container .support-modal-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -283,7 +283,7 @@
   height: 60px;
 }
 
-.support-modal-header h2 {
+.support-container .support-modal-header h2 {
   margin: 0;
   font-size: 1.25rem;
   color: var(--text-primary);
@@ -292,7 +292,7 @@
   gap: 0.5rem;
 }
 
-.support-close-button {
+.support-container .support-close-button {
   background: none;
   border: none;
   color: var(--text-secondary);
@@ -308,12 +308,12 @@
   height: 32px;
 }
 
-.support-close-button:hover {
+.support-container .support-close-button:hover {
   color: var(--primary);
   background-color: var(--hover);
 }
 
-.support-modal-content {
+.support-container .support-modal-content {
   padding: 0;
   display: flex;
   flex-direction: column;
@@ -328,7 +328,7 @@
   background-color: var(--surface);
 }
 
-.support-contact-info {
+.support-container .support-contact-info {
   display: flex;
   flex-direction: column;
   gap: 0.4rem;
@@ -339,7 +339,7 @@
   flex-shrink: 0;
 }
 
-.support-contact-item {
+.support-container .support-contact-item {
   display: flex;
   align-items: center;
   gap: 0.6rem;
@@ -350,7 +350,7 @@
   font-size: 0.85rem;
 }
 
-.support-contact-item svg {
+.support-container .support-contact-item svg {
   color: var(--primary);
   font-size: 1rem;
   min-width: 1rem;
@@ -359,13 +359,13 @@
   justify-content: center;
 }
 
-.support-contact-item span {
+.support-container .support-contact-item span {
   font-size: 0.85rem;
   color: var(--text-primary);
   word-break: break-word;
 }
 
-.support-form-container {
+.support-container .support-form-container {
   padding: 0.75rem 1.25rem;
   width: 100%;
   display: flex;
@@ -373,7 +373,7 @@
   flex-grow: 1;
 }
 
-.support-form-container h3 {
+.support-container .support-form-container h3 {
   margin: 0 0 0.75rem 0;
   font-size: 1rem;
   color: var(--text-primary);
@@ -381,7 +381,7 @@
   font-weight: 600;
 }
 
-.support-contact-form {
+.support-container .support-contact-form {
   display: grid;
   gap: 0.85rem;
   max-width: 100%;
@@ -391,13 +391,13 @@
   flex: 1;
 }
 
-.support-form-group {
+.support-container .support-form-group {
   display: flex;
   flex-direction: column;
   gap: 0.25rem;
 }
 
-.support-form-group label {
+.support-container .support-form-group label {
   font-weight: 500;
   color: var(--text-primary);
   font-size: 0.85rem;
@@ -405,8 +405,8 @@
   display: block;
 }
 
-.support-form-group input,
-.support-form-group textarea {
+.support-container .support-form-group input,
+.support-container .support-form-group textarea {
   padding: 0.5rem 0.75rem;
   border: 1px solid var(--border);
   border-radius: 6px;
@@ -418,20 +418,20 @@
   display: block;
 }
 
-.support-form-group input:focus,
-.support-form-group textarea:focus {
+.support-container .support-form-group input:focus,
+.support-container .support-form-group textarea:focus {
   border-color: var(--primary);
   box-shadow: 0 0 0 2px var(--primary-light);
   outline: none;
 }
 
-.support-form-group textarea {
+.support-container .support-form-group textarea {
   min-height: 80px;
   max-height: 100px;
   resize: vertical;
 }
 
-.support-submit-button {
+.support-container .support-submit-button {
   background-color: var(--primary);
   color: white;
   border: none;
@@ -448,25 +448,25 @@
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
-.support-submit-button:hover {
+.support-container .support-submit-button:hover {
   transform: translateY(-1px);
   box-shadow: 0 3px 6px rgba(0, 0, 0, 0.15);
 }
 
 /* Remove contact section styles */
-.contact-section {
+.support-container .contact-section {
   display: none;
 }
 
 /* Support cards (not used in new design, kept for reference) */
-.support-grid {
+.support-container .support-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
   gap: 2rem;
   margin-top: 2rem;
 }
 
-.support-card {
+.support-container .support-card {
   background: var(--surface);
   border-radius: 12px;
   padding: 2rem;
@@ -476,19 +476,19 @@
   height: fit-content;
 }
 
-.support-card:hover {
+.support-container .support-card:hover {
   transform: translateY(-4px);
   box-shadow: 0 4px 12px var(--shadow);
 }
 
-.support-card-header {
+.support-container .support-card-header {
   display: flex;
   align-items: center;
   gap: 1rem;
   margin-bottom: 1rem;
 }
 
-.support-card-icon {
+.support-container .support-card-icon {
   width: 40px;
   height: 40px;
   display: flex;
@@ -500,13 +500,13 @@
   font-size: 1.25rem;
 }
 
-.support-card h3 {
+.support-container .support-card h3 {
   font-size: 1.25rem;
   color: var(--text-primary);
   margin: 0;
 }
 
-.support-card p {
+.support-container .support-card p {
   color: var(--text-secondary);
   margin: 0;
   line-height: 1.5;
@@ -521,7 +521,7 @@
 }
 
 @media (max-width: 1200px) {
-  .category-sidebar {
+  .support-container .category-sidebar {
     flex: 0 0 30%;
   }
 }
@@ -532,40 +532,40 @@
     padding: 2%;
   }
   
-  .support-content {
+  .support-container .support-content {
     gap: 2rem;
     flex-direction: column;
   }
   
-  .category-sidebar {
+  .support-container .category-sidebar {
     flex: auto;
     position: static;
     width: 100%;
     padding: 1.25rem;
   }
   
-  .category-sidebar h2 {
+  .support-container .category-sidebar h2 {
     margin-bottom: 1rem;
   }
   
-  .category-item {
+  .support-container .category-item {
     margin-bottom: 0.25rem;
     padding: 0.5rem 0.75rem;
   }
   
-  .faq-category-section {
+  .support-container .faq-category-section {
     padding: 1.5rem;
   }
   
-  .contact-section {
+  .support-container .contact-section {
     padding: 2rem;
   }
   
-  .contact-form {
+  .support-container .contact-form {
     width: 100%;
   }
   
-  .category-title {
+  .support-container .category-title {
     white-space: normal;
   }
 }
@@ -576,97 +576,97 @@
     padding: 1.5%;
   }
   
-  .page-title {
+  .support-container .page-title {
     font-size: 1.75rem;
   }
   
-  .page-subtitle {
+  .support-container .page-subtitle {
     font-size: 1rem;
   }
   
-  .contact-section {
+  .support-container .contact-section {
     padding: 1.25rem;
   }
   
-  .support-grid {
+  .support-container .support-grid {
     grid-template-columns: 1fr;
   }
   
-  .faq-category-section {
+  .support-container .faq-category-section {
     padding: 1rem;
   }
   
-  .faq-category-section h2 {
+  .support-container .faq-category-section h2 {
     font-size: 1.25rem;
     margin-bottom: 1rem;
   }
   
-  .faq-question {
+  .support-container .faq-question {
     padding: 0.75rem 1rem;
     font-size: 0.95rem;
   }
   
-  .faq-answer {
+  .support-container .faq-answer {
     padding: 0 1rem 1rem;
     font-size: 0.9rem;
   }
   
-  .support-contact-modal {
+  .support-container .support-contact-modal {
     width: 85%;
     height: 70vh;
   }
   
-  .support-modal-header {
+  .support-container .support-modal-header {
     padding: 0.75rem 1rem;
     height: 50px;
   }
   
-  .support-modal-header h2 {
+  .support-container .support-modal-header h2 {
     font-size: 1.1rem;
   }
   
-  .support-modal-content {
+  .support-container .support-modal-content {
     top: 50px; /* Mobil header yüksekliği */
     height: calc(100% - 50px);
   }
   
-  .support-contact-info {
+  .support-container .support-contact-info {
     padding: 0.6rem 1rem;
     gap: 0.3rem;
   }
   
-  .support-contact-item {
+  .support-container .support-contact-item {
     padding: 0.4rem 0.6rem;
   }
   
-  .support-form-container {
+  .support-container .support-form-container {
     padding: 0.6rem 1rem;
   }
   
-  .support-form-container h3 {
+  .support-container .support-form-container h3 {
     font-size: 1rem;
     margin-bottom: 0.6rem;
   }
   
-  .support-contact-form {
+  .support-container .support-contact-form {
     gap: 0.75rem;
   }
   
-  .support-form-group {
+  .support-container .support-form-group {
     gap: 0.2rem;
   }
   
-  .support-form-group label {
+  .support-container .support-form-group label {
     font-size: 0.8rem;
   }
   
-  .support-form-group input,
-  .support-form-group textarea {
+  .support-container .support-form-group input,
+  .support-container .support-form-group textarea {
     padding: 0.4rem 0.6rem;
     font-size: 0.8rem;
   }
   
-  .support-submit-button {
+  .support-container .support-submit-button {
     padding: 0.4rem 0.8rem;
     font-size: 0.85rem;
     margin-top: 0.5rem;
@@ -674,63 +674,63 @@
   }
 }
 
-.faq-icon {
+.support-container .faq-icon {
   display: flex;
   align-items: center;
   justify-content: center;
   transition: transform 0.3s ease;
 }
 
-.faq-icon.rotated {
+.support-container .faq-icon.rotated {
   transform: rotate(180deg);
 }
 
-.faq-question:hover .faq-icon {
+.support-container .faq-question:hover .faq-icon {
   color: var(--primary);
 }
 
 /* Form Styles */
-.contact-form {
+.support-container .contact-form {
   display: none; /* Hide the non-specific form styles */
 }
 
-.form-group {
+.support-container .form-group {
   display: none; /* Hide the non-specific form group styles */
 }
 
-.submit-button {
+.support-container .submit-button {
   display: none; /* Hide the non-specific button styles */
 }
 
 /* Gizle */
-.contact-section, 
-.contact-form, 
-.form-group, 
-.submit-button, 
-.modal-overlay,
-.contact-modal, 
-.modal-header, 
-.modal-content, 
-.contact-info, 
-.contact-item, 
-.contact-form-container, 
-.close-modal-button {
+.support-container .contact-section, 
+.support-container .contact-form, 
+.support-container .form-group, 
+.support-container .submit-button, 
+.support-container .modal-overlay,
+.support-container .contact-modal, 
+.support-container .modal-header, 
+.support-container .modal-content, 
+.support-container .contact-info, 
+.support-container .contact-item, 
+.support-container .contact-form-container, 
+.support-container .close-modal-button {
   display: none !important;
 } 
 
-.support-contact-section {
+.support-container .support-contact-section {
   margin-top: 2rem;
   padding-top: 1.5rem;
   border-top: 1px solid var(--border);
 }
 
-.support-contact-section h3 {
+.support-container .support-contact-section h3 {
   font-size: 1.25rem;
   margin-bottom: 1rem;
   color: var(--text-primary);
 }
 
-.support-contact-info {
+.support-container .support-contact-info {
   display: flex;
   flex-direction: column;
   gap: 0.75rem;
@@ -740,7 +740,7 @@
   box-shadow: 0 1px 3px var(--shadow);
 }
 
-.support-contact-item {
+.support-container .support-contact-item {
   display: flex;
   align-items: center;
   gap: 0.75rem;
@@ -749,38 +749,38 @@
   transition: all 0.2s ease;
 }
 
-.support-contact-item:hover {
+.support-container .support-contact-item:hover {
   background-color: var(--hover);
   border-radius: 6px;
   color: var(--text-primary);
 }
 
-.support-contact-item svg {
+.support-container .support-contact-item svg {
   font-size: 1.1rem;
   color: var(--primary);
 }
 
-.support-contact-item span {
+.support-container .support-contact-item span {
   font-size: 0.95rem;
 }
 
 /* Mobile responsive adjustments */
 @media (max-width: 768px) {
-  .support-contact-section {
+  .support-container .support-contact-section {
     margin-top: 1.5rem;
     padding-top: 1rem;
   }
   
-  .support-contact-section h3 {
+  .support-container .support-contact-section h3 {
     font-size: 1.1rem;
     margin-bottom: 0.75rem;
   }
   
-  .support-contact-info {
+  .support-container .support-contact-info {
     padding: 0.75rem;
   }
   
-  .support-contact-item {
+  .support-container .support-contact-item {
     padding: 0.4rem;
   }
 } 
