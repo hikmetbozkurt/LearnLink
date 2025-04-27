@@ -1,8 +1,8 @@
-import React, { useRef, useEffect } from 'react';
+import React, { useRef, useEffect } from "react";
 import { RiSendPlaneFill } from "react-icons/ri";
 import { FaPaperclip, FaEllipsisV } from "react-icons/fa";
-import api from '../../api/axiosConfig';
-import './ChatArea.css';
+import api from "../../api/axiosConfig";
+import "./ChatArea.css";
 
 interface Message {
   id: number;
@@ -22,9 +22,9 @@ interface ChatAreaProps {
   onNewMessageChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   onSendMessage: () => void;
   formatMessageTime: (timestamp: string) => string;
-  type?: 'chatroom' | 'direct';
-  messagesEndRef?: React.RefObject<HTMLDivElement>;
-  messagesContainerRef?: React.RefObject<HTMLDivElement>;
+  type?: "chatroom" | "direct";
+  messagesEndRef?: React.RefObject<HTMLDivElement | null>;
+  messagesContainerRef?: React.RefObject<HTMLDivElement | null>;
   onScroll?: () => void;
 }
 
@@ -36,27 +36,32 @@ const ChatArea: React.FC<ChatAreaProps> = ({
   onNewMessageChange,
   onSendMessage,
   formatMessageTime,
-  type = 'chatroom',
+  type = "chatroom",
   messagesEndRef,
   messagesContainerRef,
-  onScroll
+  onScroll,
 }) => {
   const handleFileClick = async () => {
     try {
       // File sharing functionality will be implemented later
-      console.log('File sharing will be available soon');
+      console.log("File sharing will be available soon");
     } catch (error) {
-      console.error('Error:', error);
+      console.error("Error:", error);
     }
   };
 
-  const shouldShowTimestamp = (currentMsg: Message, nextMsg: Message | undefined) => {
+  const shouldShowTimestamp = (
+    currentMsg: Message,
+    nextMsg: Message | undefined
+  ) => {
     if (!nextMsg) return true; // Always show for last message
-    
+
     const currentTime = formatMessageTime(currentMsg.created_at);
     const nextTime = formatMessageTime(nextMsg.created_at);
-    
-    return currentTime !== nextTime || currentMsg.sender_id !== nextMsg.sender_id;
+
+    return (
+      currentTime !== nextTime || currentMsg.sender_id !== nextMsg.sender_id
+    );
   };
 
   return (
@@ -67,9 +72,9 @@ const ChatArea: React.FC<ChatAreaProps> = ({
           <FaEllipsisV />
         </button>
       </div>
-      
-      <div 
-        className="messages-container" 
+
+      <div
+        className="messages-container"
         ref={messagesContainerRef as React.LegacyRef<HTMLDivElement>}
         onScroll={onScroll}
       >
@@ -77,19 +82,17 @@ const ChatArea: React.FC<ChatAreaProps> = ({
           const isSelf = message.sender_id === currentUserId;
           const nextMessage = messages[index + 1];
           const showTimestamp = shouldShowTimestamp(message, nextMessage);
-          
+
           return (
             <div
               key={message.id || index}
-              className={`message ${isSelf ? 'message-self' : 'message-other'}`}
+              className={`message ${isSelf ? "message-self" : "message-other"}`}
             >
               <div className="message-content">
                 <div className="message-sender">
-                  {isSelf ? 'You' : message.sender_name}
+                  {isSelf ? "You" : message.sender_name}
                 </div>
-                <div className="message-text">
-                  {message.content}
-                </div>
+                <div className="message-text">{message.content}</div>
                 {showTimestamp && (
                   <div className="message-timestamp">
                     {formatMessageTime(message.created_at)}
@@ -99,16 +102,21 @@ const ChatArea: React.FC<ChatAreaProps> = ({
             </div>
           );
         })}
-        <div ref={messagesEndRef as React.LegacyRef<HTMLDivElement>} className="scroll-anchor" />
+        <div
+          ref={messagesEndRef as React.LegacyRef<HTMLDivElement>}
+          className="scroll-anchor"
+        />
       </div>
 
       <div className="chat-input-area">
-        <form onSubmit={(e) => {
-          e.preventDefault();
-          onSendMessage();
-        }}>
-          <button 
-            type="button" 
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            onSendMessage();
+          }}
+        >
+          <button
+            type="button"
             className="file-button"
             onClick={handleFileClick}
           >
@@ -120,8 +128,8 @@ const ChatArea: React.FC<ChatAreaProps> = ({
             value={newMessage}
             onChange={onNewMessageChange}
           />
-          <button 
-            type="submit" 
+          <button
+            type="submit"
             className="send-button"
             disabled={!newMessage.trim()}
           >
@@ -133,4 +141,4 @@ const ChatArea: React.FC<ChatAreaProps> = ({
   );
 };
 
-export default ChatArea; 
+export default ChatArea;
