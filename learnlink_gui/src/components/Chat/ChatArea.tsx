@@ -23,8 +23,8 @@ interface ChatAreaProps {
   onSendMessage: () => void;
   formatMessageTime: (timestamp: string) => string;
   type?: 'chatroom' | 'direct';
-  messagesEndRef?: React.RefObject<HTMLDivElement | null>;
-  messagesContainerRef?: React.RefObject<HTMLDivElement | null>;
+  messagesEndRef?: React.RefObject<HTMLDivElement>;
+  messagesContainerRef?: React.RefObject<HTMLDivElement>;
   onScroll?: () => void;
 }
 
@@ -70,7 +70,7 @@ const ChatArea: React.FC<ChatAreaProps> = ({
       
       <div 
         className="messages-container" 
-        ref={messagesContainerRef}
+        ref={messagesContainerRef as React.LegacyRef<HTMLDivElement>}
         onScroll={onScroll}
       >
         {messages.map((message, index) => {
@@ -99,7 +99,7 @@ const ChatArea: React.FC<ChatAreaProps> = ({
             </div>
           );
         })}
-        <div ref={messagesEndRef} className="scroll-anchor" />
+        <div ref={messagesEndRef as React.LegacyRef<HTMLDivElement>} className="scroll-anchor" />
       </div>
 
       <div className="chat-input-area">
