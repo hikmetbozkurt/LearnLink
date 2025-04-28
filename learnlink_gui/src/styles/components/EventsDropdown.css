@@ -74,8 +74,8 @@
   padding: 6px 10px;
   border-radius: 4px;
   border: none;
-  background-color: #e3f2fd; /* Soluk mavi */
-  color: #1976d2; /* Koyu mavi */
+  background-color: #ffebee; /* Soluk kırmızı */
+  color: #d32f2f; /* Koyu kırmızı */
   font-size: 0.75rem;
   cursor: pointer;
   transition: all 0.2s;
@@ -83,32 +83,32 @@
 }
 
 .events-dropdown .clear-past-events span {
-  color: #1976d2 !important; /* Koyu mavi */
+  color: #d32f2f; /* Koyu kırmızı */
 }
 
 /* Dark theme adjustments */
 :root[data-theme='dark'] .events-dropdown .clear-past-events {
-  background-color: #3a3169; /* Soluk mor */
-  color: #bb86fc; /* Açık mor */
+  background-color: rgba(211, 47, 47, 0.15); /* Soluk kırmızı (dark) */
+  color: #ef5350; /* Açık kırmızı */
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
 }
 
 /* Dark theme için span rengi */
 :root[data-theme='dark'] .events-dropdown .clear-past-events span {
-  color: #bb86fc !important; /* Açık mor */
+  color: #ef5350; /* Açık kırmızı */
 }
 
 .events-dropdown .clear-past-events:hover {
-  background-color: #bbdefb; /* Daha açık mavi hover durumunda */
-  color: #0d47a1; /* Daha koyu mavi */
+  background-color: #ffcdd2; /* Daha açık kırmızı hover durumunda */
+  color: #b71c1c; /* Daha koyu kırmızı */
   transform: translateY(-1px);
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
 }
 
 /* Dark theme hover state */
 :root[data-theme='dark'] .events-dropdown .clear-past-events:hover {
-  background-color: #4a4179; /* Daha koyu mor hover durumunda */
-  color: #d0bcff; /* Daha açık mor */
+  background-color: rgba(211, 47, 47, 0.25); /* Daha koyu kırmızı hover durumunda */
+  color: #ff8a80; /* Daha açık kırmızı */
 }
 
 .events-dropdown .clear-past-events:active {
@@ -354,84 +354,84 @@
 
 /* Calendar event styles */
 .rbc-event {
-  background-color: #512da8 !important;
-  border: none !important;
-  border-radius: 4px !important;
-  padding: 4px 8px !important;
-  color: white !important;
-  font-size: 13px !important;
+  background-color: #512da8;
+  border: none;
+  border-radius: 4px;
+  padding: 4px 8px;
+  color: white;
+  font-size: 13px;
 }
 
 .rbc-event.rbc-selected {
-  background-color: #4527a0 !important;
+  background-color: #4527a0;
 }
 
 .rbc-event-content {
-  font-size: 13px !important;
-  line-height: 1.4 !important;
-  white-space: nowrap !important;
-  overflow: hidden !important;
-  text-overflow: ellipsis !important;
+  font-size: 13px;
+  line-height: 1.4;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 /* Calendar day view styles */
 .rbc-day-slot .rbc-events-container {
-  margin-right: 0 !important;
+  margin-right: 0;
 }
 
 .rbc-day-slot .rbc-event {
-  border: none !important;
-  padding: 2px 4px !important;
-  margin: 1px 0 !important;
-  min-height: 24px !important;
+  border: none;
+  padding: 2px 4px;
+  margin: 1px 0;
+  min-height: 24px;
 }
 
 .rbc-day-slot .rbc-event-content {
-  font-size: 12px !important;
-  line-height: 1.2 !important;
-  padding: 2px !important;
+  font-size: 12px;
+  line-height: 1.2;
+  padding: 2px;
 }
 
 .rbc-day-slot .rbc-event-label {
-  display: none !important;
+  display: none;
 }
 
 .rbc-event {
-  background-color: #512da8 ;
-  border: none !important;
-  border-radius: 4px !important;
-  color: white !important;
-  font-size: 13px !important;
-  opacity: 0.9 !important;
+  background-color: #512da8;
+  border: none;
+  border-radius: 4px;
+  color: white;
+  font-size: 13px;
+  opacity: 0.9;
 }
 
 .rbc-event:hover {
-  opacity: 1 !important;
+  opacity: 1;
 }
 
 .rbc-event.rbc-selected {
-  opacity: 1 !important;
+  opacity: 1;
 }
 
 .rbc-event-content {
-  font-size: 13px !important;
-  line-height: 1.4 !important;
-  white-space: nowrap !important;
-  overflow: hidden !important;
-  text-overflow: ellipsis !important;
+  font-size: 13px;
+  line-height: 1.4;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 /* Adjust time grid */
 .rbc-time-content {
-  border-top: 1px solid #ddd !important;
+  border-top: 1px solid #ddd;
 }
 
 .rbc-timeslot-group {
-  min-height: 48px !important;
+  min-height: 48px;
 }
 
 .rbc-time-slot {
-  min-height: 24px !important;
+  min-height: 24px;
 }
 
 @keyframes fadeIn {

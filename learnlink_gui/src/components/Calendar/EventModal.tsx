@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { format } from 'date-fns';
-import { FaTimes, FaCalendar, FaClock, FaInfoCircle, FaPlus } from 'react-icons/fa';
+import { FaTimes, FaCalendar, FaClock, FaInfoCircle, FaPlus, FaTrash, FaEdit } from 'react-icons/fa';
 import './EventModal.css';
 import eventService from '../../services/eventService';
 import { useEvent } from '../../contexts/EventContext';
@@ -44,6 +44,7 @@ const EventModal: React.FC<EventModalProps> = ({
     type: 'assignment'
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [deletingEventId, setDeletingEventId] = useState<number | null>(null);
 
   useEffect(() => {
     // Modal açıldığında form verilerini sıfırla
@@ -115,6 +116,41 @@ const EventModal: React.FC<EventModalProps> = ({
     }
   };
 
+  const handleDeleteEvent = async (eventId: number) => {
+    try {
+      setDeletingEventId(eventId);
+      await eventService.deleteEvent(eventId);
+      setShouldRefreshEvents(true);
+      // Event silindikten sonra kısa bir süre bekleyip modalı kapatalım
+      setTimeout(() => {
+        onClose();
+      }, 500);
+    } catch (error) {
+      console.error('Error deleting event:', error);
+    } finally {
+      setDeletingEventId(null);
+    }
+  };
+
+  const handleEditEvent = (event: Event) => {
+    // Event'in zaman bilgisini ayarla (HH:mm formatında)
+    const eventDate = new Date(event.date);
+    const hours = eventDate.getHours().toString().padStart(2, '0');
+    const minutes = eventDate.getMinutes().toString().padStart(2, '0');
+    
+    // Form verilerini seçili event'in verileriyle doldur
+    setFormData({
+      title: event.title,
+      description: event.description,
+      time: `${hours}:${minutes}`,
+      type: event.type
+    });
+    
+    // Edit moduna geç ve editingEventId'yi ayarla
+    setEditingEventId(event.id);
+    setIsAddingEvent(true);
+  };
+
   const getEventTypeColor = (type: Event['type']) => {
     switch (type) {
       case 'assignment':
@@ -167,11 +203,32 @@ const EventModal: React.FC<EventModalProps> = ({
                             <FaCalendar /> {format(new Date(event.date), 'MMM d, yyyy')}
                           </span>
                           <span>
-                            <FaClock /> {format(new Date(event.date), 'h:mm a')}
+                            <FaClock /> {format(new Date(event.date), 'HH:mm')}
                           </span>
                           <span className="event-type">
                             <FaInfoCircle /> {event.type.charAt(0).toUpperCase() + event.type.slice(1)}
                           </span>
+                        </div>
+                        <div className="event-actions">
+                          <button 
+                            className="edit-event-button" 
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleEditEvent(event);
+                            }}
+                          >
+                            <FaEdit /> Edit
+                          </button>
+                          <button 
+                            className="delete-event-button" 
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleDeleteEvent(event.id);
+                            }}
+                            disabled={deletingEventId === event.id}
+                          >
+                            <FaTrash /> {deletingEventId === event.id ? 'Deleting...' : 'Delete'}
+                          </button>
                         </div>
                       </div>
                     </div>
@@ -242,6 +299,7 @@ const EventModal: React.FC<EventModalProps> = ({
                     // Eğer etkinlik varsa listeye dön, yoksa modalı kapat
                     if (events.length > 0) {
                       setIsAddingEvent(false);
+                      setEditingEventId(null); // Düzenleme modundan çıkarken ID'yi sıfırla
                     } else {
                       onClose();
                     }
