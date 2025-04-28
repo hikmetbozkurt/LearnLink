@@ -105,83 +105,99 @@
 }
 
 .event-modal .add-event-button {
-  background-color: var(--primary, #2196f3) !important;
-  color: white !important;
-  border: none !important;
-  border-radius: 4px !important;
-  padding: 10px 20px !important;
-  font-size: 1rem !important;
-  font-weight: 500 !important;
-  cursor: pointer !important;
-  transition: background-color 0.3s !important;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1) !important;
+  background-color: var(--primary);
+  color: white;
+  border: none;
+  border-radius: 4px;
+  padding: 10px 20px;
+  font-size: 1rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  display: block;
+  margin: 0 auto;
 }
 
 .event-modal .add-event-button:hover {
-  background-color: var(--primary-dark, #1976d2) !important;
-  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.15) !important;
+  background-color: var(--secondary);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
 }
 
 /* Dark theme */
 :root[data-theme='dark'] .event-modal .add-event-button {
-  background-color: var(--primary, #1976d2) !important;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3) !important;
+  background-color: var(--primary);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
 }
 
 :root[data-theme='dark'] .event-modal .add-event-button:hover {
-  background-color: var(--primary-dark, #1565c0) !important;
-  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.4) !important;
+  background-color: var(--secondary);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.4);
 }
 
 .event-modal .events-list {
   margin-top: 20px;
+  text-align: center;
 }
 
 .event-modal .event-item {
-  background-color: var(--surface, #fff) !important;
-  border: 1px solid var(--border, #e0e0e0) !important;
-  border-radius: 8px !important;
-  margin-bottom: 16px !important;
-  padding: 16px !important;
-  transition: all 0.2s !important;
+  background-color: var(--surface, #fff);
+  border: 1px solid var(--border, #e0e0e0);
+  border-radius: 8px;
+  margin-bottom: 16px;
+  padding: 16px;
+  transition: all 0.2s;
   display: flex;
-  align-items: flex-start;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
 }
 
 :root[data-theme='dark'] .event-modal .event-item {
-  background-color: var(--surface, #1e1e1e) !important;
-  border-color: var(--border, #333) !important;
+  background-color: var(--surface, #1e1e1e);
+  border-color: var(--border, #333);
 }
 
 .event-modal .event-item-header {
   display: flex;
   margin-bottom: 12px;
+  width: 100%;
+  justify-content: center;
+  padding-top: 10px;
 }
 
 .event-modal .event-type-indicator {
-  width: 4px !important;
-  min-width: 4px !important;
-  align-self: stretch !important;
-  border-radius: 2px !important;
-  margin-right: 12px !important;
+  width: 100%;
+  height: 4px;
+  border-radius: 0;
+  margin-right: 0;
+  position: absolute;
+  top: 0;
+  left: 0;
 }
 
 .event-modal .event-title-section {
   flex: 1;
   display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
+  justify-content: center;
+  align-items: center;
 }
 
 .event-modal .event-title-section h3 {
-  margin: 0 !important;
-  color: var(--text-primary, #333) !important;
-  font-size: 1.1rem !important;
-  font-weight: 500 !important;
+  margin: 0 auto;
+  color: var(--text-primary, #333);
+  font-size: 1.1rem;
+  font-weight: 500;
+  text-align: center;
 }
 
 :root[data-theme='dark'] .event-modal .event-title-section h3 {
-  color: white !important;
+  color: white;
 }
 
 .event-modal .event-actions {
@@ -191,48 +207,51 @@
 
 .event-modal .edit-button,
 .event-modal .delete-button {
-  background: none !important;
-  border: none !important;
-  cursor: pointer !important;
-  color: var(--text-secondary, #666) !important;
-  display: flex !important;
-  align-items: center !important;
-  padding: 4px !important;
-  border-radius: 4px !important;
-  transition: all 0.2s !important;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--text-secondary, #666);
+  display: flex;
+  align-items: center;
+  padding: 4px;
+  border-radius: 4px;
+  transition: all 0.2s;
 }
 
 :root[data-theme='dark'] .event-modal .edit-button,
 :root[data-theme='dark'] .event-modal .delete-button {
-  color: #bdbdbd !important;
+  color: #bdbdbd;
 }
 
 .event-modal .edit-button:hover {
-  color: var(--primary, #2196f3) !important;
-  background-color: rgba(33, 150, 243, 0.1) !important;
+  color: var(--primary, #2196f3);
+  background-color: rgba(33, 150, 243, 0.1);
 }
 
 .event-modal .delete-button:hover {
-  color: var(--error, #d32f2f) !important;
-  background-color: rgba(211, 47, 47, 0.1) !important;
+  color: var(--error, #d32f2f);
+  background-color: rgba(211, 47, 47, 0.1);
 }
 
 .event-modal .event-details {
-  color: var(--text-secondary, #666) !important;
+  color: var(--text-secondary, #666);
+  text-align: center;
+  width: 100%;
 }
 
 :root[data-theme='dark'] .event-modal .event-details {
-  color: #bdbdbd !important;
+  color: #bdbdbd;
 }
 
 .event-modal .event-description {
-  margin: 0 0 12px 0 !important;
-  font-size: 0.95rem !important;
-  line-height: 1.5 !important;
+  margin: 0 0 12px 0;
+  font-size: 0.95rem;
+  line-height: 1.5;
+  text-align: center;
 }
 
 :root[data-theme='dark'] .event-modal .event-description {
-  color: white !important;
+  color: white;
 }
 
 .event-modal .event-meta {
@@ -240,6 +259,7 @@
   flex-wrap: wrap;
   gap: 16px;
   font-size: 0.85rem;
+  justify-content: center;
 }
 
 .event-modal .event-meta span {
@@ -249,7 +269,7 @@
 }
 
 :root[data-theme='dark'] .event-modal .event-meta span {
-  color: #bdbdbd !important;
+  color: #bdbdbd;
 }
 
 .event-type {
@@ -264,9 +284,51 @@
 
 .event-actions {
   display: flex;
-  gap: 8px;
-  margin-top: 8px;
-  justify-content: flex-end;
+  justify-content: center;
+  margin-top: 15px;
+}
+
+.delete-event-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 6px 12px;
+  background-color: var(--error-light);
+  color: var(--error);
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.85rem;
+  transition: all 0.25s ease;
+}
+
+.delete-event-button:hover {
+  background-color: var(--error);
+  color: white;
+  transform: translateY(-2px);
+}
+
+.delete-event-button:active {
+  transform: translateY(0);
+}
+
+.delete-event-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  background-color: var(--error-light);
+  color: var(--error);
+}
+
+/* Dark theme için */
+:root[data-theme='dark'] .delete-event-button {
+  background-color: rgba(211, 47, 47, 0.2);
+  color: #ef5350;
+}
+
+:root[data-theme='dark'] .delete-event-button:hover {
+  background-color: var(--error);
+  color: white;
 }
 
 .edit-button,
@@ -336,33 +398,33 @@
 }
 
 .form-group label {
-  font-weight: 500 !important;
-  color: var(--text-primary) !important;
+  font-weight: 500;
+  color: var(--text-primary);
 }
 
 /* Dark theme form labels - daha spesifik */
 :root[data-theme='dark'] .event-modal .form-group label {
-  color: white !important;
+  color: white;
 }
 
 .event-modal .form-group input,
 .event-modal .form-group textarea,
 .event-modal .form-group select {
-  padding: 8px 12px !important;
-  border: 1px solid var(--border, #e0e0e0) !important;
-  border-radius: 4px !important;
-  font-size: 1rem !important;
-  background-color: var(--surface, #fff) !important;
-  color: var(--text-primary, #333) !important;
+  padding: 8px 12px;
+  border: 1px solid var(--border, #e0e0e0);
+  border-radius: 4px;
+  font-size: 1rem;
+  background-color: var(--surface, #fff);
+  color: var(--text-primary, #333);
 }
 
 /* Dark theme form inputs */
 :root[data-theme='dark'] .event-modal .form-group input,
 :root[data-theme='dark'] .event-modal .form-group textarea,
 :root[data-theme='dark'] .event-modal .form-group select {
-  background-color: var(--surface, #1e1e1e) !important;
-  border-color: var(--border, #333) !important;
-  color: var(--text-primary, #e0e0e0) !important;
+  background-color: var(--surface, #1e1e1e);
+  border-color: var(--border, #333);
+  color: var(--text-primary, #e0e0e0);
 }
 
 .form-group textarea {
@@ -385,48 +447,50 @@
 }
 
 .event-modal .cancel-button {
-  padding: 8px 16px !important;
-  background-color: var(--cancel-btn, #9e9e9e) !important;
-  color: white !important;
-  border: none !important;
-  border-radius: 4px !important;
-  cursor: pointer !important;
-  transition: background-color 0.3s !important;
+  padding: 8px 16px;
+  background-color: var(--cancel-btn, #9e9e9e);
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.3s;
 }
 
 .event-modal .cancel-button:hover {
-  background-color: var(--cancel-btn-hover, #757575) !important;
+  background-color: var(--cancel-btn-hover, #757575);
 }
 
 .event-modal .submit-button {
-  padding: 8px 16px !important;
-  background-color: var(--primary, #2196f3) !important;
-  color: white !important;
-  border: none !important;
-  border-radius: 4px !important;
-  cursor: pointer !important;
-  transition: background-color 0.3s !important;
+  padding: 8px 16px;
+  background-color: var(--primary);
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.3s;
 }
 
 .event-modal .submit-button:hover {
-  background-color: var(--primary-dark, #1976d2) !important;
+  background-color: var(--secondary);
+  transform: translateY(-2px);
 }
 
 /* Dark theme buttons */
 :root[data-theme='dark'] .event-modal .cancel-button {
-  background-color: var(--cancel-btn, #424242) !important;
+  background-color: var(--cancel-btn, #424242);
 }
 
 :root[data-theme='dark'] .event-modal .cancel-button:hover {
-  background-color: var(--cancel-btn-hover, #303030) !important;
+  background-color: var(--cancel-btn-hover, #303030);
 }
 
 :root[data-theme='dark'] .event-modal .submit-button {
-  background-color: var(--primary, #1976d2) !important;
+  background-color: var(--primary);
 }
 
 :root[data-theme='dark'] .event-modal .submit-button:hover {
-  background-color: var(--primary-dark, #0d47a1) !important;
+  background-color: var(--secondary);
+  transform: translateY(-2px);
 }
 
 @media (max-width: 768px) {
