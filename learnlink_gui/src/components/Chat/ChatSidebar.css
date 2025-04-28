@@ -141,7 +141,7 @@
   justify-content: center;
   cursor: pointer;
   transition: all 0.2s ease;
-  padding: 16;
+  padding: 10px;
 }
 
 .create-room-button svg,
