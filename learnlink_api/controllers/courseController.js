@@ -28,9 +28,18 @@ export const getAllCourses = asyncHandler(async (req, res) => {
 
 export const getCourse = asyncHandler(async (req, res) => {
   const { id } = req.params;
+  const userId = req.user.id;
+  
   const result = await pool.query(
-    "SELECT * FROM courses WHERE course_id = $1",
-    [id]
+    `SELECT c.*, 
+      u.name as instructor_name,
+      CASE WHEN c.instructor_id = $2 THEN true ELSE false END as is_admin,
+      CASE WHEN e.user_id IS NOT NULL THEN true ELSE false END as is_enrolled 
+    FROM courses c
+    LEFT JOIN users u ON c.instructor_id = u.user_id
+    LEFT JOIN enrollments e ON c.course_id = e.course_id AND e.user_id = $2
+    WHERE c.course_id = $1`,
+    [id, userId]
   );
 
   if (result.rows.length === 0) {
@@ -56,16 +65,34 @@ export const createCourse = asyncHandler(async (req, res) => {
       });
     }
 
-    // Course oluştur
-    const result = await pool.query(
-      "INSERT INTO courses (title, description, instructor_id) VALUES ($1, $2, $3) RETURNING *",
-      [title, description, req.user.user_id]
-    );
-
-    res.status(201).json({
-      success: true,
-      course: result.rows[0],
-    });
+    // Transaction başlat
+    await pool.query("BEGIN");
+    
+    try {
+      // Course oluştur (student_count=1 ile başlat)
+      const courseResult = await pool.query(
+        "INSERT INTO courses (title, description, instructor_id, student_count) VALUES ($1, $2, $3, 1) RETURNING *",
+        [title, description, req.user.user_id]
+      );
+      
+      const newCourse = courseResult.rows[0];
+      
+      // Instructor/admin için enrollment kaydı ekle
+      await pool.query(
+        "INSERT INTO enrollments (course_id, user_id) VALUES ($1, $2)",
+        [newCourse.course_id, req.user.user_id]
+      );
+      
+      await pool.query("COMMIT");
+      
+      res.status(201).json({
+        success: true,
+        course: newCourse,
+      });
+    } catch (error) {
+      await pool.query("ROLLBACK");
+      throw error;
+    }
   } catch (error) {
     console.error("Error creating course:", error);
     res.status(500).json({
@@ -144,10 +171,11 @@ export const getMyCourses = asyncHandler(async (req, res) => {
       SELECT DISTINCT 
         c.*,
         u.name as instructor_name,
-        CASE WHEN c.instructor_id = $1 THEN true ELSE false END as is_admin
+        CASE WHEN c.instructor_id = $1 THEN true ELSE false END as is_admin,
+        CASE WHEN e.user_id IS NOT NULL THEN true ELSE false END as is_enrolled
       FROM courses c
       JOIN users u ON c.instructor_id = u.user_id
-      LEFT JOIN enrollments e ON c.course_id = e.course_id
+      LEFT JOIN enrollments e ON c.course_id = e.course_id AND e.user_id = $1
       WHERE c.instructor_id = $1 OR e.user_id = $1
     `,
       [userId]
@@ -168,8 +196,7 @@ export const joinCourse = asyncHandler(async (req, res) => {
 
     // Önce kursu kontrol et
     const courseCheck = await pool.query(
-      `SELECT c.*, 
-        (SELECT COUNT(*) FROM enrollments WHERE course_id = c.course_id) as current_students
+      `SELECT c.*
        FROM courses c 
        WHERE course_id = $1`,
       [courseId]
@@ -180,6 +207,13 @@ export const joinCourse = asyncHandler(async (req, res) => {
     }
 
     const course = courseCheck.rows[0];
+
+    // Kullanıcı kursun instructor'ı mı kontrol et (admin)
+    if (course.instructor_id === userId) {
+      return res.status(400).json({ 
+        message: "You are already an admin of this course" 
+      });
+    }
 
     // Zaten kayıtlı mı kontrol et
     const enrollmentCheck = await pool.query(
@@ -194,23 +228,32 @@ export const joinCourse = asyncHandler(async (req, res) => {
     }
 
     // Kurs dolu mu kontrol et
-    if (course.current_students >= course.max_students) {
+    if (course.student_count >= course.max_students) {
       return res.status(400).json({ message: "Course is full" });
     }
 
-    // Enrollment'ı ekle
-    await pool.query(
-      "INSERT INTO enrollments (course_id, user_id) VALUES ($1, $2)",
-      [courseId, userId]
-    );
+    // Transaction başlat
+    await pool.query("BEGIN");
+    
+    try {
+      // Enrollment'ı ekle
+      await pool.query(
+        "INSERT INTO enrollments (course_id, user_id) VALUES ($1, $2)",
+        [courseId, userId]
+      );
 
-    // Student count'u güncelle
-    await pool.query(
-      "UPDATE courses SET student_count = student_count + 1 WHERE course_id = $1",
-      [courseId]
-    );
+      // Student count'u güncelle
+      await pool.query(
+        "UPDATE courses SET student_count = student_count + 1 WHERE course_id = $1",
+        [courseId]
+      );
 
-    res.json({ message: "Successfully joined the course" });
+      await pool.query("COMMIT");
+      res.json({ message: "Successfully joined the course" });
+    } catch (error) {
+      await pool.query("ROLLBACK");
+      throw error;
+    }
   } catch (error) {
     console.error("Error joining course:", error);
     res.status(500).json({ message: "Failed to join course" });
@@ -222,7 +265,28 @@ export const leaveCourse = asyncHandler(async (req, res) => {
     const courseId = req.params.courseId;
     const userId = req.user.user_id;
 
-    // Önce enrollment'ı kontrol et
+    // Önce kursu kontrol et
+    const courseCheck = await pool.query(
+      `SELECT c.*
+       FROM courses c 
+       WHERE course_id = $1`,
+      [courseId]
+    );
+
+    if (courseCheck.rows.length === 0) {
+      return res.status(404).json({ message: "Course not found" });
+    }
+
+    const course = courseCheck.rows[0];
+
+    // Kullanıcı kursun instructor'ı mı kontrol et (admin)
+    if (course.instructor_id === userId) {
+      return res.status(400).json({ 
+        message: "As an admin, you cannot leave your own course. You can delete it instead." 
+      });
+    }
+    
+    // Enrollment'ı kontrol et
     const enrollmentCheck = await pool.query(
       "SELECT * FROM enrollments WHERE course_id = $1 AND user_id = $2",
       [courseId, userId]
@@ -314,10 +378,11 @@ export const getUserCourses = asyncHandler(async (req, res) => {
       SELECT DISTINCT 
         c.*,
         u.name as instructor_name,
-        CASE WHEN c.instructor_id = $1 THEN true ELSE false END as is_admin
+        CASE WHEN c.instructor_id = $1 THEN true ELSE false END as is_admin,
+        CASE WHEN e.user_id IS NOT NULL THEN true ELSE false END as is_enrolled
       FROM courses c
       JOIN users u ON c.instructor_id = u.user_id
-      LEFT JOIN enrollments e ON c.course_id = e.course_id
+      LEFT JOIN enrollments e ON c.course_id = e.course_id AND e.user_id = $1
       WHERE c.instructor_id = $1 OR e.user_id = $1
     `;
     

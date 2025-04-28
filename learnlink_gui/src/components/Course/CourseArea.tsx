@@ -24,6 +24,15 @@ const CourseArea: React.FC<CourseAreaProps> = ({
   const renderActionButtons = (course: Course) => {
     // student_count için null coalescing operator kullanarak varsayılan değer 0 atayalım
     const currentStudentCount = course.student_count ?? 0;
+    
+    // Debug çıktısı
+    console.log("Course:", {
+      courseId: course.course_id,
+      title: course.title,
+      isAdmin: course.is_admin,
+      isEnrolled: course.is_enrolled,
+      activeTab
+    });
 
     return (
       <div className="card-actions">
@@ -42,8 +51,8 @@ const CourseArea: React.FC<CourseAreaProps> = ({
             </button>
           )}
 
-        {/* View Details butonu: Sadece üye olduğu kurslar için */}
-        {course.is_enrolled && !course.is_admin && (
+        {/* View Details butonu: Admin olmadığı ama kayıtlı olduğu kurslar için (hem dashboard hem my courses sekmeleri için) */}
+        {!course.is_admin && course.is_enrolled && (
           <button
             className="view-details-button"
             onClick={() => navigate(`/courses/${course.course_id}`)}
@@ -52,7 +61,7 @@ const CourseArea: React.FC<CourseAreaProps> = ({
           </button>
         )}
 
-        {/* Manage Course butonu: Sadece admin olduğu kurslar için (mevcut haliyle kalacak) */}
+        {/* Manage Course butonu: Sadece admin olduğu kurslar için */}
         {course.is_admin && (
           <button
             className="view-details-button"
@@ -89,8 +98,8 @@ const CourseArea: React.FC<CourseAreaProps> = ({
                       <span className="admin-badge">Admin</span>
                     )}
                   </div>
-                  <p className="course-instructor">
-                    Instructor: {course.instructor_name}
+                  <p className="course-admin">
+                    Admin: {course.instructor_name}
                   </p>
                   <p className="course-description">{course.description}</p>
                   <div className="course-stats">
