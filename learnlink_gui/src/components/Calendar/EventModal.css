@@ -202,35 +202,88 @@
 
 .event-modal .event-actions {
   display: flex;
-  gap: 8px;
+  justify-content: center;
+  margin-top: 15px;
+  gap: 10px;
 }
 
-.event-modal .edit-button,
-.event-modal .delete-button {
-  background: none;
-  border: none;
-  cursor: pointer;
-  color: var(--text-secondary, #666);
+.edit-event-button {
   display: flex;
   align-items: center;
-  padding: 4px;
+  justify-content: center;
+  gap: 6px;
+  padding: 6px 12px;
+  background-color: var(--primary-light);
+  color: var(--primary);
+  border: none;
   border-radius: 4px;
-  transition: all 0.2s;
+  cursor: pointer;
+  font-size: 0.85rem;
+  transition: all 0.25s ease;
 }
 
-:root[data-theme='dark'] .event-modal .edit-button,
-:root[data-theme='dark'] .event-modal .delete-button {
-  color: #bdbdbd;
+.edit-event-button:hover {
+  background-color: var(--primary);
+  color: white;
+  transform: translateY(-2px);
 }
 
-.event-modal .edit-button:hover {
-  color: var(--primary, #2196f3);
-  background-color: rgba(33, 150, 243, 0.1);
+.edit-event-button:active {
+  transform: translateY(0);
 }
 
-.event-modal .delete-button:hover {
-  color: var(--error, #d32f2f);
-  background-color: rgba(211, 47, 47, 0.1);
+/* Dark theme için */
+:root[data-theme='dark'] .edit-event-button {
+  background-color: rgba(var(--primary-rgb), 0.2);
+  color: var(--primary);
+}
+
+:root[data-theme='dark'] .edit-event-button:hover {
+  background-color: var(--primary);
+  color: white;
+}
+
+.delete-event-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 6px 12px;
+  background-color: var(--error-light);
+  color: var(--error);
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.85rem;
+  transition: all 0.25s ease;
+}
+
+.delete-event-button:hover {
+  background-color: var(--error);
+  color: white;
+  transform: translateY(-2px);
+}
+
+.delete-event-button:active {
+  transform: translateY(0);
+}
+
+.delete-event-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  background-color: var(--error-light);
+  color: var(--error);
+}
+
+/* Dark theme için */
+:root[data-theme='dark'] .delete-event-button {
+  background-color: rgba(211, 47, 47, 0.2);
+  color: #ef5350;
+}
+
+:root[data-theme='dark'] .delete-event-button:hover {
+  background-color: var(--error);
+  color: white;
 }
 
 .event-modal .event-details {
@@ -280,109 +333,6 @@
   text-transform: capitalize;
   background-color: var(--hover-background);
   color: var(--text-primary);
-}
-
-.event-actions {
-  display: flex;
-  justify-content: center;
-  margin-top: 15px;
-}
-
-.delete-event-button {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-  padding: 6px 12px;
-  background-color: var(--error-light);
-  color: var(--error);
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  font-size: 0.85rem;
-  transition: all 0.25s ease;
-}
-
-.delete-event-button:hover {
-  background-color: var(--error);
-  color: white;
-  transform: translateY(-2px);
-}
-
-.delete-event-button:active {
-  transform: translateY(0);
-}
-
-.delete-event-button:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-  background-color: var(--error-light);
-  color: var(--error);
-}
-
-/* Dark theme için */
-:root[data-theme='dark'] .delete-event-button {
-  background-color: rgba(211, 47, 47, 0.2);
-  color: #ef5350;
-}
-
-:root[data-theme='dark'] .delete-event-button:hover {
-  background-color: var(--error);
-  color: white;
-}
-
-.edit-button,
-.delete-button {
-  padding: 6px 16px;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 0.9rem;
-  font-weight: 500;
-  transition: all 0.2s ease;
-}
-
-.edit-button {
-  background-color: var(--primary-light, #e3f2fd);
-  color: var(--primary, #2196f3);
-}
-
-/* Dark theme edit button */
-:root[data-theme='dark'] .edit-button {
-  background-color: rgba(33, 150, 243, 0.2);
-  color: #64b5f6;
-}
-
-.edit-button:hover {
-  background-color: var(--primary-lighter, #bbdefb);
-}
-
-/* Dark theme edit button hover */
-:root[data-theme='dark'] .edit-button:hover {
-  background-color: rgba(33, 150, 243, 0.3);
-}
-
-.delete-button {
-  background-color: var(--error-light, #ffebee);
-  color: var(--error, #d32f2f);
-}
-
-/* Dark theme delete button */
-:root[data-theme='dark'] .delete-button {
-  background-color: rgba(211, 47, 47, 0.2);
-  color: #e57373;
-}
-
-.delete-button:hover {
-  background-color: var(--error-lighter, #ffcdd2);
-}
-
-/* Dark theme delete button hover */
-:root[data-theme='dark'] .delete-button:hover {
-  background-color: rgba(211, 47, 47, 0.3);
 }
 
 .add-event-form {

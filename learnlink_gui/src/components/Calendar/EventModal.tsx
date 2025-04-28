@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { format } from 'date-fns';
-import { FaTimes, FaCalendar, FaClock, FaInfoCircle, FaPlus, FaTrash } from 'react-icons/fa';
+import { FaTimes, FaCalendar, FaClock, FaInfoCircle, FaPlus, FaTrash, FaEdit } from 'react-icons/fa';
 import './EventModal.css';
 import eventService from '../../services/eventService';
 import { useEvent } from '../../contexts/EventContext';
@@ -132,6 +132,25 @@ const EventModal: React.FC<EventModalProps> = ({
     }
   };
 
+  const handleEditEvent = (event: Event) => {
+    // Event'in zaman bilgisini ayarla (HH:mm formatında)
+    const eventDate = new Date(event.date);
+    const hours = eventDate.getHours().toString().padStart(2, '0');
+    const minutes = eventDate.getMinutes().toString().padStart(2, '0');
+    
+    // Form verilerini seçili event'in verileriyle doldur
+    setFormData({
+      title: event.title,
+      description: event.description,
+      time: `${hours}:${minutes}`,
+      type: event.type
+    });
+    
+    // Edit moduna geç ve editingEventId'yi ayarla
+    setEditingEventId(event.id);
+    setIsAddingEvent(true);
+  };
+
   const getEventTypeColor = (type: Event['type']) => {
     switch (type) {
       case 'assignment':
@@ -191,6 +210,15 @@ const EventModal: React.FC<EventModalProps> = ({
                           </span>
                         </div>
                         <div className="event-actions">
+                          <button 
+                            className="edit-event-button" 
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleEditEvent(event);
+                            }}
+                          >
+                            <FaEdit /> Edit
+                          </button>
                           <button 
                             className="delete-event-button" 
                             onClick={(e) => {
@@ -271,6 +299,7 @@ const EventModal: React.FC<EventModalProps> = ({
                     // Eğer etkinlik varsa listeye dön, yoksa modalı kapat
                     if (events.length > 0) {
                       setIsAddingEvent(false);
+                      setEditingEventId(null); // Düzenleme modundan çıkarken ID'yi sıfırla
                     } else {
                       onClose();
                     }
