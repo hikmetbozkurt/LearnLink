@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { FaSearch, FaPlus, FaTimes } from 'react-icons/fa';
 import './ChatSidebar.css';
 
@@ -7,6 +7,7 @@ interface ChatRoom {
   name: string;
   lastMessage?: string;
   createdAt?: string;
+  created_by?: number;
 }
 
 interface ChatSidebarProps {
@@ -20,6 +21,7 @@ interface ChatSidebarProps {
   hideCreateButton?: boolean;
   title?: string;
   searchPlaceholder?: string;
+  currentUserId?: number;
 }
 
 const ChatSidebar: React.FC<ChatSidebarProps> = ({
@@ -32,8 +34,21 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({
   onDeleteRoom,
   hideCreateButton = false,
   title = 'Chat Rooms',
-  searchPlaceholder = 'Search rooms...'
+  searchPlaceholder = 'Search rooms...',
+  currentUserId
 }) => {
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState<string | null>(null);
+
+  const handleDeleteClick = (e: React.MouseEvent, roomId: string) => {
+    e.stopPropagation();
+    setShowDeleteConfirm(roomId);
+  };
+
+  const handleConfirmDelete = (roomId: string) => {
+    onDeleteRoom(roomId);
+    setShowDeleteConfirm(null);
+  };
+
   return (
     <div className="chat-sidebar">
       <div className="chat-sidebar-header">
@@ -60,15 +75,14 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({
               <h3>{room.name}</h3>
               <p>{room.lastMessage}</p>
             </div>
-            <button 
-              className="delete-room-btn"
-              onClick={(e) => {
-                e.stopPropagation();
-                onDeleteRoom(room.id);
-              }}
-            >
-              <FaTimes />
-            </button>
+            {currentUserId && room.created_by === currentUserId && (
+              <button 
+                className="delete-room-btn"
+                onClick={(e) => handleDeleteClick(e, room.id)}
+              >
+                <FaTimes />
+              </button>
+            )}
           </div>
         ))}
       </div>
@@ -81,6 +95,29 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({
           tabIndex={0}
         >
           <FaPlus />
+        </div>
+      )}
+
+      {showDeleteConfirm && (
+        <div className="delete-confirm-modal">
+          <div className="modal-content">
+            <h3>Delete Chat Room</h3>
+            <p>Are you sure you want to delete this chat room? This action cannot be undone.</p>
+            <div className="modal-actions">
+              <button 
+                className="cancel-btn"
+                onClick={() => setShowDeleteConfirm(null)}
+              >
+                Cancel
+              </button>
+              <button 
+                className="delete-btn"
+                onClick={() => handleConfirmDelete(showDeleteConfirm)}
+              >
+                Delete
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>

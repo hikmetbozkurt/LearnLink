@@ -308,6 +308,7 @@ const ChatroomsPage = () => {
           onDeleteRoom={handleDeleteRoom}
           title="Chat Rooms"
           searchPlaceholder="Search rooms..."
+          currentUserId={Number(userId)}
         />
         {selectedRoom ? (
           <ChatArea

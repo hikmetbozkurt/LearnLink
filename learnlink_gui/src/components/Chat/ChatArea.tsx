@@ -1,6 +1,6 @@
-import React, { useRef, useEffect } from "react";
+import React, { useRef, useEffect, useState } from "react";
 import { RiSendPlaneFill } from "react-icons/ri";
-import { FaPaperclip, FaEllipsisV } from "react-icons/fa";
+import { FaSmile } from "react-icons/fa";
 import api from "../../api/axiosConfig";
 import "./ChatArea.css";
 
@@ -41,14 +41,54 @@ const ChatArea: React.FC<ChatAreaProps> = ({
   messagesContainerRef,
   onScroll,
 }) => {
-  const handleFileClick = async () => {
-    try {
-      // File sharing functionality will be implemented later
-      console.log("File sharing will be available soon");
-    } catch (error) {
-      console.error("Error:", error);
+  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+  const emojiPickerRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  // Common emojis for quick access
+  const commonEmojis = ["😊", "😂", "❤️", "👍", "🎉", "🔥", "👋", "🙏", "🤔", "😍"];
+
+  const handleEmojiClick = (emoji: string) => {
+    if (inputRef.current) {
+      const start = inputRef.current.selectionStart || 0;
+      const end = inputRef.current.selectionEnd || 0;
+      const text = newMessage;
+      const before = text.substring(0, start);
+      const after = text.substring(end);
+      
+      // Update the input value with the emoji inserted at cursor position
+      const newText = before + emoji + after;
+      const event = {
+        target: { value: newText }
+      } as React.ChangeEvent<HTMLInputElement>;
+      
+      onNewMessageChange(event);
+      
+      // Set cursor position after the emoji
+      setTimeout(() => {
+        if (inputRef.current) {
+          inputRef.current.focus();
+          inputRef.current.setSelectionRange(start + emoji.length, start + emoji.length);
+        }
+      }, 0);
     }
+    
+    setShowEmojiPicker(false);
   };
+
+  // Close emoji picker when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (emojiPickerRef.current && !emojiPickerRef.current.contains(event.target as Node)) {
+        setShowEmojiPicker(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
 
   const shouldShowTimestamp = (
     currentMsg: Message,
@@ -68,9 +108,6 @@ const ChatArea: React.FC<ChatAreaProps> = ({
     <div className="chat-area">
       <div className="chat-header">
         <h2>{roomName}</h2>
-        <button className="menu-button">
-          <FaEllipsisV />
-        </button>
       </div>
 
       <div
@@ -115,14 +152,31 @@ const ChatArea: React.FC<ChatAreaProps> = ({
             onSendMessage();
           }}
         >
-          <button
-            type="button"
-            className="file-button"
-            onClick={handleFileClick}
-          >
-            <FaPaperclip />
-          </button>
+          <div className="emoji-button-container">
+            <button
+              type="button"
+              className="emoji-button"
+              onClick={() => setShowEmojiPicker(!showEmojiPicker)}
+            >
+              <FaSmile />
+            </button>
+            {showEmojiPicker && (
+              <div className="emoji-picker" ref={emojiPickerRef}>
+                {commonEmojis.map((emoji, index) => (
+                  <button
+                    key={index}
+                    type="button"
+                    className="emoji-item"
+                    onClick={() => handleEmojiClick(emoji)}
+                  >
+                    {emoji}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
           <input
+            ref={inputRef}
             type="text"
             placeholder="Type a message..."
             value={newMessage}
