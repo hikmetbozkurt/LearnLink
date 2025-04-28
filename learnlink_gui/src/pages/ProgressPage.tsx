@@ -169,7 +169,9 @@ const ProgressPage: React.FC = () => {
           messageActivity.direct_messages || 0,
           messageActivity.group_messages || 0
         ] : [0, 0],
-        backgroundColor: isDarkMode ? '#7c4dff' : '#512da8',
+        backgroundColor: isDarkMode 
+          ? ['#7c4dff', '#ff4081'] 
+          : ['#512da8', '#d81b60'],
       },
     ],
   };
@@ -187,7 +189,9 @@ const ProgressPage: React.FC = () => {
           courseActivity.enrolled_courses || 0,
           courseActivity.created_courses || 0
         ] : [0, 0],
-        backgroundColor: isDarkMode ? '#00c851' : '#20c997',
+        backgroundColor: isDarkMode 
+          ? ['#00c851', '#ffab00'] 
+          : ['#00695c', '#f57c00'],
       },
     ],
   };
@@ -207,7 +211,9 @@ const ProgressPage: React.FC = () => {
           postStats.courses_posted_in || 0, 
           postStats.avg_comments_per_post || 0
         ] : [0, 0, 0],
-        backgroundColor: isDarkMode ? '#ff6d00' : '#ff9800',
+        backgroundColor: isDarkMode 
+          ? ['#ff6d00', '#43a047', '#5c6bc0'] 
+          : ['#e65100', '#2e7d32', '#3949ab'],
       },
     ],
   };
@@ -227,7 +233,9 @@ const ProgressPage: React.FC = () => {
           commentStats.commented_posts_count || 0, 
           commentStats.received_comments_count || 0
         ] : [0, 0, 0],
-        backgroundColor: isDarkMode ? '#26a69a' : '#009688',
+        backgroundColor: isDarkMode 
+          ? ['#26a69a', '#7e57c2', '#ef5350'] 
+          : ['#00897b', '#5e35b1', '#e53935'],
       },
     ],
   };
@@ -244,7 +252,9 @@ const ProgressPage: React.FC = () => {
           padding: 10,
           font: {
             size: 11
-          }
+          },
+          usePointStyle: true,
+          boxHeight: 0
         }
       },
       tooltip: {
@@ -289,11 +299,26 @@ const ProgressPage: React.FC = () => {
     }
   };
 
+  const tooltipConfig = {
+    callbacks: {
+      label: function(context: any) {
+        return `${context.dataset.label}: ${context.raw}`;
+      }
+    },
+    backgroundColor: isDarkMode ? '#242424' : '#ffffff',
+    titleColor: isDarkMode ? '#ffffff' : '#333333',
+    bodyColor: isDarkMode ? '#b3b3b3' : '#666666',
+    borderColor: isDarkMode ? '#333333' : '#dddddd',
+    borderWidth: 1,
+    padding: 8,
+    displayColors: false
+  };
+
   return (
     <div className="progress-page">
       <div className="progress-header">
-        <h1>Your Learning Progress</h1>
-        <p>Track your academic performance with detailed analytics</p>
+        <h1>Your Personal Activity</h1>
+        <p>View all your interactions and statistics on the platform</p>
       </div>
       
       {expandedChart ? (
@@ -303,134 +328,440 @@ const ProgressPage: React.FC = () => {
           </button>
           
           {expandedChart === 'message' && (
-            <div className="expanded-chart-content">
-              <h2>Direct vs Group Messages</h2>
+            <div className="expanded-chart-content" style={{ textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
               <p>Comparison of your direct messages and group chat activity</p>
-              {loading.messages ? (
-                <div className="loading">Loading message statistics...</div>
-              ) : messageActivity ? (
-                <Bar 
-                  data={messageActivityData} 
-                  options={{
-                    ...chartOptions,
-                    plugins: {
-                      ...chartOptions.plugins,
-                      title: {
-                        display: true,
-                        text: 'Direct vs Group Message Comparison',
-                        color: isDarkMode ? '#ffffff' : '#333333',
-                        font: {
-                          size: 16
+              <div style={{ display: 'flex', width: '100%', gap: '20px', marginTop: '20px' }}>
+                <div style={{ flex: '2' }}>
+                  {loading.messages ? (
+                    <div className="loading">Loading message statistics...</div>
+                  ) : messageActivity ? (
+                    <Bar 
+                      data={messageActivityData} 
+                      options={{
+                        responsive: true,
+                        maintainAspectRatio: true,
+                        plugins: {
+                          legend: {
+                            display: true,
+                            position: 'bottom',
+                            labels: {
+                              boxWidth: 0,
+                              padding: 10,
+                              color: isDarkMode ? '#fff' : '#333',
+                              usePointStyle: false
+                            }
+                          },
+                          tooltip: tooltipConfig
+                        },
+                        scales: {
+                          x: {
+                            grid: {
+                              color: isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)'
+                            },
+                            ticks: {
+                              color: isDarkMode ? '#c9c9c9' : '#666'
+                            }
+                          },
+                          y: {
+                            grid: {
+                              color: isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)'
+                            },
+                            ticks: {
+                              color: isDarkMode ? '#c9c9c9' : '#666'
+                            }
+                          }
+                        },
+                        onClick: () => {
+                          handleChartClick('message', messageActivity);
                         }
-                      }
-                    },
-                    onClick: () => {
-                      handleChartClick('message', messageActivity);
-                    }
-                  }} 
-                />
-              ) : (
-                <div className="no-data">No message data available</div>
-              )}
+                      }} 
+                    />
+                  ) : (
+                    <div className="no-data">No message data available</div>
+                  )}
+                </div>
+                
+                <div style={{ flex: '1', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                  {messageActivity && (
+                    <>
+                      <div style={{ 
+                        padding: '15px', 
+                        borderRadius: '8px', 
+                        backgroundColor: isDarkMode ? '#2a2a2a' : '#f5f5f5',
+                        boxShadow: isDarkMode ? '0 4px 8px rgba(0,0,0,0.2)' : '0 4px 8px rgba(0,0,0,0.1)',
+                      }}>
+                        <h3 style={{ marginTop: 0, fontSize: '16px', color: isDarkMode ? '#fff' : '#333' }}>Direct Messages</h3>
+                        <div style={{ fontSize: '20px', fontWeight: 'bold', marginBottom: '5px', color: isDarkMode ? '#7c4dff' : '#512da8' }}>
+                          {messageActivity.direct_messages || 0}
+                        </div>
+                        <p style={{ marginBottom: 0, fontSize: '12px', color: isDarkMode ? '#aaa' : '#666' }}>
+                          {messageActivity.direct_messages && messageActivity.group_messages ? 
+                            `${Math.round((messageActivity.direct_messages / (messageActivity.direct_messages + messageActivity.group_messages)) * 100)}% of total messages` : 
+                            '0% of total messages'}
+                        </p>
+                      </div>
+                      
+                      <div style={{ 
+                        padding: '15px', 
+                        borderRadius: '8px', 
+                        backgroundColor: isDarkMode ? '#2a2a2a' : '#f5f5f5',
+                        boxShadow: isDarkMode ? '0 4px 8px rgba(0,0,0,0.2)' : '0 4px 8px rgba(0,0,0,0.1)',
+                      }}>
+                        <h3 style={{ marginTop: 0, fontSize: '16px', color: isDarkMode ? '#fff' : '#333' }}>Group Messages</h3>
+                        <div style={{ fontSize: '20px', fontWeight: 'bold', marginBottom: '5px', color: isDarkMode ? '#ff4081' : '#d81b60' }}>
+                          {messageActivity.group_messages || 0}
+                        </div>
+                        <p style={{ marginBottom: 0, fontSize: '12px', color: isDarkMode ? '#aaa' : '#666' }}>
+                          {messageActivity.direct_messages && messageActivity.group_messages ? 
+                            `${Math.round((messageActivity.group_messages / (messageActivity.direct_messages + messageActivity.group_messages)) * 100)}% of total messages` : 
+                            '0% of total messages'}
+                        </p>
+                      </div>
+                      
+                      <div style={{ 
+                        padding: '15px', 
+                        borderRadius: '8px', 
+                        backgroundColor: isDarkMode ? '#2a2a2a' : '#f5f5f5',
+                        boxShadow: isDarkMode ? '0 4px 8px rgba(0,0,0,0.2)' : '0 4px 8px rgba(0,0,0,0.1)',
+                      }}>
+                        <h3 style={{ marginTop: 0, fontSize: '16px', color: isDarkMode ? '#fff' : '#333' }}>Total Messages</h3>
+                        <div style={{ fontSize: '20px', fontWeight: 'bold', marginBottom: '5px', color: isDarkMode ? '#64b5f6' : '#1976d2' }}>
+                          {(messageActivity.direct_messages || 0) + (messageActivity.group_messages || 0)}
+                        </div>
+                      </div>
+                    </>
+                  )}
+                </div>
+              </div>
             </div>
           )}
           
           {expandedChart === 'course' && (
-            <div className="expanded-chart-content">
-              <h2>Your Course Activity</h2>
+            <div className="expanded-chart-content" style={{ textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
               <p>View your course statistics including created and enrolled courses</p>
-              {loading.courses ? (
-                <div className="loading">Loading course statistics...</div>
-              ) : courseActivity ? (
-                <Bar 
-                  data={courseActivityData} 
-                  options={{
-                    ...chartOptions,
-                    plugins: {
-                      ...chartOptions.plugins,
-                      title: {
-                        display: true,
-                        text: 'Your Course Engagement Stats',
-                        color: isDarkMode ? '#ffffff' : '#333333',
-                        font: {
-                          size: 16
+              <div style={{ display: 'flex', width: '100%', gap: '20px', marginTop: '20px' }}>
+                <div style={{ flex: '2' }}>
+                  {loading.courses ? (
+                    <div className="loading">Loading course statistics...</div>
+                  ) : courseActivity ? (
+                    <Bar 
+                      data={courseActivityData} 
+                      options={{
+                        responsive: true,
+                        maintainAspectRatio: true,
+                        plugins: {
+                          legend: {
+                            display: true,
+                            position: 'bottom',
+                            labels: {
+                              boxWidth: 0,
+                              padding: 10,
+                              color: isDarkMode ? '#fff' : '#333',
+                              usePointStyle: false
+                            }
+                          },
+                          tooltip: tooltipConfig
+                        },
+                        scales: {
+                          x: {
+                            grid: {
+                              color: isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)'
+                            },
+                            ticks: {
+                              color: isDarkMode ? '#c9c9c9' : '#666'
+                            }
+                          },
+                          y: {
+                            grid: {
+                              color: isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)'
+                            },
+                            ticks: {
+                              color: isDarkMode ? '#c9c9c9' : '#666'
+                            }
+                          }
+                        },
+                        onClick: () => {
+                          handleChartClick('course', courseActivity);
                         }
-                      }
-                    },
-                    onClick: () => {
-                      handleChartClick('course', courseActivity);
-                    }
-                  }} 
-                />
-              ) : (
-                <div className="no-data">No course data available</div>
-              )}
+                      }} 
+                    />
+                  ) : (
+                    <div className="no-data">No course data available</div>
+                  )}
+                </div>
+                
+                <div style={{ flex: '1', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                  {courseActivity && (
+                    <>
+                      <div style={{ 
+                        padding: '15px', 
+                        borderRadius: '8px', 
+                        backgroundColor: isDarkMode ? '#2a2a2a' : '#f5f5f5',
+                        boxShadow: isDarkMode ? '0 4px 8px rgba(0,0,0,0.2)' : '0 4px 8px rgba(0,0,0,0.1)',
+                      }}>
+                        <h3 style={{ marginTop: 0, fontSize: '16px', color: isDarkMode ? '#fff' : '#333' }}>Enrolled Courses</h3>
+                        <div style={{ fontSize: '20px', fontWeight: 'bold', marginBottom: '5px', color: isDarkMode ? '#00c851' : '#00695c' }}>
+                          {courseActivity.enrolled_courses || 0}
+                        </div>
+                        <p style={{ marginBottom: 0, fontSize: '12px', color: isDarkMode ? '#aaa' : '#666' }}>
+                          {courseActivity.enrolled_courses && courseActivity.created_courses ? 
+                            `${Math.round((courseActivity.enrolled_courses / (courseActivity.enrolled_courses + courseActivity.created_courses)) * 100)}% of total courses` : 
+                            '0% of total courses'}
+                        </p>
+                      </div>
+                      
+                      <div style={{ 
+                        padding: '15px', 
+                        borderRadius: '8px', 
+                        backgroundColor: isDarkMode ? '#2a2a2a' : '#f5f5f5',
+                        boxShadow: isDarkMode ? '0 4px 8px rgba(0,0,0,0.2)' : '0 4px 8px rgba(0,0,0,0.1)',
+                      }}>
+                        <h3 style={{ marginTop: 0, fontSize: '16px', color: isDarkMode ? '#fff' : '#333' }}>Created Courses</h3>
+                        <div style={{ fontSize: '20px', fontWeight: 'bold', marginBottom: '5px', color: isDarkMode ? '#ffab00' : '#f57c00' }}>
+                          {courseActivity.created_courses || 0}
+                        </div>
+                        <p style={{ marginBottom: 0, fontSize: '12px', color: isDarkMode ? '#aaa' : '#666' }}>
+                          {courseActivity.enrolled_courses && courseActivity.created_courses ? 
+                            `${Math.round((courseActivity.created_courses / (courseActivity.enrolled_courses + courseActivity.created_courses)) * 100)}% of total courses` : 
+                            '0% of total courses'}
+                        </p>
+                      </div>
+                      
+                      <div style={{ 
+                        padding: '15px', 
+                        borderRadius: '8px', 
+                        backgroundColor: isDarkMode ? '#2a2a2a' : '#f5f5f5',
+                        boxShadow: isDarkMode ? '0 4px 8px rgba(0,0,0,0.2)' : '0 4px 8px rgba(0,0,0,0.1)',
+                      }}>
+                        <h3 style={{ marginTop: 0, fontSize: '16px', color: isDarkMode ? '#fff' : '#333' }}>Total Courses</h3>
+                        <div style={{ fontSize: '20px', fontWeight: 'bold', marginBottom: '5px', color: isDarkMode ? '#64b5f6' : '#1976d2' }}>
+                          {(courseActivity.enrolled_courses || 0) + (courseActivity.created_courses || 0)}
+                        </div>
+                      </div>
+                    </>
+                  )}
+                </div>
+              </div>
             </div>
           )}
           
           {expandedChart === 'post' && (
-            <div className="expanded-chart-content">
-              <h2>Your Post Activity Metrics</h2>
+            <div className="expanded-chart-content" style={{ textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
               <p>See statistics about your post activity across courses</p>
-              {loading.posts ? (
-                <div className="loading">Loading post statistics...</div>
-              ) : postStats ? (
-                <Bar 
-                  data={postActivityData} 
-                  options={{
-                    ...chartOptions,
-                    plugins: {
-                      ...chartOptions.plugins,
-                      title: {
-                        display: true,
-                        text: 'Your Content Creation Activity',
-                        color: isDarkMode ? '#ffffff' : '#333333',
-                        font: {
-                          size: 16
+              <div style={{ display: 'flex', width: '100%', gap: '20px', marginTop: '20px' }}>
+                <div style={{ flex: '2' }}>
+                  {loading.posts ? (
+                    <div className="loading">Loading post statistics...</div>
+                  ) : postStats ? (
+                    <Bar 
+                      data={postActivityData} 
+                      options={{
+                        responsive: true,
+                        maintainAspectRatio: true,
+                        plugins: {
+                          legend: {
+                            display: true,
+                            position: 'bottom',
+                            labels: {
+                              boxWidth: 0,
+                              padding: 10,
+                              color: isDarkMode ? '#fff' : '#333',
+                              usePointStyle: false
+                            }
+                          },
+                          tooltip: tooltipConfig
+                        },
+                        scales: {
+                          x: {
+                            grid: {
+                              color: isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)'
+                            },
+                            ticks: {
+                              color: isDarkMode ? '#c9c9c9' : '#666'
+                            }
+                          },
+                          y: {
+                            grid: {
+                              color: isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)'
+                            },
+                            ticks: {
+                              color: isDarkMode ? '#c9c9c9' : '#666'
+                            }
+                          }
+                        },
+                        onClick: () => {
+                          handleChartClick('post', postStats);
                         }
-                      }
-                    },
-                    onClick: () => {
-                      handleChartClick('post', postStats);
-                    }
-                  }} 
-                />
-              ) : (
-                <div className="no-data">No post data available</div>
-              )}
+                      }} 
+                    />
+                  ) : (
+                    <div className="no-data">No post data available</div>
+                  )}
+                </div>
+                
+                <div style={{ flex: '1', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                  {postStats && (
+                    <>
+                      <div style={{ 
+                        padding: '15px', 
+                        borderRadius: '8px', 
+                        backgroundColor: isDarkMode ? '#2a2a2a' : '#f5f5f5',
+                        boxShadow: isDarkMode ? '0 4px 8px rgba(0,0,0,0.2)' : '0 4px 8px rgba(0,0,0,0.1)',
+                      }}>
+                        <h3 style={{ marginTop: 0, fontSize: '16px', color: isDarkMode ? '#fff' : '#333' }}>Total Posts</h3>
+                        <div style={{ fontSize: '20px', fontWeight: 'bold', marginBottom: '5px', color: isDarkMode ? '#ff6d00' : '#e65100' }}>
+                          {postStats.total_posts || 0}
+                        </div>
+                        <p style={{ marginBottom: 0, fontSize: '12px', color: isDarkMode ? '#aaa' : '#666' }}>
+                          Across {postStats.courses_posted_in || 0} courses
+                        </p>
+                      </div>
+                      
+                      <div style={{ 
+                        padding: '15px', 
+                        borderRadius: '8px', 
+                        backgroundColor: isDarkMode ? '#2a2a2a' : '#f5f5f5',
+                        boxShadow: isDarkMode ? '0 4px 8px rgba(0,0,0,0.2)' : '0 4px 8px rgba(0,0,0,0.1)',
+                      }}>
+                        <h3 style={{ marginTop: 0, fontSize: '16px', color: isDarkMode ? '#fff' : '#333' }}>Courses Posted In</h3>
+                        <div style={{ fontSize: '20px', fontWeight: 'bold', marginBottom: '5px', color: isDarkMode ? '#43a047' : '#2e7d32' }}>
+                          {postStats.courses_posted_in || 0}
+                        </div>
+                        <p style={{ marginBottom: 0, fontSize: '12px', color: isDarkMode ? '#aaa' : '#666' }}>
+                          {postStats.total_posts && postStats.courses_posted_in ?
+                            `~${Math.round(postStats.total_posts / postStats.courses_posted_in)} posts per course` :
+                            '0 posts per course'}
+                        </p>
+                      </div>
+                      
+                      <div style={{ 
+                        padding: '15px', 
+                        borderRadius: '8px', 
+                        backgroundColor: isDarkMode ? '#2a2a2a' : '#f5f5f5',
+                        boxShadow: isDarkMode ? '0 4px 8px rgba(0,0,0,0.2)' : '0 4px 8px rgba(0,0,0,0.1)',
+                      }}>
+                        <h3 style={{ marginTop: 0, fontSize: '16px', color: isDarkMode ? '#fff' : '#333' }}>Avg. Comments</h3>
+                        <div style={{ fontSize: '20px', fontWeight: 'bold', marginBottom: '5px', color: isDarkMode ? '#5c6bc0' : '#3949ab' }}>
+                          {typeof postStats.avg_comments_per_post === 'number' ? postStats.avg_comments_per_post.toFixed(1) : '0'}
+                        </div>
+                        <p style={{ marginBottom: 0, fontSize: '12px', color: isDarkMode ? '#aaa' : '#666' }}>
+                          Per post
+                        </p>
+                      </div>
+                    </>
+                  )}
+                </div>
+              </div>
             </div>
           )}
           
           {expandedChart === 'comment' && (
-            <div className="expanded-chart-content">
-              <h2>Your Comment Activity Metrics</h2>
+            <div className="expanded-chart-content" style={{ textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
               <p>See statistics about your commenting activity</p>
-              {loading.comments ? (
-                <div className="loading">Loading comment statistics...</div>
-              ) : commentStats ? (
-                <Bar 
-                  data={commentActivityData} 
-                  options={{
-                    ...chartOptions,
-                    plugins: {
-                      ...chartOptions.plugins,
-                      title: {
-                        display: true,
-                        text: 'Your Comment Engagement Activity',
-                        color: isDarkMode ? '#ffffff' : '#333333',
-                        font: {
-                          size: 16
+              <div style={{ display: 'flex', width: '100%', gap: '20px', marginTop: '20px' }}>
+                <div style={{ flex: '2' }}>
+                  {loading.comments ? (
+                    <div className="loading">Loading comment statistics...</div>
+                  ) : commentStats ? (
+                    <Bar 
+                      data={commentActivityData} 
+                      options={{
+                        responsive: true,
+                        maintainAspectRatio: true,
+                        plugins: {
+                          legend: {
+                            display: true,
+                            position: 'bottom',
+                            labels: {
+                              boxWidth: 0,
+                              padding: 10,
+                              color: isDarkMode ? '#fff' : '#333',
+                              usePointStyle: false
+                            }
+                          },
+                          tooltip: tooltipConfig
+                        },
+                        scales: {
+                          x: {
+                            grid: {
+                              color: isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)'
+                            },
+                            ticks: {
+                              color: isDarkMode ? '#c9c9c9' : '#666'
+                            }
+                          },
+                          y: {
+                            grid: {
+                              color: isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)'
+                            },
+                            ticks: {
+                              color: isDarkMode ? '#c9c9c9' : '#666'
+                            }
+                          }
+                        },
+                        onClick: () => {
+                          handleChartClick('comment', commentStats);
                         }
-                      }
-                    },
-                    onClick: () => {
-                      handleChartClick('comment', commentStats);
-                    }
-                  }} 
-                />
-              ) : (
-                <div className="no-data">No comment data available</div>
-              )}
+                      }} 
+                    />
+                  ) : (
+                    <div className="no-data">No comment data available</div>
+                  )}
+                </div>
+                
+                <div style={{ flex: '1', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                  {commentStats && (
+                    <>
+                      <div style={{ 
+                        padding: '15px', 
+                        borderRadius: '8px', 
+                        backgroundColor: isDarkMode ? '#2a2a2a' : '#f5f5f5',
+                        boxShadow: isDarkMode ? '0 4px 8px rgba(0,0,0,0.2)' : '0 4px 8px rgba(0,0,0,0.1)',
+                      }}>
+                        <h3 style={{ marginTop: 0, fontSize: '16px', color: isDarkMode ? '#fff' : '#333' }}>Comments Made</h3>
+                        <div style={{ fontSize: '20px', fontWeight: 'bold', marginBottom: '5px', color: isDarkMode ? '#26a69a' : '#00897b' }}>
+                          {commentStats.total_comments || 0}
+                        </div>
+                        <p style={{ marginBottom: 0, fontSize: '12px', color: isDarkMode ? '#aaa' : '#666' }}>
+                          On {commentStats.commented_posts_count || 0} posts
+                        </p>
+                      </div>
+                      
+                      <div style={{ 
+                        padding: '15px', 
+                        borderRadius: '8px', 
+                        backgroundColor: isDarkMode ? '#2a2a2a' : '#f5f5f5',
+                        boxShadow: isDarkMode ? '0 4px 8px rgba(0,0,0,0.2)' : '0 4px 8px rgba(0,0,0,0.1)',
+                      }}>
+                        <h3 style={{ marginTop: 0, fontSize: '16px', color: isDarkMode ? '#fff' : '#333' }}>Posts Commented</h3>
+                        <div style={{ fontSize: '20px', fontWeight: 'bold', marginBottom: '5px', color: isDarkMode ? '#7e57c2' : '#5e35b1' }}>
+                          {commentStats.commented_posts_count || 0}
+                        </div>
+                        <p style={{ marginBottom: 0, fontSize: '12px', color: isDarkMode ? '#aaa' : '#666' }}>
+                          {commentStats.total_comments && commentStats.commented_posts_count ?
+                            `~${Math.round(commentStats.total_comments / commentStats.commented_posts_count)} comments per post` :
+                            '0 comments per post'}
+                        </p>
+                      </div>
+                      
+                      <div style={{ 
+                        padding: '15px', 
+                        borderRadius: '8px', 
+                        backgroundColor: isDarkMode ? '#2a2a2a' : '#f5f5f5',
+                        boxShadow: isDarkMode ? '0 4px 8px rgba(0,0,0,0.2)' : '0 4px 8px rgba(0,0,0,0.1)',
+                      }}>
+                        <h3 style={{ marginTop: 0, fontSize: '16px', color: isDarkMode ? '#fff' : '#333' }}>Comments Received</h3>
+                        <div style={{ fontSize: '20px', fontWeight: 'bold', marginBottom: '5px', color: isDarkMode ? '#ef5350' : '#e53935' }}>
+                          {commentStats.received_comments_count || 0}
+                        </div>
+                        <p style={{ marginBottom: 0, fontSize: '12px', color: isDarkMode ? '#aaa' : '#666' }}>
+                          On your posts
+                        </p>
+                      </div>
+                    </>
+                  )}
+                </div>
+              </div>
             </div>
           )}
         </div>
@@ -452,7 +783,19 @@ const ProgressPage: React.FC = () => {
                     responsive: true,
                     maintainAspectRatio: true,
                     plugins: {
-                      legend: { display: false }
+                      legend: {
+                        display: true,
+                        position: 'bottom',
+                        labels: {
+                          boxWidth: 0,
+                          padding: 5,
+                          font: {
+                            size: 10
+                          },
+                          color: isDarkMode ? '#fff' : '#333',
+                          usePointStyle: false
+                        }
+                      }
                     },
                     scales: {
                       x: { display: false },
@@ -486,7 +829,19 @@ const ProgressPage: React.FC = () => {
                     responsive: true,
                     maintainAspectRatio: true,
                     plugins: {
-                      legend: { display: false }
+                      legend: {
+                        display: true,
+                        position: 'bottom',
+                        labels: {
+                          boxWidth: 0,
+                          padding: 5,
+                          font: {
+                            size: 10
+                          },
+                          color: isDarkMode ? '#fff' : '#333',
+                          usePointStyle: false
+                        }
+                      }
                     },
                     scales: {
                       x: { display: false },
@@ -520,7 +875,19 @@ const ProgressPage: React.FC = () => {
                     responsive: true,
                     maintainAspectRatio: true,
                     plugins: {
-                      legend: { display: false }
+                      legend: {
+                        display: true,
+                        position: 'bottom',
+                        labels: {
+                          boxWidth: 0,
+                          padding: 5,
+                          font: {
+                            size: 10
+                          },
+                          color: isDarkMode ? '#fff' : '#333',
+                          usePointStyle: false
+                        }
+                      }
                     },
                     scales: {
                       x: { display: false },
@@ -554,7 +921,19 @@ const ProgressPage: React.FC = () => {
                     responsive: true,
                     maintainAspectRatio: true,
                     plugins: {
-                      legend: { display: false }
+                      legend: {
+                        display: true,
+                        position: 'bottom',
+                        labels: {
+                          boxWidth: 0,
+                          padding: 5,
+                          font: {
+                            size: 10
+                          },
+                          color: isDarkMode ? '#fff' : '#333',
+                          usePointStyle: false
+                        }
+                      }
                     },
                     scales: {
                       x: { display: false },
