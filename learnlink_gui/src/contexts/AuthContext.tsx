@@ -6,6 +6,7 @@ interface User {
   name: string;
   email: string;
   role?: string;
+  login_provider?: string; // login_provider'ı ekledim
 }
 
 interface AuthContextType {

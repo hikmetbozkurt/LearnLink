@@ -11,6 +11,57 @@ const authService = new AuthService();
 const emailService = new EmailService();
 const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
+// Database migration for login_provider field
+// Run this once
+const addLoginProviderField = async () => {
+  try {
+    // Check if the login_provider column already exists
+    const checkColumnQuery = `
+      SELECT column_name 
+      FROM information_schema.columns 
+      WHERE table_name = 'users' AND column_name = 'login_provider'
+    `;
+    
+    const checkResult = await pool.query(checkColumnQuery);
+    
+    if (checkResult.rows.length === 0) {
+      console.log('Adding login_provider column to users table...');
+      
+      // Add the column if it doesn't exist
+      await pool.query(`
+        ALTER TABLE users 
+        ADD COLUMN login_provider VARCHAR(20) NULL
+      `);
+      
+      // Set login_provider to 'google' for users who signed up with Google
+      // This is a heuristic - users without passwords are likely Google users
+      await pool.query(`
+        UPDATE users 
+        SET login_provider = 'google' 
+        WHERE password IS NULL OR password = ''
+      `);
+      
+      // Set login_provider to 'email' for other users
+      await pool.query(`
+        UPDATE users 
+        SET login_provider = 'email' 
+        WHERE (password IS NOT NULL AND password != '') AND (login_provider IS NULL)
+      `);
+      
+      console.log('Migration completed: Added login_provider column to users table');
+    } else {
+      console.log('login_provider column already exists in users table');
+    }
+  } catch (error) {
+    console.error('Error during database migration:', error);
+  }
+};
+
+// Run the migration
+addLoginProviderField().catch(error => {
+  console.error('Migration failed:', error);
+});
+
 export const login = asyncHandler(async (req, res) => {
   const { email, password } = req.body;
 
@@ -262,7 +313,7 @@ export const googleLogin = asyncHandler(async (req, res) => {
 
     // Check if user exists
     let result = await pool.query(
-      'SELECT user_id, name, email, role, created_at, profile_pic FROM users WHERE email = $1',
+      'SELECT user_id, name, email, role, created_at, profile_pic, login_provider FROM users WHERE email = $1',
       [email]
     );
 
@@ -275,11 +326,19 @@ export const googleLogin = asyncHandler(async (req, res) => {
       const hashedPassword = await bcrypt.hash(randomPassword, 10);
       
       result = await pool.query(
-        `INSERT INTO users (name, email, password, role, is_active, profile_pic) 
-         VALUES ($1, $2, $3, $4, true, $5) 
-         RETURNING user_id, name, email, role, created_at, profile_pic`,
-        [name, email, hashedPassword, 'student', picture]
+        `INSERT INTO users (name, email, password, role, is_active, profile_pic, login_provider) 
+         VALUES ($1, $2, $3, $4, true, $5, $6) 
+         RETURNING user_id, name, email, role, created_at, profile_pic, login_provider`,
+        [name, email, hashedPassword, 'student', picture, 'google']
       );
+    } else {
+      // Update login_provider if user exists but doesn't have it set
+      if (!result.rows[0].login_provider) {
+        await pool.query(
+          'UPDATE users SET login_provider = $1 WHERE user_id = $2',
+          ['google', result.rows[0].user_id]
+        );
+      }
     }
 
     user = result.rows[0];
@@ -301,11 +360,155 @@ export const googleLogin = asyncHandler(async (req, res) => {
         email: user.email,
         role: user.role,
         created_at: user.created_at,
-        profile_pic: user.profile_pic || picture // Use Google profile picture if no custom picture is set
+        profile_pic: user.profile_pic || picture, // Use Google profile picture if no custom picture is set
+        login_provider: user.login_provider
       }
     });
   } catch (error) {
     console.error('Google auth error:', error);
     res.status(401).json({ message: 'Invalid Google credentials' });
+  }
+});
+
+// Check authentication provider for a user
+export const checkAuthProvider = asyncHandler(async (req, res) => {
+  try {
+    const userId = req.user.user_id;
+    
+    // Query to find if this user was created with Google login
+    const result = await pool.query(
+      'SELECT login_provider FROM users WHERE user_id = $1',
+      [userId]
+    );
+    
+    if (result.rows.length === 0) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+    
+    // If login_provider is 'google', user registered with Google
+    // If null or 'email', user registered with email/password
+    const provider = result.rows[0].login_provider || 'email';
+    
+    res.json({ provider });
+  } catch (error) {
+    console.error('Error checking auth provider:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// Change email endpoint
+export const changeEmail = asyncHandler(async (req, res) => {
+  try {
+    const { currentPassword, newEmail } = req.body;
+    const userId = req.user.user_id;
+    
+    if (!currentPassword || !newEmail) {
+      return res.status(400).json({ message: 'Current password and new email are required' });
+    }
+    
+    // Check if user exists and get their current data
+    const userResult = await pool.query(
+      'SELECT email, password, login_provider FROM users WHERE user_id = $1',
+      [userId]
+    );
+    
+    if (userResult.rows.length === 0) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+    
+    const user = userResult.rows[0];
+    
+    // Check if user is a Google user
+    if (user.login_provider === 'google') {
+      return res.status(403).json({ 
+        message: 'Google accounts cannot change email directly. Please update your email through Google.'
+      });
+    }
+    
+    // Verify current password
+    const isPasswordValid = await bcrypt.compare(currentPassword, user.password);
+    if (!isPasswordValid) {
+      return res.status(401).json({ message: 'Current password is incorrect' });
+    }
+    
+    // Check if new email already exists
+    const emailCheckResult = await pool.query(
+      'SELECT user_id FROM users WHERE email = $1 AND user_id != $2',
+      [newEmail, userId]
+    );
+    
+    if (emailCheckResult.rows.length > 0) {
+      return res.status(409).json({ message: 'Email already in use' });
+    }
+    
+    // Update the email
+    await pool.query(
+      'UPDATE users SET email = $1 WHERE user_id = $2',
+      [newEmail, userId]
+    );
+    
+    res.json({ 
+      message: 'Email updated successfully',
+      email: newEmail
+    });
+  } catch (error) {
+    console.error('Error changing email:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// Change password endpoint
+export const changePassword = asyncHandler(async (req, res) => {
+  try {
+    const { currentPassword, newPassword } = req.body;
+    const userId = req.user.user_id;
+    
+    if (!currentPassword || !newPassword) {
+      return res.status(400).json({ message: 'Current password and new password are required' });
+    }
+    
+    // Check if user exists and get their current data
+    const userResult = await pool.query(
+      'SELECT email, password, login_provider FROM users WHERE user_id = $1',
+      [userId]
+    );
+    
+    if (userResult.rows.length === 0) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+    
+    const user = userResult.rows[0];
+    
+    // Check if user is a Google user
+    if (user.login_provider === 'google') {
+      return res.status(403).json({ 
+        message: 'Google accounts cannot change password directly. Please update your password through Google.'
+      });
+    }
+    
+    // Verify current password
+    const isPasswordValid = await bcrypt.compare(currentPassword, user.password);
+    if (!isPasswordValid) {
+      return res.status(401).json({ message: 'Current password is incorrect' });
+    }
+    
+    // Validate new password
+    if (newPassword.length < 8) {
+      return res.status(400).json({ message: 'Password must be at least 8 characters long' });
+    }
+    
+    // Hash the new password
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+    
+    // Update the password
+    await pool.query(
+      'UPDATE users SET password = $1 WHERE user_id = $2',
+      [hashedPassword, userId]
+    );
+    
+    res.json({ message: 'Password updated successfully' });
+  } catch (error) {
+    console.error('Error changing password:', error);
+    res.status(500).json({ message: 'Server error' });
   }
 }); 

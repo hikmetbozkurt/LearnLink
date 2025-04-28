@@ -12,7 +12,6 @@ import { API_URL } from '../config/config';
 import { useToast } from '../components/ToastProvider';
 import { useTheme } from '../context/ThemeContext';
 
-console.log('Google Client ID:', process.env.REACT_APP_GOOGLE_CLIENT_ID);
 
 const GOOGLE_CLIENT_ID = "69975858042-qg58t1vmhplr463opgmg4dca01jdaal4.apps.googleusercontent.com";
 
