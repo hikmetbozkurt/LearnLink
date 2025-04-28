@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { FaTimes, FaPaperclip, FaTrash } from "react-icons/fa";
+import { FaTimes, FaPaperclip, FaTrash, FaExclamationCircle } from "react-icons/fa";
 import "./CreatePostModal.css";
 import { courseService } from "../../services/courseService";
 
@@ -128,78 +128,86 @@ const CreatePostModal: React.FC<CreatePostModalProps> = ({
   };
 
   return (
-    <div className="modal-overlay">
-      <div className="modal-content create-post-modal">
-        <div className="modal-header">
+    <div className="post-modal-overlay">
+      <div className="post-modal-container">
+        <div className="post-modal-header">
           <h2>Share your knowledge with the class</h2>
-          <button className="close-button" onClick={onClose}>
+          <button className="post-modal-close" onClick={onClose}>
             <FaTimes />
           </button>
         </div>
 
-        <form onSubmit={handleSubmit}>
-          <div className="content-area">
-            <textarea
-              value={content}
-              onChange={(e) => setContent(e.target.value)}
-              placeholder="Share your thoughts, questions, or resources..."
-              rows={8}
-              required
-            />
+        <div className="post-modal-body">
+          <form onSubmit={handleSubmit}>
+            <div className="post-content-area">
+              <textarea
+                className="post-content-textarea"
+                value={content}
+                onChange={(e) => setContent(e.target.value)}
+                placeholder="Share your thoughts, questions, or resources..."
+                rows={8}
+                required
+              />
 
-            {videoPreview && (
-              <div className="video-preview">
-                <iframe
-                  src={videoPreview.replace("watch?v=", "embed/")}
-                  title="Video Preview"
-                  frameBorder="0"
-                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                  allowFullScreen
+              {videoPreview && (
+                <div className="post-video-preview">
+                  <iframe
+                    src={videoPreview.replace("watch?v=", "embed/")}
+                    title="Video Preview"
+                    frameBorder="0"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    allowFullScreen
+                  />
+                </div>
+              )}
+
+              <div className="post-attachment-section">
+                <label htmlFor="file-upload" className="post-file-upload-label">
+                  <FaPaperclip /> Attach File
+                </label>
+                <input
+                  id="file-upload"
+                  type="file"
+                  onChange={handleFileChange}
+                  accept={ALLOWED_FILE_TYPES.join(",")}
+                  style={{ display: "none" }}
                 />
+                {file && (
+                  <div className="post-selected-file">
+                    <span>{file.name}</span>
+                    <button
+                      type="button"
+                      onClick={() => setFile(null)}
+                      className="post-remove-file"
+                    >
+                      <FaTrash />
+                    </button>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {error && (
+              <div className="post-error-message">
+                <FaExclamationCircle />
+                {error}
               </div>
             )}
 
-            <div className="attachment-section">
-              <label htmlFor="file-upload" className="file-upload-label">
-                <FaPaperclip /> Attach File
-              </label>
-              <input
-                id="file-upload"
-                type="file"
-                onChange={handleFileChange}
-                accept={ALLOWED_FILE_TYPES.join(",")}
-                style={{ display: "none" }}
-              />
-              {file && (
-                <div className="selected-file">
-                  <span>{file.name}</span>
-                  <button
-                    type="button"
-                    onClick={() => setFile(null)}
-                    className="remove-file"
-                  >
-                    <FaTrash />
-                  </button>
-                </div>
-              )}
+            <div className="post-modal-actions">
+              <button type="button" className="post-cancel-button" onClick={onClose}>
+                Cancel
+              </button>
+              <button
+                type="submit"
+                className="post-submit-button"
+                disabled={isLoading || !content.trim()}
+              >
+                {isLoading ? "Posting..." : "Post"}
+              </button>
             </div>
-          </div>
-
-          {error && <div className="error-message">{error}</div>}
-
-          <div className="modal-actions">
-            <button type="button" className="cancel-button" onClick={onClose}>
-              Cancel
-            </button>
-            <button
-              type="submit"
-              className="submit-button"
-              disabled={isLoading || !content.trim()}
-            >
-              {isLoading ? "Posting..." : "Post"}
-            </button>
-          </div>
-        </form>
+          </form>
+        </div>
       </div>
     </div>
   );

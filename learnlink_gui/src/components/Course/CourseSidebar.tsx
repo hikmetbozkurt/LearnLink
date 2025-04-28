@@ -40,10 +40,10 @@ const CourseSidebar: React.FC<CourseSidebarProps> = ({
 
   return (
     <div className="course-sidebar">
-      <div className="sidebar-header">
+      <div className="course-sidebar-header">
         <h3>Course Navigation</h3>
-        <div className="search-box">
-          <FaSearch className="search-icon" />
+        <div className="course-sidebar-search">
+          <FaSearch className="course-sidebar-search-icon" />
           <input
             type="text"
             placeholder="Search courses..."
@@ -54,18 +54,18 @@ const CourseSidebar: React.FC<CourseSidebarProps> = ({
         </div>
       </div>
 
-      <div className="sidebar-menu">
+      <div className="course-sidebar-menu">
         <div
-          className={`sidebar-item ${activeTab === "dashboard" ? "active" : ""}`}
+          className={`course-sidebar-nav-item ${activeTab === "dashboard" ? "active" : ""}`}
           onClick={() => handleTabChange("dashboard")}
         >
           <FaGraduationCap style={{ marginRight: '10px', fontSize: '1.2rem' }} />
           <span>Dashboard</span>
         </div>
         
-        <div className="my-courses-section">
+        <div className="course-sidebar-section">
           <div
-            className={`sidebar-item ${activeTab === "myCourses" ? "active" : ""}`}
+            className={`course-sidebar-nav-item ${activeTab === "myCourses" ? "active" : ""}`}
             onClick={() => handleTabChange("myCourses")}
           >
             <FaBookOpen style={{ marginRight: '10px', fontSize: '1.2rem' }} />
@@ -73,18 +73,18 @@ const CourseSidebar: React.FC<CourseSidebarProps> = ({
           </div>
           
           {activeTab === "myCourses" && (
-            <div className="course-list">
+            <div className="course-sidebar-list">
               {myCourses.map((course) => (
                 <div
                   key={course.course_id}
-                  className={`course-list-item ${location.pathname.includes(`/courses/${course.course_id}`) ? 'active' : ''}`}
+                  className={`course-sidebar-list-item ${location.pathname.includes(`/courses/${course.course_id}`) ? 'active' : ''}`}
                   onClick={() => handleCourseClick(course.course_id)}
                 >
-                  <span className="course-title">
+                  <span className="course-sidebar-title">
                     <FaChalkboardTeacher style={{ marginRight: '8px', fontSize: '0.9rem', opacity: '0.8' }} />
                     {course.title}
                   </span>
-                  {course.is_admin && <span className="admin-badge">Admin</span>}
+                  {course.is_admin && <span className="course-sidebar-admin-badge">Admin</span>}
                 </div>
               ))}
             </div>
@@ -92,8 +92,8 @@ const CourseSidebar: React.FC<CourseSidebarProps> = ({
         </div>
       </div>
 
-      <div className="sidebar-footer">
-        <button className="create-button" onClick={onCreateCourse}>
+      <div className="course-sidebar-footer">
+        <button className="course-sidebar-create-button" onClick={onCreateCourse}>
           <FaPlus />
           <span>Create Course</span>
         </button>

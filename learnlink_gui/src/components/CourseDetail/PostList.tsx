@@ -105,12 +105,15 @@ const PostList: React.FC<PostListProps> = ({
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
+    // 3 saat ileri al
+    date.setHours(date.getHours() + 3);
     return date.toLocaleDateString("en-US", {
       year: "numeric",
       month: "short",
       day: "numeric",
       hour: "2-digit",
       minute: "2-digit",
+      hour12: false // 24 saat formatı için
     });
   };
 

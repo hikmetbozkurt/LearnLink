@@ -82,7 +82,7 @@ const CourseHeader: React.FC<CourseHeaderProps> = ({
             </div>
           </div>
           <div className="info-row">
-            <span className="admin-label">Admin: {course?.instructor_name || 'Not specified'}</span>
+            <span className="admin-label">Admin: {course?.instructor_name}</span>
             <span className="members-label">
               Members: {course?.student_count || 0} Students
             </span>

@@ -46,6 +46,7 @@ const CourseDetailPage = () => {
     const fetchCourseAndPosts = async () => {
       try {
         const courseData = await courseService.getCourse(courseId!);
+        console.log("Fetched Course Data:", courseData);
         setCourse(courseData);
         await loadPosts();
 
@@ -164,7 +165,7 @@ const CourseDetailPage = () => {
         onLeaveCourse={handleLeaveCourse}
         onDeleteCourse={handleDeleteCourse}
         isInstructor={Boolean(
-          course?.is_admin || course?.instructor_id?.toString() === user?.user_id?.toString()
+          course?.instructor_id?.toString() === user?.user_id?.toString()
         )}
       />
 
@@ -178,7 +179,6 @@ const CourseDetailPage = () => {
           userName={user?.name}
           isAdmin={Boolean(
             course?.instructor_id?.toString() === (user?.user_id || user?.id)?.toString() 
-            || course?.is_admin 
             || user?.role === "admin"
           )}
         />
