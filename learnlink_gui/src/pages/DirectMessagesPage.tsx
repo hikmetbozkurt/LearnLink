@@ -234,7 +234,10 @@ const DirectMessagesPage = () => {
 
   const formatMessageTime = (timestamp: string) => {
     const date = new Date(timestamp);
-    return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    // Add 3 hours to the time
+    date.setHours(date.getHours() + 3);
+    // Display in 24-hour format
+    return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false });
   };
 
   const handleDeleteConversation = async (id: string) => {
@@ -246,6 +249,30 @@ const DirectMessagesPage = () => {
       }
     } catch (error) {
       console.error('Error deleting conversation:', error);
+    }
+  };
+
+  const handleNewDirectMessage = async (userId: number) => {
+    try {
+      // Create a new direct message conversation
+      const response = await api.post('/api/direct-messages', {
+        recipient_id: userId
+      });
+      
+      // Refresh the list of direct messages
+      await fetchDirectMessages();
+      
+      // Select the newly created conversation
+      const newDm = {
+        id: String(response.data.id),
+        name: response.data.name,
+        lastMessage: '',
+        createdAt: response.data.created_at
+      };
+      
+      setSelectedChat(newDm);
+    } catch (error) {
+      console.error('Error creating direct message:', error);
     }
   };
 
@@ -277,6 +304,9 @@ const DirectMessagesPage = () => {
           hideCreateButton={true}
           title="Direct Messages"
           searchPlaceholder="Search messages..."
+          showNewDirectMessageButton={true}
+          onNewDirectMessage={handleNewDirectMessage}
+          currentUserId={currentUserId}
         />
         {selectedChat ? (
           <ChatArea
