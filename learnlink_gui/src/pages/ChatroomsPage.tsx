@@ -244,8 +244,19 @@ const ChatroomsPage = () => {
 
   const formatMessageTime = (timestamp: string) => {
     if (!timestamp) return '';
+    
+    // Create a date object from the timestamp
     const date = new Date(timestamp);
-    return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    
+    // Add 3 hours to compensate for the time zone difference
+    date.setHours(date.getHours() + 3);
+    
+    // Format the time in 24-hour format
+    return date.toLocaleTimeString([], { 
+      hour: '2-digit', 
+      minute: '2-digit',
+      hour12: false // Use 24-hour format
+    });
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
