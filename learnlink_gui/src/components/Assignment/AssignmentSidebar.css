@@ -1,22 +1,25 @@
 .assignment-sidebar {
   width: 300px;
   height: 100%;
-  background-color: #f5f5f5;
-  border-right: 1px solid #e0e0e0;
+  background-color: var(--background);
+  border-right: 1px solid var(--border);
   display: flex;
   flex-direction: column;
   position: relative;
+  transition: all 0.3s ease;
 }
 
 .sidebar-header {
   padding: 20px;
-  border-bottom: 1px solid #e0e0e0;
+  border-bottom: 1px solid var(--border);
+  background-color: var(--header-background);
 }
 
 .sidebar-header h3 {
   margin: 0 0 15px 0;
   font-size: 1.5rem;
-  color: #333;
+  color: var(--text-primary);
+  font-weight: 600;
 }
 
 .search-box {
@@ -26,15 +29,17 @@
 .search-box input {
   width: 100%;
   padding: 8px 35px;
-  border: 1px solid #ddd;
+  border: 1px solid var(--input-border);
   border-radius: 20px;
   font-size: 14px;
   outline: none;
   transition: border-color 0.3s;
+  background-color: var(--input-background);
+  color: var(--text-primary);
 }
 
 .search-box input:focus {
-  border-color: #512da8;
+  border-color: var(--input-focus);
 }
 
 .search-icon {
@@ -42,7 +47,7 @@
   left: 12px;
   top: 50%;
   transform: translateY(-50%);
-  color: #666;
+  color: var(--text-secondary);
 }
 
 .sidebar-menu {
@@ -59,16 +64,18 @@
   border-radius: 8px;
   margin-bottom: 5px;
   cursor: pointer;
-  transition: background-color 0.3s;
+  transition: background-color 0.3s, transform 0.2s;
+  color: var(--text-primary);
+  font-weight: 500;
 }
 
 .sidebar-item:hover {
-  background-color: #e8e8e8;
+  background-color: var(--hover-background);
 }
 
 .sidebar-item.active {
-  background-color: rgba(81, 45, 168, 0.1);
-  color: #512da8;
+  background-color: rgba(var(--primary-rgb), 0.1);
+  color: var(--primary);
 }
 
 .sidebar-item svg {
@@ -82,33 +89,35 @@
 
 .sidebar-filters h4 {
   margin: 10px 0;
-  color: #555;
+  color: var(--text-secondary);
   font-size: 0.9rem;
 }
 
 .course-filter {
   width: 100%;
   padding: 10px;
-  border: 1px solid #ddd;
+  border: 1px solid var(--input-border);
   border-radius: 8px;
-  background-color: white;
+  background-color: var(--input-background);
+  color: var(--text-primary);
   font-size: 14px;
   outline: none;
+  transition: border-color 0.3s;
 }
 
 .course-filter:focus {
-  border-color: #512da8;
+  border-color: var(--input-focus);
 }
 
 .sidebar-footer {
   padding: 20px;
-  border-top: 1px solid #e0e0e0;
+  border-top: 1px solid var(--border);
 }
 
 .create-button {
   width: 100%;
   padding: 12px;
-  background-color: #512da8;
+  background-color: var(--primary);
   color: white;
   border: none;
   border-radius: 8px;
@@ -122,7 +131,7 @@
 }
 
 .create-button:hover {
-  background-color: #4527a0;
+  background-color: var(--secondary);
   transform: translateY(-2px);
 }
 
@@ -136,7 +145,7 @@
     width: 100%;
     height: auto;
     border-right: none;
-    border-bottom: 1px solid #e0e0e0;
+    border-bottom: 1px solid var(--border);
   }
   
   .sidebar-menu {
@@ -149,4 +158,4 @@
     display: inline-flex;
     flex-shrink: 0;
   }
-} 
+}

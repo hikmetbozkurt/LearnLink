@@ -33,36 +33,52 @@
   gap: 10px;
 }
 
-.edit-button, .delete-button {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  padding: 8px 16px;
-  border: none;
-  border-radius: 8px;
-  cursor: pointer;
-  font-size: 0.9rem;
-  transition: all 0.2s ease;
-}
 
 .edit-button {
-  background-color: #e8f5e9;
-  color: #2e7d32;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 6px 12px;
+  background-color: var(--primary-light);
+  color: var(--primary);
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.85rem;
+  transition: all 0.25s ease;
 }
 
 .edit-button:hover {
-  background-color: #c8e6c9;
+  background-color: var(--primary);
+  color: white;
+  transform: translateY(-2px);
 }
 
 .delete-button {
-  background-color: #ffebee;
-  color: #d32f2f;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 6px 12px;
+  background-color: var(--error-light);
+  color: var(--error);
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.85rem;
+  transition: all 0.25s ease;
 }
 
 .delete-button:hover {
-  background-color: #ffcdd2;
+  background-color: var(--error);
+  color: white;
+  transform: translateY(-2px);
 }
 
+.delete-button:active {
+  transform: translateY(0);
+}
 .detail-content {
   display: flex;
   gap: 30px;

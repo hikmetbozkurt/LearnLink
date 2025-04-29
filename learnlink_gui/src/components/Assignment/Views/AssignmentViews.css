@@ -44,29 +44,9 @@
   margin-bottom: 20px;
 }
 
-.view-btn {
-  padding: 8px 16px;
-  background-color: #f0f0f0;
-  border: none;
-  border-radius: 4px;
-  margin-left: 10px;
-  cursor: pointer;
-  transition: background-color 0.2s ease;
-}
-
-.view-btn:hover {
-  background-color: #e0e0e0;
-}
-
-.view-btn.active {
-  background-color: #007bff;
-  color: white;
-}
-
 .no-assignments {
   text-align: center;
   padding: 40px;
-  background-color: #f8f9fa;
   border-radius: 8px;
   font-size: 16px;
   color: #6c757d;

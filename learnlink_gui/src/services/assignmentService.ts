@@ -33,6 +33,10 @@ export interface Submission {
 
 // Create a service with methods for interacting with the assignment API
 export const assignmentService = {
+  // Add a cache for submissions to prevent duplicate API calls
+  _submissionsCache: new Map<string, Submission[]>(),
+  _userSubmissionCache: new Map<string, Submission | null>(),
+  
   // Get all assignments for the current user
   getAllAssignments: async (): Promise<Assignment[]> => {
     const token = localStorage.getItem('token');
@@ -72,7 +76,7 @@ export const assignmentService = {
         assignments = [...assignments, ...response.data];
       });
       
-      // Get user information
+      // Get user information from localStorage
       const userStr = localStorage.getItem('user');
       if (!userStr) throw new Error('User data not found');
       
@@ -95,9 +99,21 @@ export const assignmentService = {
           // If user is admin for this assignment's course, fetch all submissions
           if (isAdmin) {
             try {
-              console.log(`Fetching submissions for assignment ${assignment.assignment_id}`);
-              const submissions = await assignmentService.getSubmissions(assignment.assignment_id);
-              console.log(`Found ${submissions.length} submissions for assignment ${assignment.assignment_id}`);
+              // Check if we already have this assignment's submissions in cache
+              const cacheKey = `assignment_${assignment.assignment_id}`;
+              let submissions: Submission[] = [];
+              
+              if (assignmentService._submissionsCache.has(cacheKey)) {
+                console.log(`Using cached submissions for assignment ${assignment.assignment_id}`);
+                submissions = assignmentService._submissionsCache.get(cacheKey) || [];
+              } else {
+                console.log(`Fetching submissions for assignment ${assignment.assignment_id}`);
+                submissions = await assignmentService.getSubmissions(assignment.assignment_id);
+                console.log(`Found ${submissions.length} submissions for assignment ${assignment.assignment_id}`);
+                
+                // Cache the submissions
+                assignmentService._submissionsCache.set(cacheKey, submissions);
+              }
               
               // Update assignment with submission count
               assignmentWithDefaults = {
@@ -122,7 +138,21 @@ export const assignmentService = {
           } else {
             // For regular users, just check their own submission
             try {
-              const submission = await assignmentService.getUserSubmission(assignment.assignment_id);
+              // Check if we already have this user's submission in cache
+              const cacheKey = `user_${userId}_assignment_${assignment.assignment_id}`;
+              let submission: Submission | null = null;
+              
+              if (assignmentService._userSubmissionCache.has(cacheKey)) {
+                console.log(`Using cached user submission for assignment ${assignment.assignment_id}`);
+                submission = assignmentService._userSubmissionCache.get(cacheKey) || null;
+              } else {
+                const result = await assignmentService.getUserSubmission(assignment.assignment_id);
+                submission = result;
+                
+                // Cache the user submission
+                assignmentService._userSubmissionCache.set(cacheKey, submission);
+              }
+              
               if (submission) {
                 assignmentWithDefaults = {
                   ...assignmentWithDefaults,
@@ -352,5 +382,11 @@ export const assignmentService = {
       console.error(`Error grading submission ${submissionId}:`, error);
       throw error;
     }
+  },
+  
+  // Clear the cache when needed (e.g., after creating a new assignment)
+  clearSubmissionsCache: () => {
+    assignmentService._submissionsCache.clear();
+    assignmentService._userSubmissionCache.clear();
   }
 }; 

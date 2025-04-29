@@ -25,7 +25,7 @@ interface CreateAssignmentModalProps {
   isEdit?: boolean;
   initialData?: Assignment;
   onClose: () => void;
-  onSubmit: (data: Assignment) => void;
+  onSubmit: (data: Partial<Assignment>) => void;
   adminCourses?: Course[];
 }
 
@@ -169,7 +169,7 @@ const CreateAssignmentModal: React.FC<CreateAssignmentModalProps> = ({
     setIsLoading(true);
 
     // Prepare the data for submission
-    const submissionData = {
+    const submissionData: Partial<Assignment> = {
       ...formData,
       points:
         typeof formData.points === "string"
@@ -179,8 +179,6 @@ const CreateAssignmentModal: React.FC<CreateAssignmentModalProps> = ({
     };
 
     try {
-      let result;
-
       if (isEdit && initialData && initialData.assignment_id) {
         // Update existing assignment
         console.log(
@@ -205,9 +203,16 @@ const CreateAssignmentModal: React.FC<CreateAssignmentModalProps> = ({
         });
 
         if (response.ok) {
-          result = await response.json();
+          const result = await response.json();
           console.log("Assignment updated successfully:", result);
           setSuccessMsg("Assignment updated successfully!");
+          
+          // Notify parent component to refresh the assignments list
+          // Pass the result to maintain compatibility with existing code
+          onSubmit(result);
+          
+          // Close the modal after successful submission
+          onClose();
         } else {
           const errorText = await response.text();
           console.error("API error:", errorText);
@@ -234,21 +239,22 @@ const CreateAssignmentModal: React.FC<CreateAssignmentModalProps> = ({
         });
 
         if (response.ok) {
-          result = await response.json();
+          const result = await response.json();
           console.log("Assignment created successfully:", result);
           setSuccessMsg("Assignment created successfully!");
+          
+          // Notify parent component to refresh the assignments list
+          // Pass the result to maintain compatibility with existing code
+          onSubmit(result);
+          
+          // Close the modal after successful submission
+          onClose();
         } else {
           const errorText = await response.text();
           console.error("API error:", errorText);
           throw new Error(`API error: ${response.status} ${errorText}`);
         }
       }
-
-      // Call the onSubmit callback to trigger the loadAssignments function
-      onSubmit(result);
-
-      // Close the modal after successful submission
-      onClose();
     } catch (error) {
       console.error("Error submitting assignment:", error);
       const errorMessage =
@@ -262,29 +268,29 @@ const CreateAssignmentModal: React.FC<CreateAssignmentModalProps> = ({
   };
 
   return (
-    <div className="modal-overlay">
-      <div className="assignment-modal">
-        <div className="modal-header">
+    <div className="create-assignment-modal-overlay">
+      <div className="create-assignment-modal">
+        <div className="create-assignment-modal-header">
           <h2>{isEdit ? "Edit Assignment" : "Create Assignment"}</h2>
-          <button className="close-button" onClick={onClose}>
+          <button className="create-assignment-close-button" onClick={onClose}>
             <FaTimes />
           </button>
         </div>
 
         <form onSubmit={handleSubmit}>
           {successMsg && (
-            <div className="success-message">
+            <div className="create-assignment-success-message">
               <FaCheck /> {successMsg}
             </div>
           )}
 
           {errorMsg && (
-            <div className="error-message">
+            <div className="create-assignment-error-message">
               <FaExclamationTriangle /> {errorMsg}
             </div>
           )}
 
-          <div className="form-group">
+          <div className="create-assignment-form-group">
             <label htmlFor="title">Assignment Title</label>
             <input
               type="text"
@@ -297,7 +303,7 @@ const CreateAssignmentModal: React.FC<CreateAssignmentModalProps> = ({
             />
           </div>
 
-          <div className="form-group">
+          <div className="create-assignment-form-group">
             <label htmlFor="description">Instructions</label>
             <textarea
               id="description"
@@ -310,8 +316,8 @@ const CreateAssignmentModal: React.FC<CreateAssignmentModalProps> = ({
             />
           </div>
 
-          <div className="form-row">
-            <div className="form-group">
+          <div className="create-assignment-form-row">
+            <div className="create-assignment-form-group">
               <label htmlFor="due_date">Due Date</label>
               <input
                 type="datetime-local"
@@ -323,7 +329,7 @@ const CreateAssignmentModal: React.FC<CreateAssignmentModalProps> = ({
               />
             </div>
 
-            <div className="form-group">
+            <div className="create-assignment-form-group">
               <label htmlFor="points">Points</label>
               <input
                 type="number"
@@ -335,11 +341,11 @@ const CreateAssignmentModal: React.FC<CreateAssignmentModalProps> = ({
                 max="1000"
                 required
               />
-              <p className="field-hint">Maximum points students can earn</p>
+              <p className="create-assignment-field-hint">Maximum points students can earn</p>
             </div>
           </div>
 
-          <div className="form-group">
+          <div className="create-assignment-form-group">
             <label htmlFor="grading_criteria">
               Grading Criteria (Optional)
             </label>
@@ -353,7 +359,7 @@ const CreateAssignmentModal: React.FC<CreateAssignmentModalProps> = ({
             />
           </div>
 
-          <div className="form-group">
+          <div className="create-assignment-form-group">
             <label htmlFor="course_id">Course</label>
             <select
               id="course_id"
@@ -371,19 +377,19 @@ const CreateAssignmentModal: React.FC<CreateAssignmentModalProps> = ({
               ))}
             </select>
             {courses.length === 0 && (
-              <div className="no-courses-message">
+              <div className="create-assignment-no-courses-message">
                 <FaInfoCircle /> You don't have any courses where you're an
                 admin. You need to be a course admin to create assignments.
               </div>
             )}
-            <p className="field-hint">
+            <p className="create-assignment-field-hint">
               You can only create assignments for courses where you are an
               admin.
             </p>
           </div>
 
-          <div className="assignment-info-box">
-            <FaInfoCircle className="info-icon" />
+          <div className="create-assignment-info-box">
+            <FaInfoCircle className="create-assignment-info-icon" />
             <div>
               <p>
                 <strong>About Text Assignments</strong>
@@ -396,13 +402,13 @@ const CreateAssignmentModal: React.FC<CreateAssignmentModalProps> = ({
             </div>
           </div>
 
-          <div className="form-actions">
-            <button type="button" className="cancel-button" onClick={onClose}>
+          <div className="create-assignment-form-actions">
+            <button type="button" className="create-assignment-cancel-button" onClick={onClose}>
               Cancel
             </button>
             <button
               type="submit"
-              className="submit-button"
+              className="create-assignment-submit-button"
               disabled={isLoading || courses.length === 0 || !!successMsg}
             >
               {isLoading

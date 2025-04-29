@@ -5,6 +5,11 @@
   overflow: hidden;
 }
 
+.dark .assignments-page {
+  background-color: var(--background);
+  color: var(--text-primary);
+}
+
 .assignments-content-wrapper {
   flex: 1;
   display: flex;
@@ -17,6 +22,10 @@
   color: #512da8;
   font-weight: 600;
   margin: 0;
+}
+
+.dark .assignments-header h2 {
+  color: var(--primary);
 }
 
 .assignments-list {
@@ -34,9 +43,18 @@
   height: 100%;
 }
 
+.dark .assignment-card {
+  background: var(--surface);
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+}
+
 .assignment-card:hover {
   transform: translateY(-4px);
   box-shadow: 0 8px 12px rgba(0, 0, 0, 0.15);
+}
+
+.dark .assignment-card:hover {
+  box-shadow: 0 8px 12px rgba(0, 0, 0, 0.3);
 }
 
 .assignment-header {
@@ -52,9 +70,17 @@
   color: #512da8;
 }
 
+.dark .assignment-title {
+  color: #9261fb;
+}
+
 .assignment-due-date {
   font-size: 14px;
   color: #666;
+}
+
+.dark .assignment-due-date {
+  color: var(--dark-text-secondary);
 }
 
 .assignment-status {
@@ -70,9 +96,19 @@
   color: #f57c00;
 }
 
+.dark .status-pending {
+  background-color: rgba(245, 124, 0, 0.2);
+  color: #ffb74d;
+}
+
 .status-submitted {
   background-color: #e8f5e9;
   color: #2e7d32;
+}
+
+.dark .status-submitted {
+  background-color: rgba(46, 125, 50, 0.2);
+  color: #81c784;
 }
 
 .status-graded {
@@ -80,9 +116,19 @@
   color: #0288d1;
 }
 
+.dark .status-graded {
+  background-color: rgba(2, 136, 209, 0.2);
+  color: #4fc3f7;
+}
+
 .status-late {
   background-color: #ffebee;
   color: #d32f2f;
+}
+
+.dark .status-late {
+  background-color: rgba(211, 47, 47, 0.2);
+  color: #e57373;
 }
 
 /* Assignment Content Styles */
@@ -114,6 +160,11 @@
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
+.dark .pagination {
+  background-color: var(--dark-bg-secondary);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
 .pagination button {
   padding: 8px 16px;
   margin: 0 8px;
@@ -125,8 +176,16 @@
   transition: background-color 0.2s ease;
 }
 
+.dark .pagination button {
+  background-color: #4527a0;
+}
+
 .pagination button:hover {
   background-color: #0069d9;
+}
+
+.dark .pagination button:hover {
+  background-color: #512da8;
 }
 
 .pagination button:disabled {
@@ -134,8 +193,16 @@
   cursor: not-allowed;
 }
 
+.dark .pagination button:disabled {
+  background-color: #4a4a4a;
+}
+
 .pagination span {
   margin: 0 10px;
   font-size: 14px;
   color: #6c757d;
+}
+
+.dark .pagination span {
+  color: var(--dark-text-secondary);
 } 

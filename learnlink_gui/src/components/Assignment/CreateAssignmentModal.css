@@ -1,32 +1,39 @@
-.modal-overlay {
+.create-assignment-modal-overlay {
   position: fixed;
   top: 0;
   left: 0;
   right: 0;
   bottom: 0;
-  background-color: rgba(0, 0, 0, 0.6);
+  background-color: rgba(0, 0, 0, 0.5);
   display: flex;
   justify-content: center;
   align-items: center;
   z-index: 1000;
-  backdrop-filter: blur(3px);
 }
 
-.assignment-modal {
+.dark .create-assignment-modal-overlay {
+  background-color: var(--modal-overlay);
+}
+
+.create-assignment-modal {
   background-color: white;
-  border-radius: 16px;
-  width: 650px;
-  max-width: 90%;
-  max-height: 90vh;
+  border-radius: 15px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+  width: 100%;
+  max-width: 700px;
+  max-height: 85vh;
   overflow-y: auto;
-  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.25);
-  padding: 0;
-  animation: modal-slide-in 0.3s ease;
+  animation: create-assignment-modal-slide-in 0.3s ease-out;
 }
 
-@keyframes modal-slide-in {
+.dark .create-assignment-modal {
+  background-color: var(--modal-background);
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+}
+
+@keyframes create-assignment-modal-slide-in {
   from {
-    transform: translateY(20px);
+    transform: translateY(30px);
     opacity: 0;
   }
   to {
@@ -35,49 +42,68 @@
   }
 }
 
-.modal-header {
+.create-assignment-modal-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 24px 30px;
-  border-bottom: 1px solid #e0e0e0;
-  background-color: #fafafa;
-  border-top-left-radius: 16px;
-  border-top-right-radius: 16px;
+  padding: 20px 30px;
+  border-bottom: 1px solid #eee;
+  position: sticky;
+  top: 0;
+  background-color: white;
+  z-index: 1;
 }
 
-.modal-header h2 {
+.dark .create-assignment-modal-header {
+  background-color: var(--modal-background);
+  border-bottom: 1px solid var(--border);
+}
+
+.create-assignment-modal-header h2 {
   margin: 0;
-  color: #512da8;
   font-size: 1.5rem;
   font-weight: 600;
+  color: #333;
 }
 
-.close-button {
-  background: none;
+.dark .create-assignment-modal-header h2 {
+  color: var(--dark-text-primary);
+}
+
+.create-assignment-close-button {
+  background: transparent;
   border: none;
-  font-size: 1.2rem;
   color: #666;
+  font-size: 1.5rem;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 32px;
-  height: 32px;
+  width: 36px;
+  height: 36px;
   border-radius: 50%;
   transition: all 0.2s;
 }
 
-.close-button:hover {
+.dark .create-assignment-close-button {
+  color: var(--dark-text-secondary);
+}
+
+.create-assignment-close-button:hover {
   background-color: rgba(0, 0, 0, 0.05);
   color: #d32f2f;
 }
 
-.assignment-modal form {
+.dark .create-assignment-close-button:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+  color: #ff6b6b;
+}
+
+.create-assignment-modal form {
   padding: 30px;
 }
 
-.success-message {
+.create-assignment-success-message {
   background-color: #d4edda;
   color: #155724;
   padding: 12px;
@@ -88,12 +114,21 @@
   font-weight: 500;
 }
 
-.success-message svg {
+.dark .create-assignment-success-message {
+  background-color: rgba(40, 167, 69, 0.2);
+  color: #8bffb1;
+}
+
+.create-assignment-success-message svg {
   margin-right: 8px;
   color: #28a745;
 }
 
-.error-message {
+.dark .create-assignment-success-message svg {
+  color: #4dff77;
+}
+
+.create-assignment-error-message {
   background-color: #f8d7da;
   color: #721c24;
   padding: 12px;
@@ -104,27 +139,36 @@
   font-weight: 500;
 }
 
-.error-message svg {
+.dark .create-assignment-error-message {
+  background-color: rgba(220, 53, 69, 0.2);
+  color: #ff8c96;
+}
+
+.create-assignment-error-message svg {
   margin-right: 8px;
   color: #dc3545;
 }
 
-.form-group {
+.dark .create-assignment-error-message svg {
+  color: #ff6b6b;
+}
+
+.create-assignment-form-group {
   margin-bottom: 24px;
 }
 
-.form-row {
+.create-assignment-form-row {
   display: flex;
   gap: 24px;
   margin-bottom: 24px;
 }
 
-.form-row .form-group {
+.create-assignment-form-row .create-assignment-form-group {
   flex: 1;
   margin-bottom: 0;
 }
 
-.form-group label {
+.create-assignment-form-group label {
   display: block;
   margin-bottom: 8px;
   font-weight: 500;
@@ -132,9 +176,13 @@
   font-size: 0.95rem;
 }
 
-.form-group input,
-.form-group textarea,
-.form-group select {
+.dark .create-assignment-form-group label {
+  color: var(--text-primary);
+}
+
+.create-assignment-form-group input,
+.create-assignment-form-group textarea,
+.create-assignment-form-group select {
   width: 100%;
   padding: 12px 14px;
   border: 1px solid #e0e0e0;
@@ -144,26 +192,47 @@
   background-color: #fff;
 }
 
-.form-group input:hover,
-.form-group textarea:hover,
-.form-group select:hover {
+.dark .create-assignment-form-group input,
+.dark .create-assignment-form-group textarea,
+.dark .create-assignment-form-group select {
+  background-color: var(--input-background);
+  border-color: var(--input-border);
+  color: var(--text-primary);
+}
+
+.create-assignment-form-group input:hover,
+.create-assignment-form-group textarea:hover,
+.create-assignment-form-group select:hover {
   border-color: #bbb;
 }
 
-.form-group input:focus,
-.form-group textarea:focus,
-.form-group select:focus {
+.dark .create-assignment-form-group input:hover,
+.dark .create-assignment-form-group textarea:hover,
+.dark .create-assignment-form-group select:hover {
+  border-color: #555;
+}
+
+.create-assignment-form-group input:focus,
+.create-assignment-form-group textarea:focus,
+.create-assignment-form-group select:focus {
   outline: none;
   border-color: #512da8;
   box-shadow: 0 0 0 3px rgba(81, 45, 168, 0.1);
 }
 
-.form-group textarea {
+.dark .create-assignment-form-group input:focus,
+.dark .create-assignment-form-group textarea:focus,
+.dark .create-assignment-form-group select:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(124, 77, 255, 0.2);
+}
+
+.create-assignment-form-group textarea {
   resize: vertical;
   min-height: 100px;
 }
 
-.form-group select {
+.create-assignment-form-group select {
   background-color: white;
   appearance: none;
   background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23333' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
@@ -173,14 +242,22 @@
   padding-right: 40px;
 }
 
-.field-hint {
+.dark .create-assignment-form-group select {
+  background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23ffffff' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+}
+
+.create-assignment-field-hint {
   font-size: 0.8rem;
   color: #666;
   margin-top: 4px;
   margin-bottom: 0;
 }
 
-.assignment-info-box {
+.dark .create-assignment-field-hint {
+  color: var(--text-secondary);
+}
+
+.create-assignment-info-box {
   background-color: #e8f0fe;
   border-radius: 10px;
   padding: 16px;
@@ -190,31 +267,43 @@
   align-items: flex-start;
 }
 
-.info-icon {
-  color: #4285f4;
+.dark .create-assignment-info-box {
+  background-color: var(--background);
+}
+
+.create-assignment-info-icon {
+  color: var(--primary);
   font-size: 20px;
   margin-top: 3px;
 }
 
-.assignment-info-box p {
+.create-assignment-info-box p {
   margin: 0 0 8px 0;
   font-size: 0.9rem;
   color: #333;
   line-height: 1.5;
 }
 
-.assignment-info-box p:last-child {
+.dark .create-assignment-info-box p strong {
+  color: var(--text-primary);
+}
+
+.dark .create-assignment-info-box p {
+  color: var(--dark-text-primary);
+}
+
+.create-assignment-info-box p:last-child {
   margin-bottom: 0;
 }
 
-.form-actions {
+.create-assignment-form-actions {
   display: flex;
   justify-content: flex-end;
   gap: 12px;
   margin-top: 30px;
 }
 
-.cancel-button {
+.create-assignment-cancel-button {
   padding: 12px 20px;
   background-color: #f5f5f5;
   color: #333;
@@ -226,11 +315,20 @@
   transition: all 0.2s ease;
 }
 
-.cancel-button:hover {
+.dark .create-assignment-cancel-button {
+  background-color: #333;
+  color: var(--text-primary);
+}
+
+.create-assignment-cancel-button:hover {
   background-color: #e0e0e0;
 }
 
-.submit-button {
+.dark .create-assignment-cancel-button:hover {
+  background-color: #444;
+}
+
+.create-assignment-submit-button {
   padding: 12px 24px;
   background-color: #512da8;
   color: white;
@@ -242,18 +340,22 @@
   transition: all 0.2s ease;
 }
 
-.submit-button:hover {
+.create-assignment-submit-button:hover {
   background-color: #4527a0;
   transform: translateY(-1px);
 }
 
-.submit-button:disabled {
+.create-assignment-submit-button:disabled {
   background-color: #9e9e9e;
   cursor: not-allowed;
   transform: none;
 }
 
-.no-courses-message {
+.dark .create-assignment-submit-button:disabled {
+  background-color: #555;
+}
+
+.create-assignment-no-courses-message {
   color: #d32f2f;
   font-size: 0.9rem;
   margin-top: 8px;
@@ -263,4 +365,60 @@
   display: flex;
   align-items: center;
   gap: 8px;
+}
+
+.dark .create-assignment-no-courses-message {
+  background-color: rgba(211, 47, 47, 0.2);
+  color: #ff8080;
+}
+
+/* Assignment page dark mode styles */
+.dark .assignment-page {
+  background-color: var(--background);
+  color: var(--text-primary);
+}
+
+.dark .assignment-item {
+  background-color: var(--surface);
+  border-color: var(--border);
+}
+
+.dark .assignment-title {
+  color: var(--text-primary);
+}
+
+.dark .assignment-due-date {
+  color: var(--text-secondary);
+}
+
+.dark .assignment-description {
+  color: var(--text-secondary);
+}
+
+.dark .assignment-status {
+  background-color: rgba(0, 0, 0, 0.2);
+}
+
+.dark .assignment-actions button {
+  background-color: #333;
+  color: var(--text-primary);
+}
+
+.dark .assignment-actions button:hover {
+  background-color: #444;
+}
+
+.dark .assignment-status.completed {
+  background-color: rgba(40, 167, 69, 0.2);
+  color: #8bffb1;
+}
+
+.dark .assignment-status.pending {
+  background-color: rgba(255, 193, 7, 0.2);
+  color: #ffe066;
+}
+
+.dark .assignment-status.overdue {
+  background-color: rgba(220, 53, 69, 0.2);
+  color: #ff8c96;
 } 

@@ -254,6 +254,41 @@ const AssignmentsPage: React.FC = () => {
     assignmentData: Partial<ServiceAssignment>
   ) => {
     try {
+      // Check if this is a result from the modal's API call (has assignment_id)
+      if (assignmentData.assignment_id) {
+        console.log("Received assignment result from modal:", assignmentData);
+        
+        // Create a notification for all course members
+        try {
+          // Ensure all required properties exist before creating notification
+          if (assignmentData.course_id && assignmentData.title) {
+            await notificationService.createAssignmentNotification(
+              assignmentData.course_id,
+              assignmentData.assignment_id,
+              assignmentData.title
+            );
+          } else {
+            console.warn("Missing required properties for notification:", assignmentData);
+          }
+        } catch (notificationError) {
+          console.error("Error creating notification:", notificationError);
+          // Still show success for the assignment, but notify user about the notification issue
+          showNotification(
+            "Assignment created, but notification delivery failed",
+            "error"
+          );
+        }
+
+        showNotification("Assignment created successfully", "success");
+        setShowCreateModal(false);
+        
+        // Clear the submissions cache to ensure fresh data
+        assignmentService.clearSubmissionsCache();
+        
+        loadAssignments();
+        return;
+      }
+
       // Only allow creating assignments for courses where user is admin
       if (
         !adminCourses.some(
@@ -292,6 +327,10 @@ const AssignmentsPage: React.FC = () => {
 
         showNotification("Assignment created successfully", "success");
         setShowCreateModal(false);
+        
+        // Clear the submissions cache to ensure fresh data
+        assignmentService.clearSubmissionsCache();
+        
         loadAssignments();
       } catch (apiError) {
         console.error("API Error in createAssignment:", apiError);
