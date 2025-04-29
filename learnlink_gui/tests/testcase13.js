@@ -11,7 +11,7 @@ async function runJoinCourseTest() {
   const driver = await new Builder().forBrowser('chrome').build();
   
   try {
-    console.log('Starting LearnLink Join Course Test (014-Join Course)');
+    console.log('Starting LearnLink Join Course Test (013-Join Course)');
     
     // Test data
     const testUrl = 'http://localhost:3000/';  // Main login page URL
@@ -67,24 +67,83 @@ async function runJoinCourseTest() {
       console.log(`Found ${joinButtons.length} join buttons`);
       
       if (joinButtons.length > 0) {
+        // Store the course card element and title before joining
+        const courseCard = await joinButtons[0].findElement(By.xpath('./ancestor::div[contains(@class, "course-card")]'));
+        const courseTitle = await courseCard.findElement(By.css('.course-title')).getText();
+        console.log(`Attempting to join course: "${courseTitle}"`);
+        
+        // Take screenshot before joining
+        const beforeJoinScreenshot = await driver.takeScreenshot();
+        fs.writeFileSync('3_before_join.png', beforeJoinScreenshot, 'base64');
+        
+        // Click the join button
         await joinButtons[0].click();
         console.log('Clicked on join button');
-        
         await driver.sleep(2000);
         
         const afterClickScreenshot = await driver.takeScreenshot();
-        fs.writeFileSync('3_after_click_join.png', afterClickScreenshot, 'base64');
-        console.log('Screenshot saved: 3_after_click_join.png');
+        fs.writeFileSync('4_after_click_join.png', afterClickScreenshot, 'base64');
         
-        const successMessages = await driver.findElements(By.css('.success, .success-message, .alert-success, .toast-success'));
-        if (successMessages.length > 0) {
-          const successText = await successMessages[0].getText();
-          console.log(`Success message found: "${successText}"`);
-          console.log('TEST PASSED: Successfully joined course');
-        } else {
-          console.log('No explicit success message found, but proceeding with test');
-          console.log('TEST CONDITIONAL PASS: Clicked join button');
+        // Verify the join was successful by checking:
+        // 1. Success notification
+        // 2. Button changed to "View Details"
+        // 3. Course appears in My Courses tab
+        let joinSuccess = false;
+        
+        try {
+          // Check for success notification
+          await driver.wait(
+            until.elementLocated(By.xpath("//*[contains(text(), 'Successfully joined the course')]")),
+            5000
+          );
+          console.log('Success notification found');
+          joinSuccess = true;
+        } catch (notificationError) {
+          console.log('No success notification found, checking other indicators...');
         }
+        
+        try {
+          // Check if the button changed to View Details
+          await driver.wait(
+            until.elementLocated(By.xpath(`//div[contains(@class, "course-card")]//h3[text()="${courseTitle}"]/ancestor::div[contains(@class, "course-card")]//button[contains(@class, "view-details-button")]`)),
+            5000
+          );
+          console.log('Join button changed to View Details');
+          joinSuccess = true;
+        } catch (buttonError) {
+          console.log('Button state change not found, checking My Courses tab...');
+        }
+        
+        if (!joinSuccess) {
+          // Click on My Courses tab as final verification
+          const myCoursesTab = await driver.findElement(
+            By.xpath("//div[contains(@class, 'course-sidebar-nav-item')]//span[text()='My Courses']")
+          );
+          await myCoursesTab.click();
+          await driver.sleep(2000);
+          
+          // Take screenshot of My Courses view
+          const myCoursesScreenshot = await driver.takeScreenshot();
+          fs.writeFileSync('5_my_courses_view.png', myCoursesScreenshot, 'base64');
+          
+          // Look for the course title in My Courses
+          try {
+            await driver.findElement(
+              By.xpath(`//div[contains(@class, "course-card")]//h3[text()="${courseTitle}"]`)
+            );
+            console.log('Course found in My Courses list');
+            joinSuccess = true;
+          } catch (findError) {
+            console.log('Course not found in My Courses list');
+          }
+        }
+        
+        if (joinSuccess) {
+          console.log('TEST PASSED: Successfully joined course and verified enrollment');
+        } else {
+          throw new Error('Could not verify successful course enrollment through any method');
+        }
+        
       } else {
         throw new Error('No join buttons found on the page');
       }
