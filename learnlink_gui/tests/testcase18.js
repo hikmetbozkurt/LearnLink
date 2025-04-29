@@ -11,7 +11,7 @@ async function runCreateEventTest() {
   const driver = await new Builder().forBrowser('chrome').build();
 
   try {
-    console.log('📅 Test Case 18: Create Event from Home');
+    console.log('Test Case 18: Create Event from Home');
 
     const testUrl = 'http://localhost:3000/';
     const testEmail = 'admin@admin.com';
@@ -23,7 +23,7 @@ async function runCreateEventTest() {
     await driver.findElement(By.css('.sign-in input[type="password"]')).sendKeys(testPassword);
     await driver.findElement(By.css('.sign-in button[type="submit"]')).click();
     await driver.wait(until.urlContains('/home'), 10000);
-    console.log('✅ Logged in and on /home');
+    console.log('Logged in and on /home');
 
     const loginSuccessShot = await driver.takeScreenshot();
     fs.writeFileSync('step_login_success.png', loginSuccessShot, 'base64');
@@ -33,24 +33,24 @@ async function runCreateEventTest() {
       10000
     );
     await createEventLink.click();
-    console.log('✅ Clicked Create Event link');
+    console.log('Clicked Create Event link');
 
     const clickedEventLinkShot = await driver.takeScreenshot();
     fs.writeFileSync('step_clicked_event_link.png', clickedEventLinkShot, 'base64');
 
     await driver.wait(until.urlContains('/events'), 10000);
-    console.log('✅ Navigated to /events');
+    console.log('Navigated to /events');
 
     const navigatedToEventsShot = await driver.takeScreenshot();
     fs.writeFileSync('step_navigated_to_events.png', navigatedToEventsShot, 'base64');
 
-    console.log('✅ TEST PASSED (without creating actual event)');
+    console.log('TEST PASSED (without creating actual event)');
     const finalShot = await driver.takeScreenshot();
     fs.writeFileSync('create_event_landing_success.png', finalShot, 'base64');
     console.log('📸 Screenshot saved: create_event_landing_success.png');
 
   } catch (error) {
-    console.error('❌ TEST FAILED:', error.message);
+    console.error('TEST FAILED:', error.message);
     const failShot = await driver.takeScreenshot();
     fs.writeFileSync(`event_test_failure_${Date.now()}.png`, failShot, 'base64');
   } finally {
