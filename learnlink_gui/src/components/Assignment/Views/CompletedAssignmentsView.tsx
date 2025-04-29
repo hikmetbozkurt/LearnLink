@@ -8,6 +8,7 @@ interface CompletedAssignmentsViewProps {
   userCourses: Course[];
   adminCourses: Course[];
   onAssignmentUpdated: () => void;
+  selectedCourse: string | null;
 }
 
 const CompletedAssignmentsView: React.FC<CompletedAssignmentsViewProps> = ({
@@ -15,6 +16,7 @@ const CompletedAssignmentsView: React.FC<CompletedAssignmentsViewProps> = ({
   userCourses,
   adminCourses,
   onAssignmentUpdated,
+  selectedCourse,
 }) => {
   // Filter for completed assignments (submitted and graded)
   const filterCompletedAssignments = (
@@ -34,8 +36,11 @@ const CompletedAssignmentsView: React.FC<CompletedAssignmentsViewProps> = ({
       userCourses={userCourses}
       adminCourses={adminCourses}
       onAssignmentUpdated={onAssignmentUpdated}
-      emptyMessage="No completed assignments found."
+      emptyMessage={selectedCourse 
+        ? "No completed assignments found for this course." 
+        : "No completed assignments found."}
       viewName="Completed Assignments"
+      selectedCourse={selectedCourse}
     />
   );
 };

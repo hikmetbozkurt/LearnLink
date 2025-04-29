@@ -25,6 +25,7 @@ interface InProgressAssignmentsViewProps {
   userCourses: Course[];
   adminCourses: Course[];
   onAssignmentUpdated: () => void;
+  selectedCourse: string | null;
 }
 
 const InProgressAssignmentsView: React.FC<InProgressAssignmentsViewProps> = ({
@@ -32,6 +33,7 @@ const InProgressAssignmentsView: React.FC<InProgressAssignmentsViewProps> = ({
   userCourses,
   adminCourses,
   onAssignmentUpdated,
+  selectedCourse,
 }) => {
   const [selectedAssignment, setSelectedAssignment] =
     useState<Assignment | null>(null);
@@ -93,6 +95,7 @@ const InProgressAssignmentsView: React.FC<InProgressAssignmentsViewProps> = ({
         isAdmin={isAdminForCourse(selectedAssignment.course_id)}
         onBack={handleBack}
         onUpdate={onAssignmentUpdated}
+        selectedCourse={selectedCourse}
       />
     );
   }

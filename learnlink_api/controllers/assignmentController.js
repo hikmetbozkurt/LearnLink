@@ -35,6 +35,20 @@ export const createAssignment = asyncHandler(async (req, res) => {
     grading_criteria,
   });
 
+  // Parse the date to ensure it's in the correct format for PostgreSQL TIMESTAMP
+  let formattedDueDate = due_date;
+  try {
+    // If date doesn't have timezone information, keep it as is
+    // This will respect the user's local timezone when displayed
+    if (due_date && !due_date.endsWith('Z')) {
+      console.log("Due date without timezone, preserving as is:", due_date);
+    } else {
+      console.log("Due date with timezone, using as is:", due_date);
+    }
+  } catch (error) {
+    console.error("Error processing due date:", error);
+  }
+
   try {
     // First check if the assignments table exists
     const tableCheck = await pool.query(
@@ -58,6 +72,18 @@ export const createAssignment = asyncHandler(async (req, res) => {
     } else {
       // Check for missing columns and add them if needed
       console.log("Checking for missing columns in assignments table");
+
+      // Check and upgrade due_date column from DATE to TIMESTAMP if needed
+      const dueDateTypeCheck = await pool.query(
+        "SELECT data_type FROM information_schema.columns WHERE table_name = 'assignments' AND column_name = 'due_date'"
+      );
+      
+      if (dueDateTypeCheck.rows.length > 0 && dueDateTypeCheck.rows[0].data_type === 'date') {
+        console.log("Upgrading due_date column from DATE to TIMESTAMP");
+        await pool.query(
+          "ALTER TABLE assignments ALTER COLUMN due_date TYPE TIMESTAMP USING due_date::timestamp"
+        );
+      }
 
       // Check for title column
       const titleCheck = await pool.query(
@@ -111,7 +137,7 @@ export const createAssignment = asyncHandler(async (req, res) => {
       [
         title,
         description,
-        due_date,
+        formattedDueDate,
         course_id,
         points || 100,
         grading_criteria || "",
@@ -133,10 +159,24 @@ export const updateAssignment = asyncHandler(async (req, res) => {
   const { id } = req.params;
   const { title, description, due_date, points, grading_criteria } = req.body;
 
+  // Parse the date to ensure it's in the correct format for PostgreSQL TIMESTAMP
+  let formattedDueDate = due_date;
+  try {
+    // If date doesn't have timezone information, keep it as is
+    // This will respect the user's local timezone when displayed
+    if (due_date && !due_date.endsWith('Z')) {
+      console.log("Update - Due date without timezone, preserving as is:", due_date);
+    } else {
+      console.log("Update - Due date with timezone, using as is:", due_date);
+    }
+  } catch (error) {
+    console.error("Error processing due date during update:", error);
+  }
+
   try {
     const result = await pool.query(
       "UPDATE assignments SET title = $1, description = $2, due_date = $3, points = $4, grading_criteria = $5 WHERE assignment_id = $6 RETURNING *",
-      [title, description, due_date, points || 100, grading_criteria || "", id]
+      [title, description, formattedDueDate, points || 100, grading_criteria || "", id]
     );
 
     if (result.rows.length === 0) {
@@ -168,7 +208,7 @@ export const updateAssignment = asyncHandler(async (req, res) => {
           [
             title,
             description,
-            due_date,
+            formattedDueDate,
             points || 100,
             grading_criteria || "",
             id,

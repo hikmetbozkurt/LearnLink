@@ -59,10 +59,20 @@
   color: #555;
   font-size: 14px;
   margin-bottom: 15px;
+  padding: 3px 0;
+}
+
+.assignment-course strong {
+  color: #512da8;
+  margin-right: 4px;
 }
 
 .dark .assignment-course {
   color: var(--text-secondary);
+}
+
+.dark .assignment-course strong {
+  color: var(--primary);
 }
 
 .assignment-dates {

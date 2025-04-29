@@ -10,6 +10,7 @@ interface PendingAssignmentsViewProps {
   userCourses: Course[];
   adminCourses: Course[];
   onAssignmentUpdated: () => void;
+  selectedCourse: string | null;
 }
 
 const PendingAssignmentsView: React.FC<PendingAssignmentsViewProps> = ({
@@ -17,6 +18,7 @@ const PendingAssignmentsView: React.FC<PendingAssignmentsViewProps> = ({
   userCourses,
   adminCourses,
   onAssignmentUpdated,
+  selectedCourse,
 }) => {
   // Filter for pending assignments (not submitted and not past due date)
   const filterPendingAssignments = (
@@ -40,8 +42,11 @@ const PendingAssignmentsView: React.FC<PendingAssignmentsViewProps> = ({
       userCourses={userCourses}
       adminCourses={adminCourses}
       onAssignmentUpdated={onAssignmentUpdated}
-      emptyMessage="No pending assignments found."
+      emptyMessage={selectedCourse 
+        ? "No pending assignments found for this course." 
+        : "No pending assignments found."}
       viewName="Pending Assignments"
+      selectedCourse={selectedCourse}
     />
   );
 };

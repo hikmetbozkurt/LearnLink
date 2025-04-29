@@ -84,9 +84,16 @@ const AssignmentSidebar: React.FC<AssignmentSidebarProps> = ({
         <h4>Filter by Course</h4>
         <select
           value={selectedCourse || ""}
-          onChange={(e) =>
-            setSelectedCourse(e.target.value === "" ? null : e.target.value)
-          }
+          onChange={(e) => {
+            const newCourseId = e.target.value === "" ? null : e.target.value;
+            console.log("AssignmentSidebar - Course selection changed:", {
+              from: selectedCourse,
+              to: newCourseId,
+              selectedValue: e.target.value,
+              valueType: typeof e.target.value
+            });
+            setSelectedCourse(newCourseId);
+          }}
           className="course-filter"
         >
           <option value="">All Courses</option>

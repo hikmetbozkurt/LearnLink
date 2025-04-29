@@ -258,7 +258,7 @@
 }
 
 .create-assignment-info-box {
-  background-color: #e8f0fe;
+  background-color: var(--background);
   border-radius: 10px;
   padding: 16px;
   margin-bottom: 24px;

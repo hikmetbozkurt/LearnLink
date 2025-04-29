@@ -151,6 +151,14 @@ const AssignmentsPage: React.FC = () => {
     return () => clearInterval(refreshInterval);
   }, [userCourses, isLoading]);
 
+  // Log when selectedCourse changes
+  useEffect(() => {
+    console.log("AssignmentsPage - selectedCourse changed:", {
+      selectedCourse,
+      type: typeof selectedCourse
+    });
+  }, [selectedCourse]);
+
   // Add event listener for visibility changes to refresh when user returns to tab
   useEffect(() => {
     const handleVisibilityChange = () => {
@@ -465,6 +473,7 @@ const AssignmentsPage: React.FC = () => {
         adminCourses={adminCourses}
         activeTab={activeTab}
         onAssignmentUpdated={loadAssignments}
+        selectedCourse={selectedCourse}
       />
 
       {filteredAssignments.length > ITEMS_PER_PAGE && (

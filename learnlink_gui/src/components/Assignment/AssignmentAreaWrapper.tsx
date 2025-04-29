@@ -23,6 +23,7 @@ type AssignmentContextType = {
   adminCourses: Course[];
   activeTab: string;
   onAssignmentUpdated: () => void;
+  selectedCourse: string | null;
 };
 
 const AssignmentAreaWrapper = () => {
@@ -31,7 +32,8 @@ const AssignmentAreaWrapper = () => {
     userCourses,
     adminCourses,
     activeTab,
-    onAssignmentUpdated
+    onAssignmentUpdated,
+    selectedCourse
   } = useOutletContext<AssignmentContextType>();
 
   return (
@@ -41,6 +43,7 @@ const AssignmentAreaWrapper = () => {
       adminCourses={adminCourses}
       activeTab={activeTab}
       onAssignmentUpdated={onAssignmentUpdated}
+      selectedCourse={selectedCourse}
     />
   );
 };

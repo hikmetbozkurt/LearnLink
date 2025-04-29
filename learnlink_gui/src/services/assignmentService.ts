@@ -107,9 +107,9 @@ export const assignmentService = {
                 console.log(`Using cached submissions for assignment ${assignment.assignment_id}`);
                 submissions = assignmentService._submissionsCache.get(cacheKey) || [];
               } else {
-                console.log(`Fetching submissions for assignment ${assignment.assignment_id}`);
+              console.log(`Fetching submissions for assignment ${assignment.assignment_id}`);
                 submissions = await assignmentService.getSubmissions(assignment.assignment_id);
-                console.log(`Found ${submissions.length} submissions for assignment ${assignment.assignment_id}`);
+              console.log(`Found ${submissions.length} submissions for assignment ${assignment.assignment_id}`);
                 
                 // Cache the submissions
                 assignmentService._submissionsCache.set(cacheKey, submissions);

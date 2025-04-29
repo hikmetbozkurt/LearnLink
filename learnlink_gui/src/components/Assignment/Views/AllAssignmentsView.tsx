@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { Course } from "../../../types/course";
 import { Assignment } from "../../../types/assignment";
 import { hasAccessToAssignment } from "../../../utils/assignmentFilters";
@@ -10,6 +10,7 @@ interface AllAssignmentsViewProps {
   userCourses: Course[];
   adminCourses: Course[];
   onAssignmentUpdated: () => void;
+  selectedCourse: string | null;
 }
 
 const AllAssignmentsView: React.FC<AllAssignmentsViewProps> = ({
@@ -17,10 +18,12 @@ const AllAssignmentsView: React.FC<AllAssignmentsViewProps> = ({
   userCourses,
   adminCourses,
   onAssignmentUpdated,
+  selectedCourse,
 }) => {
-  // Log the input assignments
+  // Log the input assignments and selected course
   if (process.env.NODE_ENV === "development") {
     console.log("AllAssignmentsView - Input assignments:", assignments);
+    console.log("AllAssignmentsView - Selected Course:", selectedCourse);
     console.log(
       "AllAssignmentsView - User courses:",
       userCourses.map((c) => c.course_id)
@@ -50,6 +53,22 @@ const AllAssignmentsView: React.FC<AllAssignmentsViewProps> = ({
       "AllAssignmentsView - Filtered assignments:",
       visibleAssignments
     );
+    if (selectedCourse) {
+      console.log(
+        "AllAssignmentsView - Course filtered assignments:",
+        visibleAssignments.filter((a) => {
+          const isMatch = Number(a.course_id) === Number(selectedCourse);
+          console.log(`Assignment ${a.assignment_id} course match check:`, {
+            assignmentCourseId: a.course_id,
+            assignmentCourseIdType: typeof a.course_id,
+            selectedCourse,
+            selectedCourseType: typeof selectedCourse,
+            isMatch
+          });
+          return isMatch;
+        })
+      );
+    }
   }
 
   return (
@@ -59,8 +78,11 @@ const AllAssignmentsView: React.FC<AllAssignmentsViewProps> = ({
       userCourses={userCourses}
       adminCourses={adminCourses}
       onAssignmentUpdated={onAssignmentUpdated}
-      emptyMessage="No assignments found."
+      emptyMessage={selectedCourse 
+        ? "No assignments found for this course." 
+        : "No assignments found."}
       viewName="All Assignments"
+      selectedCourse={selectedCourse}
     />
   );
 };

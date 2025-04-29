@@ -168,9 +168,34 @@ const CreateAssignmentModal: React.FC<CreateAssignmentModalProps> = ({
     console.log("Form validation passed, proceeding with submission");
     setIsLoading(true);
 
+    // Ensure due_date is properly formatted as ISO string
+    let dueDate = formData.due_date;
+    try {
+      // Parse the datetime-local input which is in the format "YYYY-MM-DDThh:mm"
+      if (dueDate && dueDate.includes('T')) {
+        // Extract the date and time parts
+        const [datePart, timePart] = dueDate.split('T');
+        
+        // Ensure we have seconds
+        let timeWithSeconds = timePart;
+        if (!timeWithSeconds.includes(':')) {
+          timeWithSeconds += ':00';
+        } else if (timeWithSeconds.split(':').length === 2) {
+          timeWithSeconds += ':00';
+        }
+        
+        // Format as an ISO string but without timezone conversion
+        dueDate = `${datePart}T${timeWithSeconds}.000`;
+        console.log("Formatted due date without timezone conversion:", dueDate);
+      }
+    } catch (error) {
+      console.error("Error formatting date:", error);
+    }
+
     // Prepare the data for submission
     const submissionData: Partial<Assignment> = {
       ...formData,
+      due_date: dueDate,
       points:
         typeof formData.points === "string"
           ? parseInt(formData.points)

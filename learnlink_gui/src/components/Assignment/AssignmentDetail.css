@@ -16,7 +16,7 @@
   align-items: center;
   gap: 8px;
   padding: 8px 16px;
-  background-color: #f5f5f5;
+  background-color: var(--primary);
   border: none;
   border-radius: 8px;
   cursor: pointer;
@@ -25,7 +25,7 @@
 }
 
 .back-button:hover {
-  background-color: #e0e0e0;
+  background-color: var(--secondary);
 }
 
 .admin-actions {
@@ -70,6 +70,7 @@
   transition: all 0.25s ease;
 }
 
+
 .delete-button:hover {
   background-color: var(--error);
   color: white;
@@ -79,6 +80,14 @@
 .delete-button:active {
   transform: translateY(0);
 }
+
+.delete-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  background-color: var(--error-light);
+  color: var(--error);
+}
+
 .detail-content {
   display: flex;
   gap: 30px;
@@ -86,7 +95,8 @@
 
 .detail-main {
   flex: 3;
-  background: white;
+  color: var(--text-primary);
+  background: var(--modal-background);
   border-radius: 12px;
   padding: 30px;
   box-shadow: 0 4px 20px rgba(0,0,0,0.05);
@@ -195,13 +205,13 @@
 
 .submission-info {
   padding: 15px;
-  background-color: #f9f9f9;
+  background-color: var(--modal-background);
   border-radius: 8px;
 }
 
 .user-submission .submission-info {
   padding: 20px;
-  background-color: #f9f9f9;
+  background-color: var(--background);
   border-radius: 12px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
 }
@@ -228,11 +238,12 @@
 }
 
 .submissions-section {
-  background-color: white;
+  background-color: var(--modal-background);
   border-radius: 8px;
   padding: 20px;
   margin-top: 20px;
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+  max-width: 100%;
 }
 
 .submissions-header {
@@ -244,47 +255,50 @@
 .submissions-list {
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: 25px;
   max-height: 600px;
   overflow-y: auto;
-  padding-right: 10px;
-  margin-top: 15px;
+  padding: 10px 15px 10px 5px;
+  margin-top: 20px;
 }
 
 .submission-item {
   background-color: #f9f9f9;
-  border-radius: 8px;
-  padding: 15px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
   transition: all 0.2s ease;
+  border: 1px solid #eee;
 }
 
 .submission-item:hover {
   transform: translateY(-2px);
-  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.08);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
 }
 
 .submission-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 12px;
-  padding-bottom: 8px;
-  border-bottom: 1px dashed #e0e0e0;
+  margin-bottom: 15px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid #e0e0e0;
 }
 
 .submission-user {
   font-weight: 600;
   color: #333;
+  font-size: 1rem;
 }
 
 .submission-date {
-  font-size: 0.8rem;
+  font-size: 0.85rem;
   color: #666;
 }
 
 .submission-body {
-  margin-bottom: 15px;
+  margin-bottom: 20px;
+  padding: 5px 0;
 }
 
 .submission-file {
@@ -306,22 +320,22 @@
 }
 
 .submission-text {
-  margin-top: 10px;
+  margin-top: 12px;
   white-space: pre-wrap;
-  padding: 10px;
+  padding: 15px;
   background-color: white;
-  border-radius: 4px;
+  border-radius: 8px;
   border: 1px solid #eee;
+  line-height: 1.5;
 }
 
 .submission-grading {
-  border-top: 1px dashed #e0e0e0;
+  border-top: 1px solid #e0e0e0;
   padding-top: 20px;
-  margin-top: 15px;
-  display: grid;
-  grid-template-columns: 1fr 2fr;
-  gap: 20px;
-  align-items: start;
+  margin-top: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 25px;
 }
 
 .grading-container {
@@ -329,20 +343,22 @@
   flex-direction: column;
   gap: 15px;
   width: 100%;
+  padding: 0;
 }
 
 .grading-fields {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 10px;
   width: 100%;
 }
 
 .grading-fields label {
-  font-size: 0.9rem;
+  font-size: 0.95rem;
   font-weight: 600;
   color: #444;
-  margin-bottom: 4px;
+  margin-bottom: 8px;
+  display: block;
 }
 
 .max-points {
@@ -394,14 +410,16 @@
   display: flex;
   justify-content: flex-end;
   margin-top: 15px;
+  padding-top: 10px;
 }
 
 .submit-grade-button {
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: 8px;
-  margin-top: 10px;
-  padding: 10px 18px;
+  margin-top: 5px;
+  padding: 12px 20px;
   border: none;
   border-radius: 8px;
   background-color: #512da8;
@@ -409,11 +427,13 @@
   font-size: 15px;
   font-weight: 500;
   cursor: pointer;
-  transition: background-color 0.2s;
+  transition: all 0.2s ease;
+  min-width: 140px;
 }
 
 .submit-grade-button:hover:not(:disabled) {
   background-color: #4527a0;
+  transform: translateY(-2px);
 }
 
 .submit-grade-button:disabled {
@@ -490,16 +510,56 @@
 /* For mobile devices */
 @media (max-width: 768px) {
   .submission-grading {
-    grid-template-columns: 1fr;
+    flex-direction: column;
+  }
+  
+  .submissions-section {
+    padding: 15px;
+  }
+  
+  .submissions-list {
+    padding: 5px;
+  }
+  
+  .submission-item {
+    padding: 15px;
+  }
+  
+  .submission-grading {
+    padding-top: 15px;
+    margin-top: 15px;
+    gap: 20px;
+  }
+  
+  .grade-input, 
+  .feedback-input {
+    padding: 8px 12px;
+  }
+  
+  .submit-grade-button {
+    width: 100%;
+    margin-top: 10px;
+  }
+  
+  .grading-container {
+    width: 100%;
+  }
+}
+
+@media (min-width: 768px) {
+  .submission-grading {
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: space-between;
+  }
+  
+  .grading-container {
+    width: 48%; /* Slightly less than 50% to create spacing */
   }
 }
 
 @media (max-width: 1024px) {
   .detail-content {
     flex-direction: column;
-  }
-  
-  .submissions-section {
-    max-width: 100%;
   }
 } 

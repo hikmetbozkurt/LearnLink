@@ -9,6 +9,7 @@ interface GradedAssignmentsViewProps {
   userCourses: Course[];
   adminCourses: Course[];
   onAssignmentUpdated: () => void;
+  selectedCourse: string | null;
 }
 
 const GradedAssignmentsView: React.FC<GradedAssignmentsViewProps> = ({
@@ -16,10 +17,12 @@ const GradedAssignmentsView: React.FC<GradedAssignmentsViewProps> = ({
   userCourses,
   adminCourses,
   onAssignmentUpdated,
+  selectedCourse,
 }) => {
   // Log input assignments
   if (process.env.NODE_ENV === "development") {
     console.log("GradedAssignmentsView - Input assignments:", assignments);
+    console.log("GradedAssignmentsView - Selected Course:", selectedCourse);
   }
 
   // Filter for graded assignments (submitted and graded)
@@ -52,6 +55,12 @@ const GradedAssignmentsView: React.FC<GradedAssignmentsViewProps> = ({
       "GradedAssignmentsView - Filtered assignments:",
       filteredAssignments
     );
+    if (selectedCourse) {
+      console.log(
+        "GradedAssignmentsView - Course filtered assignments:",
+        filteredAssignments.filter((a) => a.course_id === selectedCourse)
+      );
+    }
   }
 
   return (
@@ -61,8 +70,11 @@ const GradedAssignmentsView: React.FC<GradedAssignmentsViewProps> = ({
       userCourses={userCourses}
       adminCourses={adminCourses}
       onAssignmentUpdated={onAssignmentUpdated}
-      emptyMessage="No graded assignments found."
+      emptyMessage={selectedCourse 
+        ? "No graded assignments found for this course." 
+        : "No graded assignments found."}
       viewName="Graded Assignments"
+      selectedCourse={selectedCourse}
     />
   );
 };
