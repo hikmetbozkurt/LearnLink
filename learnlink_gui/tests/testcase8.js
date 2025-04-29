@@ -1,6 +1,5 @@
 const { Builder, By, until } = require('selenium-webdriver');
 const fs = require('fs');
-
 /**
  * Test Case: LL-TC-008-View Notifications
  * Test Priority: Medium
@@ -37,7 +36,7 @@ async function runNotificationBellTest() {
     await loginButton.click();
 
     await driver.wait(until.urlContains('/home'), 10000);
-    console.log('✅ Login successful and redirected to /home');
+    console.log('Login successful and redirected to /home');
 
     const homeScreenshot = await driver.takeScreenshot();
     fs.writeFileSync('2_home_page.png', homeScreenshot, 'base64');
@@ -48,7 +47,7 @@ async function runNotificationBellTest() {
     
     // Use JS click to avoid interception
     await driver.executeScript("arguments[0].click();", bellButton);
-    console.log('✅ Notification bell clicked');
+    console.log('Notification bell clicked');
 
     await driver.sleep(1500);
 
@@ -58,9 +57,9 @@ async function runNotificationBellTest() {
     const isVisible = await dropdown.isDisplayed();
 
     if (isVisible) {
-      console.log('✅ Notification dropdown is visible');
+      console.log('Notification dropdown is visible');
     } else {
-      console.log('❌ Notification dropdown is NOT visible');
+      console.log('Notification dropdown is NOT visible');
     }
 
     const notifScreenshot = await driver.takeScreenshot();
@@ -70,7 +69,7 @@ async function runNotificationBellTest() {
     console.log('TEST PASSED: Notifications are displayed after clicking the bell');
 
   } catch (error) {
-    console.error('❌ TEST FAILED:', error.message);
+    console.error('TEST FAILED:', error.message);
     const failShot = await driver.takeScreenshot();
     const failFile = `notification_test_failure_${Date.now()}.png`;
     fs.writeFileSync(failFile, failShot, 'base64');

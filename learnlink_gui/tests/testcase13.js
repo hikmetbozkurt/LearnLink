@@ -1,6 +1,5 @@
 const { Builder, By, until } = require('selenium-webdriver');
 const fs = require('fs');
-
 /**
  * Test Case: 013-Join Course
  * Test Priority: High
