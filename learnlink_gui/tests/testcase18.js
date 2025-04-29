@@ -3,7 +3,7 @@ const fs = require('fs');
 const path = require('path');
 
 /**
- * Test Case: LL-TC-018-Create Event from Home Page
+ * Test Case: LL-TC-018-Create Event from Home Page 
  * Test Priority: High
  * Description: Clicks 'Create Event' on Home and creates a new event on the /events page.
  */
