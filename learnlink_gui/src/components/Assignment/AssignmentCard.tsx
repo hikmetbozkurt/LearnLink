@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { format, isPast, isToday, parseISO, isValid } from "date-fns";
-import { FaBook, FaFileAlt, FaQuestionCircle } from "react-icons/fa";
+import { FaBook, FaFileAlt, FaQuestionCircle, FaEye, FaGraduationCap } from "react-icons/fa";
 import DeadlineCountdown from "./DeadlineCountdown";
 import "./AssignmentCard.css";
 import { courseService } from "../../services/courseService";
@@ -18,18 +18,22 @@ interface Assignment {
   grade?: string | number;
   submission_count?: number;
   type?: "assignment" | "quiz" | "file";
+  points?: number;
+  grading_criteria?: string;
 }
 
 interface AssignmentCardProps {
   assignment: Assignment;
   isAdmin: boolean;
   onClick: () => void;
+  viewMode?: "grid" | "list";
 }
 
 const AssignmentCard: React.FC<AssignmentCardProps> = ({
   assignment,
   isAdmin,
   onClick,
+  viewMode = "grid"
 }) => {
   const [courseName, setCourseName] = useState<string>(
     assignment.course_name || ""
@@ -177,6 +181,79 @@ const AssignmentCard: React.FC<AssignmentCardProps> = ({
     }
   };
 
+  // Render for list view mode
+  if (viewMode === "list") {
+    return (
+      <div
+        className={`assignment-card list-mode ${isAdmin ? "admin-created" : ""}`}
+        onClick={onClick}
+      >
+        <div className="assignment-icon-status">
+          <div className="assignment-type-icon">{getTypeIcon()}</div>
+          <span className={`assignment-status ${getStatusClass()}`}>
+            {getStatusForAdmin()}
+          </span>
+          {isAdmin && <div className="admin-badge-icon">Creator</div>}
+        </div>
+        
+        <div className="assignment-main-info">
+          <h3 className="assignment-title">
+            {assignment.title}
+          </h3>
+          
+          <div className="assignment-description-preview">
+            {assignment.description.length > 100 
+              ? `${assignment.description.substring(0, 100)}...` 
+              : assignment.description}
+          </div>
+          
+          {assignment.grading_criteria && (
+            <div className="assignment-criteria-preview">
+              <FaGraduationCap /> 
+              <span>Grading Criteria Available</span>
+            </div>
+          )}
+        </div>
+        
+        <div className="assignment-course-info">
+          <div className="assignment-course">
+            <strong>Course:</strong> {courseName}
+          </div>
+          
+          {assignment.points && (
+            <div className="assignment-points">
+              <strong>Points:</strong> {assignment.points}
+            </div>
+          )}
+        </div>
+        
+        <div className="assignment-date-info">
+          <div className="assignment-due-date">
+            Due: {format(dueDate, "MMM d, yyyy")}
+            <div className="assignment-time">{format(dueDate, "HH:mm")}</div>
+          </div>
+
+          {!assignment.submitted && !isPast(dueDate) && !isAdmin && (
+            <DeadlineCountdown dueDate={dueDate} />
+          )}
+        </div>
+
+        <div className="assignment-action">
+          {assignment.submitted && assignment.graded && !isAdmin ? (
+            <div className="assignment-grade">
+              Grade: <strong>{assignment.grade}{assignment.points ? `/${assignment.points}` : ''}</strong>
+            </div>
+          ) : (
+            <div className="view-details">
+              <FaEye /> View
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  }
+
+  // Default grid view mode
   return (
     <div
       className={`assignment-card ${isAdmin ? "admin-created" : ""}`}
@@ -222,7 +299,13 @@ const AssignmentCard: React.FC<AssignmentCardProps> = ({
 
       {assignment.submitted && assignment.graded && !isAdmin && (
         <div className="assignment-grade">
-          Grade: <strong>{assignment.grade}</strong>
+          Grade: <strong>{assignment.grade}{assignment.points ? `/${assignment.points}` : ''}</strong>
+        </div>
+      )}
+
+      {assignment.grading_criteria && (
+        <div className="assignment-criteria-badge">
+          <FaGraduationCap /> Grading Criteria Available
         </div>
       )}
     </div>

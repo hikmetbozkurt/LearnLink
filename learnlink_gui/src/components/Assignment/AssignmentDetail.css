@@ -166,6 +166,28 @@
   white-space: pre-wrap;
 }
 
+.detail-grading-criteria {
+  margin-bottom: 30px;
+  padding: 15px;
+  background-color: var(--background);
+  border-radius: 8px;
+  border-left: 4px solid #7c4dff;
+}
+
+.detail-grading-criteria h3 {
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 10px;
+}
+
+.grading-criteria-content {
+  font-size: 1rem;
+  line-height: 1.6;
+  color: #444;
+  white-space: pre-wrap;
+}
+
 .detail-actions {
   margin-top: 30px;
 }

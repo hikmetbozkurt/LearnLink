@@ -6,11 +6,18 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background-color: rgba(0, 0, 0, 0.7);
+  background-color: rgba(0, 0, 0, 0.75);
+  backdrop-filter: blur(3px);
   display: flex;
   align-items: center;
   justify-content: center;
   z-index: 1000;
+  animation: fadeIn 0.2s ease-in-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
 }
 
 .sa-assignment-modal {
@@ -25,7 +32,7 @@
 }
 
 .sa-submit-modal .sa-modal-header h2 {
-  color: #81c784; /* Soft green in dark theme */
+  color: var(--primary); 
 }
 
 .sa-modal-header {
@@ -68,7 +75,7 @@
   border-radius: 5px;
   font-family: inherit;
   resize: vertical;
-  background-color: #2a2a3a;
+  background-color: var(--background);
   color: #e2e2e2;
   transition: border-color 0.2s ease;
 }
@@ -92,12 +99,12 @@
   border: 2px dashed #41415a;
   border-radius: 8px;
   transition: all 0.2s ease;
-  background-color: #2a2a3a;
+  background-color: var(--background);
 }
 
 .sa-file-upload-container:hover {
   border-color: #7b68ee;
-  background-color: #323245;
+  background-color: var(--surface);
 }
 
 .sa-file-upload-label {

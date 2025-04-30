@@ -505,9 +505,8 @@ export const getUserSubmission = asyncHandler(async (req, res) => {
     );
 
     if (result.rows.length === 0) {
-      return res
-        .status(404)
-        .json({ message: "No submission found for this user" });
+      // Return 200 with null data instead of 404
+      return res.status(200).json(null);
     }
 
     res.json(result.rows[0]);

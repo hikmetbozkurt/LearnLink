@@ -121,21 +121,6 @@ const Header = () => {
     <>
       <header className="header">
         <div className="header-content">
-          <div className="search-container">
-            <form onSubmit={handleSearch}>
-              <div className="search-wrapper">
-                <input
-                  type="text"
-                  placeholder="Search courses and users"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                />
-                <button type="submit">
-                  <FaSearch />
-                </button>
-              </div>
-            </form>
-          </div>
 
           <div className="header-actions" ref={dropdownRef}>
             <div className="profile-avatar" onClick={() => setShowProfileCard(true)}>

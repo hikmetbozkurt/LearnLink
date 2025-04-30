@@ -358,6 +358,13 @@ const AssignmentDetail: React.FC<AssignmentDetailProps> = ({
             <div className="description-content">{assignment.description}</div>
           </div>
 
+          {assignment.grading_criteria && (
+            <div className="detail-grading-criteria">
+              <h3>Grading Criteria</h3>
+              <div className="grading-criteria-content">{assignment.grading_criteria}</div>
+            </div>
+          )}
+
           {!isAdmin &&
             !isPast(new Date(assignment.due_date)) &&
             !userSubmission && (

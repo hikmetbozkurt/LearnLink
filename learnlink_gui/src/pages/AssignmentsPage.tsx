@@ -184,6 +184,9 @@ const AssignmentsPage: React.FC = () => {
   const loadAssignments = async () => {
     setIsLoading(true);
     try {
+      // Clear submissions cache to ensure fresh data
+      assignmentService.clearSubmissionsCache();
+
       // Get assignments for all courses user is a member of
       const courseIds = userCourses.map((course) => course.course_id);
 

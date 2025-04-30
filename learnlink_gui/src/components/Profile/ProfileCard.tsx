@@ -146,7 +146,6 @@ const ProfileCard: React.FC<ProfileCardProps> = ({ user, onClose, currentUser = 
             )}
           </div>
           <h2>{user.name || 'User'}</h2>
-          {user.role && <span className="role-badge">{user.role}</span>}
           
           {currentUser && (
             <input
@@ -188,13 +187,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({ user, onClose, currentUser = 
             </div>
           </div>
 
-          <div className="info-item">
-            <FaBook className="info-icon" />
-            <div>
-              <label>Role</label>
-              <p>{user.role || 'User'}</p>
-            </div>
-          </div>
+          
         </div>
       </div>
     </div>
