@@ -15,6 +15,7 @@ interface AssignmentAreaProps {
   adminCourses: Course[];
   activeTab: string;
   onAssignmentUpdated: () => void;
+  selectedCourse: string | null;
 }
 
 const AssignmentArea: React.FC<AssignmentAreaProps> = ({
@@ -23,6 +24,7 @@ const AssignmentArea: React.FC<AssignmentAreaProps> = ({
   adminCourses,
   activeTab,
   onAssignmentUpdated,
+  selectedCourse,
 }) => {
   // Get title based on active tab
   const getTabTitle = (): string => {
@@ -53,6 +55,7 @@ const AssignmentArea: React.FC<AssignmentAreaProps> = ({
             userCourses={userCourses}
             adminCourses={adminCourses}
             onAssignmentUpdated={onAssignmentUpdated}
+            selectedCourse={selectedCourse}
           />
         );
       case "submitted":
@@ -62,6 +65,7 @@ const AssignmentArea: React.FC<AssignmentAreaProps> = ({
             userCourses={userCourses}
             adminCourses={adminCourses}
             onAssignmentUpdated={onAssignmentUpdated}
+            selectedCourse={selectedCourse}
           />
         );
       case "graded":
@@ -71,6 +75,7 @@ const AssignmentArea: React.FC<AssignmentAreaProps> = ({
             userCourses={userCourses}
             adminCourses={adminCourses}
             onAssignmentUpdated={onAssignmentUpdated}
+            selectedCourse={selectedCourse}
           />
         );
       case "late":
@@ -80,6 +85,7 @@ const AssignmentArea: React.FC<AssignmentAreaProps> = ({
             userCourses={userCourses}
             adminCourses={adminCourses}
             onAssignmentUpdated={onAssignmentUpdated}
+            selectedCourse={selectedCourse}
           />
         );
       case "past":
@@ -89,6 +95,7 @@ const AssignmentArea: React.FC<AssignmentAreaProps> = ({
             userCourses={userCourses}
             adminCourses={adminCourses}
             onAssignmentUpdated={onAssignmentUpdated}
+            selectedCourse={selectedCourse}
           />
         );
       case "all":
@@ -99,6 +106,7 @@ const AssignmentArea: React.FC<AssignmentAreaProps> = ({
             userCourses={userCourses}
             adminCourses={adminCourses}
             onAssignmentUpdated={onAssignmentUpdated}
+            selectedCourse={selectedCourse}
           />
         );
     }

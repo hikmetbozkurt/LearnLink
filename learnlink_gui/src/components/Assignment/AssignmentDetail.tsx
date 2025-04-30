@@ -18,6 +18,7 @@ import CreateAssignmentModal from "./CreateAssignmentModal";
 import ConfirmModal from "../ConfirmModal";
 import "./AssignmentDetail.css";
 import { NotificationContext } from "../../contexts/NotificationContext";
+import { courseService } from "../../services/courseService";
 
 // Import the Assignment type from the assignmentService
 import {
@@ -31,6 +32,7 @@ interface AssignmentDetailProps {
   isAdmin: boolean;
   onBack: () => void;
   onUpdate: () => void;
+  selectedCourse?: string | null;
 }
 
 const AssignmentDetail: React.FC<AssignmentDetailProps> = ({
@@ -38,6 +40,7 @@ const AssignmentDetail: React.FC<AssignmentDetailProps> = ({
   isAdmin,
   onBack,
   onUpdate,
+  selectedCourse,
 }) => {
   const [showSubmitModal, setShowSubmitModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
@@ -51,6 +54,9 @@ const AssignmentDetail: React.FC<AssignmentDetailProps> = ({
     [key: string]: { grade: string; feedback: string };
   }>({});
   const [submittingGrades, setSubmittingGrades] = useState(false);
+  const [courseName, setCourseName] = useState<string>(
+    assignment.course_name || ""
+  );
 
   const { showNotification } = useContext(NotificationContext);
 
@@ -60,6 +66,23 @@ const AssignmentDetail: React.FC<AssignmentDetailProps> = ({
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [assignment.assignment_id]); // Only re-run when assignment ID changes, not on every render
+
+  // Fetch course name if not available
+  useEffect(() => {
+    const fetchCourseName = async () => {
+      if (!assignment.course_name && assignment.course_id) {
+        try {
+          const course = await courseService.getCourse(assignment.course_id);
+          setCourseName(course.title);
+        } catch (error) {
+          console.error("Error fetching course:", error);
+          setCourseName(`Course ID: ${assignment.course_id}`);
+        }
+      }
+    };
+
+    fetchCourseName();
+  }, [assignment.course_id, assignment.course_name]);
 
   const loadData = async () => {
     setIsLoading(true);
@@ -319,12 +342,12 @@ const AssignmentDetail: React.FC<AssignmentDetailProps> = ({
           </div>
 
           <div className="detail-course">
-            Course: <span>{assignment.course_name}</span>
+            Course: <span>{courseName}</span>
           </div>
 
           <div className="detail-due-date">
             Due:{" "}
-            {format(new Date(assignment.due_date), "MMMM d, yyyy 'at' h:mm a")}
+            {format(new Date(assignment.due_date), "MMMM d, yyyy 'at' HH:mm")}
             {!isPast(new Date(assignment.due_date)) && !userSubmission && (
               <DeadlineCountdown dueDate={new Date(assignment.due_date)} />
             )}
@@ -357,7 +380,7 @@ const AssignmentDetail: React.FC<AssignmentDetailProps> = ({
                   {userSubmission.submitted_at
                     ? format(
                         new Date(userSubmission.submitted_at),
-                        "MMMM d, yyyy 'at' h:mm a"
+                        "MMMM d, yyyy 'at' HH:mm"
                       )
                     : "Unknown date"}
                 </p>
@@ -423,7 +446,7 @@ const AssignmentDetail: React.FC<AssignmentDetailProps> = ({
                         {submission.submitted_at
                           ? format(
                               new Date(submission.submitted_at),
-                              "MMM d, yyyy 'at' h:mm a"
+                              "MMM d, yyyy 'at' HH:mm"
                             )
                           : "Unknown date"}
                       </div>

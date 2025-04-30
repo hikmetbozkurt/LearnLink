@@ -9,6 +9,7 @@ interface SubmittedAssignmentsViewProps {
   userCourses: Course[];
   adminCourses: Course[];
   onAssignmentUpdated: () => void;
+  selectedCourse: string | null;
 }
 
 const SubmittedAssignmentsView: React.FC<SubmittedAssignmentsViewProps> = ({
@@ -16,10 +17,12 @@ const SubmittedAssignmentsView: React.FC<SubmittedAssignmentsViewProps> = ({
   userCourses,
   adminCourses,
   onAssignmentUpdated,
+  selectedCourse,
 }) => {
   // Log the assignments before filtering for debugging
   if (process.env.NODE_ENV === "development") {
     console.log("Raw assignments before filtering:", assignments);
+    console.log("Selected Course:", selectedCourse);
     assignments.forEach((a) =>
       console.log(
         `Assignment ${a.assignment_id}: submitted=${a.submitted}, graded=${
@@ -60,6 +63,12 @@ const SubmittedAssignmentsView: React.FC<SubmittedAssignmentsViewProps> = ({
   // Log the filtered assignments for debugging
   if (process.env.NODE_ENV === "development") {
     console.log("Filtered submitted assignments:", filteredAssignments);
+    if (selectedCourse) {
+      console.log(
+        "Course filtered assignments:",
+        filteredAssignments.filter((a) => a.course_id === selectedCourse)
+      );
+    }
   }
 
   return (
@@ -69,8 +78,11 @@ const SubmittedAssignmentsView: React.FC<SubmittedAssignmentsViewProps> = ({
       userCourses={userCourses}
       adminCourses={adminCourses}
       onAssignmentUpdated={onAssignmentUpdated}
-      emptyMessage="No submitted assignments found."
+      emptyMessage={selectedCourse 
+        ? "No submitted assignments found for this course." 
+        : "No submitted assignments found."}
       viewName="Submitted Assignments"
+      selectedCourse={selectedCourse}
     />
   );
 };

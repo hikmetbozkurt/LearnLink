@@ -51,17 +51,17 @@ const SubmitAssignmentModal: React.FC<SubmitAssignmentModalProps> = ({
   };
   
   return (
-    <div className="modal-overlay">
-      <div className="assignment-modal submit-modal">
-        <div className="modal-header">
+    <div className="sa-modal-overlay">
+      <div className="sa-assignment-modal sa-submit-modal">
+        <div className="sa-modal-header">
           <h2>Submit Assignment</h2>
-          <button className="close-button" onClick={onClose}>
+          <button className="sa-close-button" onClick={onClose}>
             <FaTimes />
           </button>
         </div>
         
         <form onSubmit={handleSubmit}>
-          <div className="form-group">
+          <div className="sa-form-group">
             <label htmlFor="content">Submission Text (Optional)</label>
             <textarea
               id="content"
@@ -69,15 +69,16 @@ const SubmitAssignmentModal: React.FC<SubmitAssignmentModalProps> = ({
               onChange={handleContentChange}
               rows={6}
               placeholder="Enter your submission text here..."
+              className="sa-textarea"
             />
           </div>
           
-          <div className="form-group file-upload-group">
+          <div className="sa-form-group sa-file-upload-group">
             <label>Upload File (Optional)</label>
             
             {!file ? (
-              <div className="file-upload-container">
-                <label htmlFor="file-upload" className="file-upload-label">
+              <div className="sa-file-upload-container">
+                <label htmlFor="file-upload" className="sa-file-upload-label">
                   <FaUpload />
                   <span>Choose a file to upload</span>
                 </label>
@@ -85,19 +86,19 @@ const SubmitAssignmentModal: React.FC<SubmitAssignmentModalProps> = ({
                   id="file-upload"
                   type="file"
                   onChange={handleFileChange}
-                  className="file-input"
+                  className="sa-file-input"
                 />
               </div>
             ) : (
-              <div className="file-preview">
-                <div className="file-info">
-                  <FaFile className="file-icon" />
-                  <span className="file-name">{file.name}</span>
-                  <span className="file-size">({(file.size / 1024).toFixed(2)} KB)</span>
+              <div className="sa-file-preview">
+                <div className="sa-file-info">
+                  <FaFile className="sa-file-icon" />
+                  <span className="sa-file-name">{file.name}</span>
+                  <span className="sa-file-size">({(file.size / 1024).toFixed(2)} KB)</span>
                 </div>
                 <button 
                   type="button" 
-                  className="remove-file-button"
+                  className="sa-remove-file-button"
                   onClick={handleRemoveFile}
                 >
                   <FaTimes />
@@ -107,18 +108,18 @@ const SubmitAssignmentModal: React.FC<SubmitAssignmentModalProps> = ({
           </div>
           
           {!content.trim() && !file && (
-            <p className="validation-message">
+            <p className="sa-validation-message">
               Please enter text or upload a file to submit.
             </p>
           )}
           
-          <div className="form-actions">
-            <button type="button" className="cancel-button" onClick={onClose}>
+          <div className="sa-form-actions">
+            <button type="button" className="sa-cancel-button" onClick={onClose}>
               Cancel
             </button>
             <button 
               type="submit" 
-              className="submit-button"
+              className="sa-submit-button"
               disabled={isLoading || (!content.trim() && !file)}
             >
               {isLoading ? 'Submitting...' : 'Submit Assignment'}

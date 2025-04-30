@@ -26,6 +26,7 @@ interface UpcomingAssignmentsViewProps {
   userCourses: Course[];
   adminCourses: Course[];
   onAssignmentUpdated: () => void;
+  selectedCourse: string | null;
 }
 
 const UpcomingAssignmentsView: React.FC<UpcomingAssignmentsViewProps> = ({
@@ -33,6 +34,7 @@ const UpcomingAssignmentsView: React.FC<UpcomingAssignmentsViewProps> = ({
   userCourses,
   adminCourses,
   onAssignmentUpdated,
+  selectedCourse,
 }) => {
   const [selectedAssignment, setSelectedAssignment] =
     useState<Assignment | null>(null);
@@ -99,6 +101,7 @@ const UpcomingAssignmentsView: React.FC<UpcomingAssignmentsViewProps> = ({
         isAdmin={isAdminForCourse(selectedAssignment.course_id)}
         onBack={handleBack}
         onUpdate={onAssignmentUpdated}
+        selectedCourse={selectedCourse}
       />
     );
   }

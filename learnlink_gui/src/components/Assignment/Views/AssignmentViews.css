@@ -44,29 +44,30 @@
   margin-bottom: 20px;
 }
 
-.view-btn {
-  padding: 8px 16px;
-  background-color: #f0f0f0;
-  border: none;
-  border-radius: 4px;
-  margin-left: 10px;
-  cursor: pointer;
-  transition: background-color 0.2s ease;
+.course-filter-indicator {
+  background-color: var(--background-color);
+  border-radius: 8px;
+  padding: 12px 16px;
+  margin-bottom: 16px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
-.view-btn:hover {
-  background-color: #e0e0e0;
+.course-filter-indicator span {
+  font-size: 14px;
+  padding: 4px 8px;
 }
 
-.view-btn.active {
-  background-color: #007bff;
-  color: white;
+.course-filter-indicator .filter-count {
+  color: #6c757d;
+  font-weight: 500;
 }
 
 .no-assignments {
   text-align: center;
   padding: 40px;
-  background-color: #f8f9fa;
   border-radius: 8px;
   font-size: 16px;
   color: #6c757d;

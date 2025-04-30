@@ -8,6 +8,7 @@ interface UngradedAssignmentsViewProps {
   userCourses: Course[];
   adminCourses: Course[];
   onAssignmentUpdated: () => void;
+  selectedCourse: string | null;
 }
 
 const UngradedAssignmentsView: React.FC<UngradedAssignmentsViewProps> = ({
@@ -15,6 +16,7 @@ const UngradedAssignmentsView: React.FC<UngradedAssignmentsViewProps> = ({
   userCourses,
   adminCourses,
   onAssignmentUpdated,
+  selectedCourse,
 }) => {
   // Filter for ungraded assignments
   const filterUngradedAssignments = (
@@ -61,8 +63,11 @@ const UngradedAssignmentsView: React.FC<UngradedAssignmentsViewProps> = ({
       userCourses={userCourses}
       adminCourses={adminCourses}
       onAssignmentUpdated={onAssignmentUpdated}
-      emptyMessage="No ungraded assignments found."
+      emptyMessage={selectedCourse 
+        ? "No ungraded assignments found for this course." 
+        : "No ungraded assignments found."}
       viewName="Ungraded Assignments"
+      selectedCourse={selectedCourse}
     />
   );
 };

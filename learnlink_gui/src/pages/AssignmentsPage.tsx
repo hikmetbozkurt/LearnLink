@@ -151,6 +151,14 @@ const AssignmentsPage: React.FC = () => {
     return () => clearInterval(refreshInterval);
   }, [userCourses, isLoading]);
 
+  // Log when selectedCourse changes
+  useEffect(() => {
+    console.log("AssignmentsPage - selectedCourse changed:", {
+      selectedCourse,
+      type: typeof selectedCourse
+    });
+  }, [selectedCourse]);
+
   // Add event listener for visibility changes to refresh when user returns to tab
   useEffect(() => {
     const handleVisibilityChange = () => {
@@ -204,7 +212,21 @@ const AssignmentsPage: React.FC = () => {
 
     // Filter by course if selected
     if (selectedCourse) {
-      filtered = filtered.filter((a) => a.course_id === selectedCourse);
+      console.log("Filtering assignments by course_id:", {
+        selectedCourse,
+        selectedCourseType: typeof selectedCourse
+      });
+      
+      filtered = filtered.filter((a) => {
+        const courseMatch = String(a.course_id).trim() === String(selectedCourse).trim();
+        console.log(`Assignment ${a.assignment_id} course filtering:`, {
+          assignmentCourseId: a.course_id,
+          assignmentCourseIdType: typeof a.course_id,
+          selectedCourse,
+          match: courseMatch
+        });
+        return courseMatch;
+      });
     }
 
     // Filter by search query
@@ -254,6 +276,41 @@ const AssignmentsPage: React.FC = () => {
     assignmentData: Partial<ServiceAssignment>
   ) => {
     try {
+      // Check if this is a result from the modal's API call (has assignment_id)
+      if (assignmentData.assignment_id) {
+        console.log("Received assignment result from modal:", assignmentData);
+        
+        // Create a notification for all course members
+        try {
+          // Ensure all required properties exist before creating notification
+          if (assignmentData.course_id && assignmentData.title) {
+            await notificationService.createAssignmentNotification(
+              assignmentData.course_id,
+              assignmentData.assignment_id,
+              assignmentData.title
+            );
+          } else {
+            console.warn("Missing required properties for notification:", assignmentData);
+          }
+        } catch (notificationError) {
+          console.error("Error creating notification:", notificationError);
+          // Still show success for the assignment, but notify user about the notification issue
+          showNotification(
+            "Assignment created, but notification delivery failed",
+            "error"
+          );
+        }
+
+        showNotification("Assignment created successfully", "success");
+        setShowCreateModal(false);
+        
+        // Clear the submissions cache to ensure fresh data
+        assignmentService.clearSubmissionsCache();
+        
+        loadAssignments();
+        return;
+      }
+
       // Only allow creating assignments for courses where user is admin
       if (
         !adminCourses.some(
@@ -292,6 +349,10 @@ const AssignmentsPage: React.FC = () => {
 
         showNotification("Assignment created successfully", "success");
         setShowCreateModal(false);
+        
+        // Clear the submissions cache to ensure fresh data
+        assignmentService.clearSubmissionsCache();
+        
         loadAssignments();
       } catch (apiError) {
         console.error("API Error in createAssignment:", apiError);
@@ -426,6 +487,7 @@ const AssignmentsPage: React.FC = () => {
         adminCourses={adminCourses}
         activeTab={activeTab}
         onAssignmentUpdated={loadAssignments}
+        selectedCourse={selectedCourse}
       />
 
       {filteredAssignments.length > ITEMS_PER_PAGE && (

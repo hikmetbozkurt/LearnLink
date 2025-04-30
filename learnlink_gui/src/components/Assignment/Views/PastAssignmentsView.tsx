@@ -9,6 +9,7 @@ interface PastAssignmentsViewProps {
   userCourses: Course[];
   adminCourses: Course[];
   onAssignmentUpdated: () => void;
+  selectedCourse: string | null;
 }
 
 const PastAssignmentsView: React.FC<PastAssignmentsViewProps> = ({
@@ -16,6 +17,7 @@ const PastAssignmentsView: React.FC<PastAssignmentsViewProps> = ({
   userCourses,
   adminCourses,
   onAssignmentUpdated,
+  selectedCourse,
 }) => {
   // Use the utility function to filter past assignments
   const filteredAssignments = filterPastAssignments(
@@ -31,8 +33,11 @@ const PastAssignmentsView: React.FC<PastAssignmentsViewProps> = ({
       userCourses={userCourses}
       adminCourses={adminCourses}
       onAssignmentUpdated={onAssignmentUpdated}
-      emptyMessage="No past assignments found."
+      emptyMessage={selectedCourse 
+        ? "No past assignments found for this course." 
+        : "No past assignments found."}
       viewName="Past Assignments"
+      selectedCourse={selectedCourse}
     />
   );
 };

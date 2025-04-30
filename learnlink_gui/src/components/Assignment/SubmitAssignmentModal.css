@@ -1,84 +1,162 @@
-.submit-modal .modal-header h2 {
-  color: #2e7d32;
+/* Submit Assignment Modal - Dark Theme */
+
+.sa-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
 }
 
-.file-upload-group {
+.sa-assignment-modal {
+  background-color: var(--modal-background);
+  border-radius: 10px;
+  width: 90%;
+  max-width: 600px;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 5px 20px rgba(0, 0, 0, 0.5);
+  color: #e2e2e2;
+}
+
+.sa-submit-modal .sa-modal-header h2 {
+  color: #81c784; /* Soft green in dark theme */
+}
+
+.sa-modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px;
+  border-bottom: 1px solid #313142;
+}
+
+.sa-close-button {
+  background: none;
+  border: none;
+  font-size: 1.2rem;
+  color: #e2e2e2;
+  cursor: pointer;
+  transition: color 0.2s ease;
+}
+
+.sa-close-button:hover {
+  color: #ff5757;
+}
+
+.sa-form-group {
+  margin-bottom: 20px;
+  padding: 0 20px;
+}
+
+.sa-form-group label {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: 500;
+  color: #b8b8d0;
+}
+
+.sa-textarea {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid #41415a;
+  border-radius: 5px;
+  font-family: inherit;
+  resize: vertical;
+  background-color: #2a2a3a;
+  color: #e2e2e2;
+  transition: border-color 0.2s ease;
+}
+
+.sa-textarea:focus {
+  outline: none;
+  border-color: #7b68ee;
+  box-shadow: 0 0 0 2px rgba(123, 104, 238, 0.2);
+}
+
+.sa-file-upload-group {
   margin-bottom: 30px;
 }
 
-.file-upload-container {
+.sa-file-upload-container {
   display: flex;
   align-items: center;
   justify-content: center;
   width: 100%;
   height: 120px;
-  border: 2px dashed #e0e0e0;
+  border: 2px dashed #41415a;
   border-radius: 8px;
   transition: all 0.2s ease;
-  background-color: #f9f9f9;
+  background-color: #2a2a3a;
 }
 
-.file-upload-container:hover {
-  border-color: #512da8;
-  background-color: #f5f5f5;
+.sa-file-upload-container:hover {
+  border-color: #7b68ee;
+  background-color: #323245;
 }
 
-.file-upload-label {
+.sa-file-upload-label {
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 10px;
   cursor: pointer;
-  color: #666;
+  color: #b8b8d0;
 }
 
-.file-upload-label svg {
+.sa-file-upload-label svg {
   font-size: 2rem;
-  color: #512da8;
+  color: #7b68ee;
 }
 
-.file-input {
+.sa-file-input {
   display: none;
 }
 
-.file-preview {
+.sa-file-preview {
   display: flex;
   justify-content: space-between;
   align-items: center;
   padding: 15px;
-  background-color: #f5f5f5;
+  background-color: #323245;
   border-radius: 8px;
 }
 
-.file-info {
+.sa-file-info {
   display: flex;
   align-items: center;
   gap: 10px;
 }
 
-.file-icon {
-  color: #512da8;
+.sa-file-icon {
+  color: #7b68ee;
   font-size: 1.2rem;
 }
 
-.file-name {
+.sa-file-name {
   font-weight: 500;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
   max-width: 300px;
+  color: #e2e2e2;
 }
 
-.file-size {
-  color: #666;
+.sa-file-size {
+  color: #b8b8d0;
   font-size: 0.85rem;
 }
 
-.remove-file-button {
+.sa-remove-file-button {
   background: none;
   border: none;
   font-size: 1rem;
-  color: #d32f2f;
+  color: #ff5757;
   cursor: pointer;
   padding: 5px;
   display: flex;
@@ -87,14 +165,60 @@
   transition: all 0.2s ease;
 }
 
-.remove-file-button:hover {
-  background-color: #ffebee;
+.sa-remove-file-button:hover {
+  background-color: rgba(255, 87, 87, 0.15);
   border-radius: 50%;
 }
 
-.validation-message {
-  color: #f57c00;
+.sa-validation-message {
+  color: #ffb86c;
   font-size: 0.9rem;
   margin-top: 0;
   margin-bottom: 20px;
+  padding: 0 20px;
+}
+
+.sa-form-actions {
+  display: flex;
+  justify-content: flex-end;
+  padding: 15px 20px 20px;
+  gap: 10px;
+  border-top: 1px solid #313142;
+  margin-top: 10px;
+}
+
+.sa-cancel-button {
+  background-color: transparent;
+  border: 1px solid #41415a;
+  color: #e2e2e2;
+  padding: 10px 16px;
+  border-radius: 5px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.sa-cancel-button:hover {
+  background-color: rgba(255, 255, 255, 0.05);
+}
+
+.sa-submit-button {
+  background-color: #7b68ee;
+  border: none;
+  color: white;
+  padding: 10px 16px;
+  border-radius: 5px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.sa-submit-button:hover {
+  background-color: #6a5acd;
+}
+
+.sa-submit-button:disabled {
+  background-color: #4a4a65;
+  color: #7f7f9d;
+  cursor: not-allowed;
 } 
