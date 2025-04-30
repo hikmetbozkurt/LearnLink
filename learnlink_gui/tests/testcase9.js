@@ -8,6 +8,19 @@ const path = require('path');
  * Module: Course Management
  * Description: Verify file attachment functionality in course post
  */
+
+// Create necessary directories
+const screenshotDir = path.join(__dirname, 'testcase9_ss');
+if (!fs.existsSync(screenshotDir)) {
+  fs.mkdirSync(screenshotDir, { recursive: true });
+}
+
+// Create test file if it doesn't exist
+const testFilePath = path.join(__dirname, 'test.docx');
+if (!fs.existsSync(testFilePath)) {
+  fs.writeFileSync(testFilePath, 'This is a test document for file upload testing.');
+}
+
 async function runFileAttachmentTest() {
   const driver = await new Builder().forBrowser('chrome').build();
   try {
@@ -15,94 +28,137 @@ async function runFileAttachmentTest() {
     const testUrl = 'http://localhost:3000/';
     const testEmail = 'admin@admin.com';
     const testPassword = 'Admin123';
-    const testFilePath = path.join(__dirname, 'test.docx');
-    const courseName = 'Test Course'; // Hedef kursun adı
 
     // Step 1: Login
     await driver.get(testUrl);
     await driver.sleep(2000);
+
     const signInContainer = await driver.wait(until.elementLocated(By.css('.sign-in')), 10000);
     await signInContainer.findElement(By.css('input[type="email"]')).sendKeys(testEmail);
     await signInContainer.findElement(By.css('input[type="password"]')).sendKeys(testPassword);
     await signInContainer.findElement(By.css('button[type="submit"]')).click();
     await driver.wait(until.urlContains('/home'), 10000);
     await driver.sleep(2000);
-    fs.writeFileSync('testcase9_ss/1_loggedin.png', await driver.takeScreenshot(), 'base64');
+    
+    await driver.takeScreenshot().then(data => {
+      fs.writeFileSync(path.join(screenshotDir, '1_loggedin.png'), data, 'base64');
+    });
     console.log('Step 1 PASS: Logged in');
 
     // Step 2: Go to Courses page
     await driver.get('http://localhost:3000/courses');
     await driver.wait(until.elementLocated(By.css('.courses-container')), 10000);
     await driver.sleep(2000);
-    fs.writeFileSync('testcase9_ss/2_courses.png', await driver.takeScreenshot(), 'base64');
+    
+    await driver.takeScreenshot().then(data => {
+      fs.writeFileSync(path.join(screenshotDir, '2_courses.png'), data, 'base64');
+    });
     console.log('Step 2 PASS: Courses page loaded');
 
-    // Step 3: Go to My Courses tab
-    const myCoursesTab = await driver.findElement(By.xpath("//div[contains(@class, 'sidebar-item') and contains(., 'My Courses')]"));
-    await myCoursesTab.click();
-    await driver.sleep(1000);
-
-    // Step 4: Select the course
-    const courseItem = await driver.findElement(By.xpath(`//span[contains(@class, 'course-title') and text()='${courseName}']`));
-    await courseItem.click();
+    // Step 3: Find and select TESTCOURSE course
+    const courseCards = await driver.findElements(By.css('.course-card'));
+    let testCourse = null;
+    
+    for (let card of courseCards) {
+      const cardText = await card.getText();
+      if (cardText.includes('TESTCOURSE')) {
+        testCourse = card;
+        break;
+      }
+    }
+    
+    if (!testCourse) {
+      throw new Error('Could not find TESTCOURSE course');
+    }
+    
+    // Click Manage Course button
+    const manageButton = await testCourse.findElement(By.css('button'));
+    await manageButton.click();
     await driver.wait(until.elementLocated(By.css('.course-detail-container')), 10000);
     await driver.sleep(2000);
-    fs.writeFileSync('testcase9_ss/3_course_selected.png', await driver.takeScreenshot(), 'base64');
-    console.log('Step 3 PASS: Course selected');
+    
+    await driver.takeScreenshot().then(data => {
+      fs.writeFileSync(path.join(screenshotDir, '3_course_selected.png'), data, 'base64');
+    });
+    console.log('Step 3 PASS: TESTCOURSE course selected and managed');
 
-    // Step 5: Click Create Post
-    const createPostBtn = await driver.findElement(By.css('.create-post-btn, .create-post-button'));
+    // Step 4: Click Create Post
+    const createPostBtn = await driver.findElement(By.css('.create-post-btn'));
     await createPostBtn.click();
-    await driver.wait(until.elementLocated(By.css('.modal-content.create-post-modal')), 5000);
-    fs.writeFileSync('testcase9_ss/4_create_post_modal.png', await driver.takeScreenshot(), 'base64');
+    await driver.wait(until.elementLocated(By.css('.post-modal-container')), 5000);
+    
+    await driver.takeScreenshot().then(data => {
+      fs.writeFileSync(path.join(screenshotDir, '4_create_post_modal.png'), data, 'base64');
+    });
     console.log('Step 4 PASS: Create Post modal opened');
 
-    // Step 6: Attach file
-    const fileInput = await driver.findElement(By.css('input[type="file"]'));
-    await fileInput.sendKeys(testFilePath);
-    await driver.sleep(1000);
-    fs.writeFileSync('testcase9_ss/5_file_attached.png', await driver.takeScreenshot(), 'base64');
-    console.log('Step 5 PASS: File attached');
-
-    // Step 7: Write post and submit
+    // Step 5: Write post content
     const textarea = await driver.wait(
-      until.elementLocated(By.css('textarea[placeholder="Share your thoughts, questions, or resources..."]')),
+      until.elementLocated(By.css('.post-content-textarea')),
       5000
     );
     await driver.wait(until.elementIsVisible(textarea), 5000);
-    await textarea.sendKeys('TEST TEST');
-    const postBtn = await driver.findElement(By.css('.submit-button'));
-    await postBtn.click();
+    await textarea.sendKeys('Attach File Test');
+    await driver.sleep(1000);
+
+    // Step 6: Attach file
+    const fileInput = await driver.findElement(By.css('#file-upload'));
+    await fileInput.sendKeys(testFilePath);
+    await driver.sleep(1000);
+    
+    await driver.takeScreenshot().then(data => {
+      fs.writeFileSync(path.join(screenshotDir, '5_file_attached.png'), data, 'base64');
+    });
+    console.log('Step 5 PASS: File attached');
+
+    // Step 7: Submit post
+    const submitButton = await driver.findElement(By.css('.post-submit-button'));
+    await submitButton.click();
     await driver.sleep(2000);
-    fs.writeFileSync('testcase9_ss/6_post_submitted.png', await driver.takeScreenshot(), 'base64');
+    
+    await driver.takeScreenshot().then(data => {
+      fs.writeFileSync(path.join(screenshotDir, '6_post_submitted.png'), data, 'base64');
+    });
     console.log('Step 6 PASS: Post submitted');
 
     // Step 8: Verify post with file appears
     await driver.wait(until.elementLocated(By.css('.post-card')), 10000);
     const posts = await driver.findElements(By.css('.post-card'));
     let found = false;
+
     for (let post of posts) {
       const content = await post.getText();
-      if (content.includes('TEST TEST') && content.includes('test.docx')) {
+      if (content.includes('Attach File Test') && content.includes('test.docx')) {
         found = true;
         break;
       }
     }
+
     if (found) {
+      await driver.takeScreenshot().then(data => {
+        fs.writeFileSync(path.join(screenshotDir, '7_post_verified.png'), data, 'base64');
+      });
       console.log('Step 7 PASS: Post with file appears');
-      fs.writeFileSync('testcase9_ss/7_post_verified.png', await driver.takeScreenshot(), 'base64');
       console.log('TEST PASSED: File attachment in course post works');
     } else {
       throw new Error('Post with file not found');
     }
+
   } catch (error) {
     console.error('TEST FAILED:', error.message);
     try {
-      fs.writeFileSync(`testcase9_ss/failure_${Date.now()}.png`, await driver.takeScreenshot(), 'base64');
-    } catch {}
+      const screenshot = await driver.takeScreenshot();
+      fs.writeFileSync(path.join(screenshotDir, `failure_${Date.now()}.png`), screenshot, 'base64');
+    } catch (screenshotError) {
+      console.error('Failed to save error screenshot:', screenshotError.message);
+    }
+    throw error;
   } finally {
     await driver.quit();
   }
 }
 
-runFileAttachmentTest().catch(e => console.error('Test execution failed:', e.message)); 
+runFileAttachmentTest().catch(e => {
+  console.error('Test execution failed:', e.message);
+  process.exit(1);
+});
