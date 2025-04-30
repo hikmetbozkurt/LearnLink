@@ -212,7 +212,21 @@ const AssignmentsPage: React.FC = () => {
 
     // Filter by course if selected
     if (selectedCourse) {
-      filtered = filtered.filter((a) => a.course_id === selectedCourse);
+      console.log("Filtering assignments by course_id:", {
+        selectedCourse,
+        selectedCourseType: typeof selectedCourse
+      });
+      
+      filtered = filtered.filter((a) => {
+        const courseMatch = String(a.course_id).trim() === String(selectedCourse).trim();
+        console.log(`Assignment ${a.assignment_id} course filtering:`, {
+          assignmentCourseId: a.course_id,
+          assignmentCourseIdType: typeof a.course_id,
+          selectedCourse,
+          match: courseMatch
+        });
+        return courseMatch;
+      });
     }
 
     // Filter by search query

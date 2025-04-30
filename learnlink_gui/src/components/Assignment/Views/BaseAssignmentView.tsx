@@ -39,21 +39,36 @@ const BaseAssignmentView: React.FC<BaseAssignmentViewProps> = ({
   console.log(`[${viewName}] BaseAssignmentView received:`, {
     filteredAssignmentsCount: filteredAssignments.length,
     selectedCourse,
+    selectedCourseType: typeof selectedCourse,
     userCoursesCount: userCourses.length,
     adminCoursesCount: adminCourses.length
   });
   
-  // Apply course filter if selected
+  // Apply course filter if selected - this is now handled at the parent level
+  // We're keeping this implementation as a fallback to ensure proper filtering
   const displayedAssignments = selectedCourse 
     ? filteredAssignments.filter(a => {
-        // Simply compare the numeric values
-        return Number(a.course_id) === Number(selectedCourse);
+        const match = String(a.course_id).trim() === String(selectedCourse).trim();
+        
+        // Log each assignment matching attempt for debugging
+        if (process.env.NODE_ENV === "development") {
+          console.log(`Comparing assignment ${a.assignment_id} course match:`, {
+            assignmentCourseId: a.course_id,
+            assignmentCourseIdType: typeof a.course_id,
+            selectedCourse: selectedCourse,
+            selectedCourseType: typeof selectedCourse,
+            match
+          });
+        }
+        
+        return match;
       })
     : filteredAssignments;
   
   // DEBUG: Log filtered assignments  
   console.log(`[${viewName}] After course filtering:`, {
     selectedCourse,
+    selectedCourseType: typeof selectedCourse,
     beforeFilter: filteredAssignments.length,
     afterFilter: displayedAssignments.length,
     displayedAssignments: displayedAssignments.map(a => ({ 
@@ -62,7 +77,7 @@ const BaseAssignmentView: React.FC<BaseAssignmentViewProps> = ({
       course_id: a.course_id,
       course_id_type: typeof a.course_id 
     })),
-    filteredAssignments: filteredAssignments.map(a => ({ 
+    filteredAssignments: filteredAssignments.slice(0, 3).map(a => ({ 
       id: a.assignment_id, 
       title: a.title, 
       course_id: a.course_id,

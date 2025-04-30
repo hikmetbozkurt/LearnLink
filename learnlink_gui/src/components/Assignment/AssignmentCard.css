@@ -220,6 +220,7 @@
 .status-has-submissions {
   background-color: #4caf50;
   color: white;
+  font-weight: bold;
 }
 
 .dark .status-has-submissions {
@@ -227,12 +228,14 @@
 }
 
 .status-no-submissions {
-  background-color: #9e9e9e;
+  background-color: #f44336;
   color: white;
+  font-weight: bold;
 }
 
 .dark .status-no-submissions {
-  background-color: rgba(158, 158, 158, 0.8);
+  background-color: rgba(244, 67, 54, 0.8);
+  color: white;
 }
 
 /* Add styles for admin-created assignments */
@@ -266,22 +269,17 @@
   font-size: 0.9rem;
   color: #512da8;
   font-weight: 500;
-  padding: 5px 0;
+  padding: 8px 10px;
   border-top: 1px dashed #ddd;
+  background-color: #f8f8f8;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .dark .assignment-admin-info {
   color: var(--primary);
   border-top: 1px dashed var(--border);
-}
-
-/* Improve status colors for admin view */
-.status-has-submissions {
-  background-color: #4caf50;
-  color: white;
-}
-
-.status-no-submissions {
-  background-color: #9e9e9e;
-  color: white;
+  background-color: rgba(255, 255, 255, 0.05);
 } 

@@ -107,9 +107,9 @@ export const assignmentService = {
                 console.log(`Using cached submissions for assignment ${assignment.assignment_id}`);
                 submissions = assignmentService._submissionsCache.get(cacheKey) || [];
               } else {
-              console.log(`Fetching submissions for assignment ${assignment.assignment_id}`);
+                console.log(`Fetching submissions for assignment ${assignment.assignment_id}`);
                 submissions = await assignmentService.getSubmissions(assignment.assignment_id);
-              console.log(`Found ${submissions.length} submissions for assignment ${assignment.assignment_id}`);
+                console.log(`Found ${submissions.length} submissions for assignment ${assignment.assignment_id}`);
                 
                 // Cache the submissions
                 assignmentService._submissionsCache.set(cacheKey, submissions);
@@ -311,11 +311,19 @@ export const assignmentService = {
           submissions = response.data.submissions;
         } else if (response.data.rows && Array.isArray(response.data.rows)) {
           submissions = response.data.rows;
+        } else if (response.data.success && Array.isArray(response.data.result)) {
+          submissions = response.data.result;
+        } else if (response.data.success && Array.isArray(response.data.data)) {
+          submissions = response.data.data;
         }
       }
       
       // Log the parsed submissions
       console.log(`Found ${submissions.length} submissions for assignment ${assignmentId}:`, submissions);
+      
+      // Update the cache with this fresh data
+      const cacheKey = `assignment_${assignmentId}`;
+      assignmentService._submissionsCache.set(cacheKey, submissions);
       
       return submissions;
     } catch (error) {

@@ -90,7 +90,12 @@ const AssignmentSidebar: React.FC<AssignmentSidebarProps> = ({
               from: selectedCourse,
               to: newCourseId,
               selectedValue: e.target.value,
-              valueType: typeof e.target.value
+              valueType: typeof e.target.value,
+              availableCourses: userCourses.map(c => ({ 
+                id: c.course_id, 
+                title: c.title,
+                idType: typeof c.course_id
+              }))
             });
             setSelectedCourse(newCourseId);
           }}

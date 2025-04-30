@@ -4,6 +4,7 @@ import { FaBook, FaFileAlt, FaQuestionCircle } from "react-icons/fa";
 import DeadlineCountdown from "./DeadlineCountdown";
 import "./AssignmentCard.css";
 import { courseService } from "../../services/courseService";
+import { assignmentService } from "../../services/assignmentService";
 
 interface Assignment {
   assignment_id: string;
@@ -33,6 +34,9 @@ const AssignmentCard: React.FC<AssignmentCardProps> = ({
   const [courseName, setCourseName] = useState<string>(
     assignment.course_name || ""
   );
+  const [submissionCount, setSubmissionCount] = useState<number>(
+    assignment.submission_count || 0
+  );
 
   // Fetch course name if not available
   useEffect(() => {
@@ -52,6 +56,23 @@ const AssignmentCard: React.FC<AssignmentCardProps> = ({
 
     fetchCourseName();
   }, [assignment.course_id, assignment.course_name]);
+
+  // Fetch submission count directly for admins
+  useEffect(() => {
+    const fetchSubmissionCount = async () => {
+      if (isAdmin && assignment.assignment_id) {
+        try {
+          const submissions = await assignmentService.getSubmissions(assignment.assignment_id);
+          console.log(`Directly fetched ${submissions.length} submissions for assignment ${assignment.title}`);
+          setSubmissionCount(submissions.length);
+        } catch (error) {
+          console.error(`Error fetching submissions count for ${assignment.title}:`, error);
+        }
+      }
+    };
+
+    fetchSubmissionCount();
+  }, [isAdmin, assignment.assignment_id, assignment.title]);
 
   // Safely parse the due date
   const getDueDate = () => {
@@ -93,7 +114,14 @@ const AssignmentCard: React.FC<AssignmentCardProps> = ({
   const getStatusClass = () => {
     // For course admin, check submission count
     if (isAdmin) {
-      return assignment.submission_count && assignment.submission_count > 0
+      console.log(`AssignmentCard - Submission count for ${assignment.title}:`, {
+        submissionCount,
+        directlyFetchedCount: submissionCount,
+        assignmentSubmissionCount: assignment.submission_count,
+        assignmentId: assignment.assignment_id
+      });
+      
+      return (submissionCount > 0)
         ? "status-has-submissions"
         : "status-no-submissions";
     }
@@ -127,14 +155,10 @@ const AssignmentCard: React.FC<AssignmentCardProps> = ({
 
   const getStatusForAdmin = () => {
     if (isAdmin) {
-      if (typeof assignment.submission_count !== "undefined") {
-        // Show singular or plural based on count
-        return assignment.submission_count === 1
-          ? "1 Submission"
-          : `${assignment.submission_count} Submissions`;
-      } else {
-        return "0 Submissions";
-      }
+      // Use directly fetched submission count
+      return submissionCount === 1
+        ? "1 Submission"
+        : `${submissionCount} Submissions`;
     }
 
     // For regular users, show their submission status
@@ -186,11 +210,13 @@ const AssignmentCard: React.FC<AssignmentCardProps> = ({
 
       {isAdmin && (
         <div className="assignment-admin-info">
-          {typeof assignment.submission_count !== "undefined"
-            ? `${assignment.submission_count} student submission${
-                assignment.submission_count !== 1 ? "s" : ""
-              }`
-            : "No submissions yet"}
+          {submissionCount > 0
+            ? <span>
+                <FaFileAlt style={{ marginRight: '6px' }} />
+                {submissionCount} student submission{submissionCount !== 1 ? 's' : ''}
+              </span>
+            : <span>No submissions yet</span>
+          }
         </div>
       )}
 
