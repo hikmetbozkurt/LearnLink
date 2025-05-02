@@ -6,6 +6,7 @@ import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import { OAuth2Client } from 'google-auth-library';
 import crypto from 'crypto';
+import config from '../config/env.js';
 
 const authService = new AuthService();
 const emailService = new EmailService();
@@ -93,7 +94,7 @@ export const login = asyncHandler(async (req, res) => {
     // Generate token
     const token = jwt.sign(
       { user_id: user.user_id, email: user.email },
-      process.env.JWT_SECRET || 'your-secret-key',
+      config.JWT_SECRET,
       { expiresIn: '24h' }
     );
 
@@ -154,7 +155,7 @@ export const register = asyncHandler(async (req, res) => {
     // Generate token
     const token = jwt.sign(
       { user_id: newUser.user_id, email: newUser.email },
-      process.env.JWT_SECRET || 'your-secret-key',
+      config.JWT_SECRET,
       { expiresIn: '24h' }
     );
 
@@ -184,10 +185,9 @@ export const register = asyncHandler(async (req, res) => {
 
 export const getProfile = asyncHandler(async (req, res) => {
   const userId = req.user.user_id;
-
   try {
     const result = await pool.query(
-      `SELECT user_id, email, username, first_name, last_name, role, profile_picture
+      `SELECT user_id, email, username, role, profile_pic
        FROM users 
        WHERE user_id = $1`,
       [userId]
@@ -203,10 +203,8 @@ export const getProfile = asyncHandler(async (req, res) => {
       user_id: user.user_id,
       email: user.email,
       username: user.username,
-      first_name: user.first_name,
-      last_name: user.last_name,
       role: user.role,
-      profile_picture: user.profile_picture
+      profile_pic: user.profile_pic
     });
   } catch (error) {
     console.error('Error fetching user profile:', error);
@@ -338,7 +336,7 @@ export const googleLogin = asyncHandler(async (req, res) => {
     // Generate token
     const token = jwt.sign(
       { user_id: user.user_id, email: user.email },
-      process.env.JWT_SECRET || 'your-secret-key',
+      config.JWT_SECRET,
       { expiresIn: '24h' }
     );
 

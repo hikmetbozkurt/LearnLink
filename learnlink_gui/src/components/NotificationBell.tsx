@@ -81,7 +81,7 @@ const NotificationBell = forwardRef<NotificationBellRef, NotificationBellProps>(
     }
 
     
-    const socket = io('https://learnlink-v1-env.eba-b28u347j.eu-north-1.elasticbeanstalk.com', {
+    const socket = io('http://learnlink-v1-env.eba-b28u347j.eu-north-1.elasticbeanstalk.com', {
       transports: ['websocket'],
       upgrade: false,
       reconnection: true,

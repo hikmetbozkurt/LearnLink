@@ -26,6 +26,14 @@ app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+app.get('/api/test', (req, res) => {
+  res.json({ 
+    success: true,
+    message: 'API is working',
+    timestamp: new Date().toISOString()
+  });
+});
+
 // Serve static files from uploads directory
 const uploadsPath = path.join(__dirname, 'uploads');
 fs.mkdirSync(uploadsPath, { recursive: true }); // Ensure the directory exists
@@ -54,13 +62,7 @@ app.use("/api/events", eventRoutes);
 app.use("/api/assignments", assignmentRoutes);
 
 // Add a test route to check API connectivity
-app.get('/api/test', (req, res) => {
-  res.json({ 
-    success: true,
-    message: 'API is working',
-    timestamp: new Date().toISOString()
-  });
-});
+
 
 // Global error handler
 app.use((err, req, res, next) => {

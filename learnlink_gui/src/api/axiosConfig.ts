@@ -1,7 +1,7 @@
 import axios from "axios";
 
 const api = axios.create({
-    baseURL: "https://learnlink-v1-env.eba-b28u347j.eu-north-1.elasticbeanstalk.com",
+    baseURL: "http://learnlink-v1-env.eba-b28u347j.eu-north-1.elasticbeanstalk.com",
     headers: {
         "Content-Type": "application/json",
     },

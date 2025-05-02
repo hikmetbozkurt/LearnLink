@@ -1,1 +1,1 @@
-export const API_URL = process.env.REACT_APP_API_URL || 'https://learnlink-v1-env.eba-b28u347j.eu-north-1.elasticbeanstalk.com/api'; 
+export const API_URL = process.env.REACT_APP_API_URL || 'http://learnlink-v1-env.eba-b28u347j.eu-north-1.elasticbeanstalk.com'; 

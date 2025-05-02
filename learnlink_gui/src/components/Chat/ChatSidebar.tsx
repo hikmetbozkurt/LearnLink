@@ -9,7 +9,7 @@ interface Friend {
   name: string;
   email: string;
   role: string;
-  profile_picture?: string;
+  profile_pic?: string;
 }
 
 interface ChatRoom {
@@ -238,8 +238,8 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({
                   >
                     <div className="friend-info-container">
                       <div className="friend-avatar">
-                        {friend.profile_picture ? (
-                          <img src={friend.profile_picture} alt={friend.name} />
+                        {friend.profile_pic ? (
+                          <img src={friend.profile_pic} alt={friend.name} />
                         ) : (
                           <FaUser />
                         )}

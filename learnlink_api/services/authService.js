@@ -29,10 +29,8 @@ export class AuthService {
         user_id: user.user_id,
         email: user.email,
         name: user.name,
-        first_name: user.first_name,
-        last_name: user.last_name,
         role: user.role,
-        profile_picture: user.profile_picture
+        profile_pic: user.profile_pic
       }
     }
   }
@@ -52,8 +50,6 @@ export class AuthService {
         user_id: user.user_id,
         email: user.email,
         name: user.name,
-        first_name: user.first_name,
-        last_name: user.last_name,
         role: user.role
       }
     }
