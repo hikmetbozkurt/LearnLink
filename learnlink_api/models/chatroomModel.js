@@ -42,12 +42,12 @@ class ChatRoom {
   }
 
   static async create({ name, description, createdBy }) {
+    // Sadece transaction için client kullanılacak
     const client = await db.connect();
     
     try {
       await client.query('BEGIN');
       
-
       // Create the chatroom
       const result = await client.query(
         `INSERT INTO chatrooms (name, description, created_by) 
@@ -95,6 +95,7 @@ class ChatRoom {
 
   static async addMember(chatroomId, userId) {
     try {
+      // Transaction gerekmeyen işlemler için doğrudan db.query kullanıyoruz
       // First check if chatroom exists
       const chatroomExists = await db.query(
         'SELECT id FROM chatrooms WHERE id = $1',
@@ -120,6 +121,7 @@ class ChatRoom {
 
   static async getMessages(chatroomId) {
     try {
+      // Sadece okuma işlemi, transaction gerektirmez
       const result = await db.query(`
         SELECT 
           m.id,
@@ -141,6 +143,7 @@ class ChatRoom {
   }
 
   static async createMessage({ chatroomId, senderId, content }) {
+    // Sadece transaction için client kullanılacak
     const client = await db.connect();
     
     try {
@@ -188,6 +191,7 @@ class ChatRoom {
   }
 
   static async delete(chatroomId) {
+    // Birden fazla delete işlemi olduğu için transaction kullanıyoruz
     const client = await db.connect();
     
     try {
