@@ -247,7 +247,6 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({
                       <div className="friend-info">
                         <span className="friend-name">{friend.name}</span>
                         <span className="friend-email">{friend.email}</span>
-                        <small className="friend-role">{friend.role}</small>
                       </div>
                     </div>
                     <button

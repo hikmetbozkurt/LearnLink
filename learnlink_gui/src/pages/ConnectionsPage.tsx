@@ -261,7 +261,6 @@ const ConnectionsPage = () => {
                     <div className="user-details">
                       <h3>{request.name}</h3>
                       <p>{request.email}</p>
-                      <small>{request.role}</small>
                     </div>
                   </div>
                   <div className="request-actions">
@@ -300,7 +299,6 @@ const ConnectionsPage = () => {
                     <div className="user-details">
                       <h3>{friend.name}</h3>
                       <p>{friend.email}</p>
-                      <small>{friend.role}</small>
                     </div>
                   </div>
                   <div className="user-actions">
