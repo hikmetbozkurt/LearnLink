@@ -13,7 +13,7 @@ import { useToast } from '../components/ToastProvider';
 import { useTheme } from '../context/ThemeContext';
 
 
-const GOOGLE_CLIENT_ID = "69975858042-qg58t1vmhplr463opgmg4dca01jdaal4.apps.googleusercontent.com";
+const GOOGLE_CLIENT_ID = process.env.REACT_APP_GOOGLE_CLIENT_ID;
 
 const LoginPage = () => {
   const [isSignUp, setIsSignUp] = useState(false);
@@ -184,7 +184,7 @@ const LoginPage = () => {
   };
 
   return (
-    <GoogleOAuthProvider clientId={GOOGLE_CLIENT_ID}>
+    <GoogleOAuthProvider clientId={GOOGLE_CLIENT_ID || ""}>
       <div className={`container ${isSignUp ? "active" : ""}`} id="container">
         <div className="form-container sign-up">
           <form onSubmit={handleSignup}>

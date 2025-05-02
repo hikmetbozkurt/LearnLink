@@ -2,7 +2,7 @@ import dotenv from 'dotenv'
 dotenv.config()
 
 const config = {
-  PORT: process.env.PORT || 5001,
+  PORT: process.env.PORT || process.env.EB_PORT || 5001,
   NODE_ENV: process.env.NODE_ENV || 'development',
   
   // Database
@@ -32,7 +32,7 @@ const config = {
   MAX_FILE_SIZE: process.env.MAX_FILE_SIZE || 5 * 1024 * 1024, // 5MB
   
   // CORS
-  CORS_ORIGIN: process.env.CORS_ORIGIN || 'http://localhost:3000'
+  CORS_ORIGIN: process.env.CORS_ORIGIN || '*'
 }
 
 export default config 

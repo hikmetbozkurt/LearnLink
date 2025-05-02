@@ -58,7 +58,7 @@ app.use("/uploads", express.static("uploads"));
 // Create Socket.IO instance
 export const io = new Server(httpServer, {
   cors: {
-    origin: "http://localhost:3000",
+    origin: config.CORS_ORIGIN || "*",
     methods: ["GET", "POST"],
     credentials: true,
   },
