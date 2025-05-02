@@ -13,7 +13,7 @@ async function runGoogleOAuthTest() {
   const driver = await new Builder().forBrowser('chrome').build();
   
   try {
-    console.log('Starting Google OAuth Login Test (LL-TC-008)');
+    console.log('Starting Google OAuth Login Test (LL-TC-03)');
     
     const testUrl = 'http://localhost:3000/';
     const testGoogleAccount = 'admin@adin.com'; 

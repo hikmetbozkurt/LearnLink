@@ -1,87 +1,148 @@
 const { Builder, By, until } = require('selenium-webdriver');
 const fs = require('fs');
+const path = require('path');
 
-async function runSendReceiveMessageTest() {
-  const driver = await new Builder().forBrowser('chrome').build();
+/**
+ * Test Case: LL-TC-007-Chatroom-Messaging
+ * Test Priority: High
+ * Module: Chatrooms
+ * Description: Verify message sending and receiving functionality in a chatroom between admin and test user
+ * Pre-requisites: 
+ * - Users must be registered (admin@admin.com and test@test.com)
+ * - At least one chatroom must exist
+ * - Both users must have access to the same chatroom
+ */
+
+// Create necessary directories for screenshots
+const screenshotDir = path.join(__dirname, 'testcase7_ss');
+if (!fs.existsSync(screenshotDir)) {
+  fs.mkdirSync(screenshotDir, { recursive: true });
+}
+
+async function runChatroomMessageTest() {
+  // Create two browser instances for sender and receiver
+  const senderDriver = await new Builder().forBrowser('chrome').build();
+  const receiverDriver = await new Builder().forBrowser('chrome').build();
 
   try {
-    console.log('🔧 Starting Test Case 7: Send & Receive Message');
-
+    console.log('Starting LearnLink Chatroom Messaging Test');
     const testUrl = 'http://localhost:3000/';
-    const email = 'admin@admin.com';
-    const password = 'Admin123';
-    const messageText = 'Hello LearnLink!';
+    const senderEmail = 'admin@admin.com';
+    const senderPassword = 'Admin123';
+    const receiverEmail = 'test@test.com';
+    const receiverPassword = 'Test1234';
+    const testMessage = 'Hello from chatroom test!';
 
-    await driver.get(testUrl);
-    await driver.sleep(2000);
+    // Step 1: Login both users
+    console.log('Step 1: Logging in users to access chatroom...');
+    // Login sender (admin)
+    await senderDriver.get(testUrl);
+    await senderDriver.sleep(2000);
+    const senderSignIn = await senderDriver.wait(until.elementLocated(By.css('.sign-in')), 10000);
+    await senderSignIn.findElement(By.css('input[type="email"]')).sendKeys(senderEmail);
+    await senderSignIn.findElement(By.css('input[type="password"]')).sendKeys(senderPassword);
+    await senderSignIn.findElement(By.css('button[type="submit"]')).click();
+    await senderDriver.wait(until.urlContains('/home'), 10000);
 
-    const emailInput = await driver.findElement(By.css('.sign-in input[type="email"]'));
-    await emailInput.clear();
-    await emailInput.sendKeys(email);
+    // Login receiver (test user)
+    await receiverDriver.get(testUrl);
+    await receiverDriver.sleep(2000);
+    const receiverSignIn = await receiverDriver.wait(until.elementLocated(By.css('.sign-in')), 10000);
+    await receiverSignIn.findElement(By.css('input[type="email"]')).sendKeys(receiverEmail);
+    await receiverSignIn.findElement(By.css('input[type="password"]')).sendKeys(receiverPassword);
+    await receiverSignIn.findElement(By.css('button[type="submit"]')).click();
+    await receiverDriver.wait(until.urlContains('/home'), 10000);
 
-    const passwordInput = await driver.findElement(By.css('.sign-in input[type="password"]'));
-    await passwordInput.clear();
-    await passwordInput.sendKeys(password);
+    await senderDriver.takeScreenshot().then(data => {
+      fs.writeFileSync(path.join(screenshotDir, '1_users_logged_in.png'), data, 'base64');
+    });
+    console.log('Step 1 PASS: Both users successfully logged in');
 
-    const loginButton = await driver.findElement(By.css('.sign-in button[type="submit"]'));
-    await loginButton.click();
+    // Step 2: Navigate to Chatrooms page
+    console.log('Step 2: Navigating to Chatrooms page...');
+    await senderDriver.findElement(By.css('a[href="/chatrooms"]')).click();
+    await receiverDriver.findElement(By.css('a[href="/chatrooms"]')).click();
+    await senderDriver.sleep(2000);
+    await receiverDriver.sleep(2000);
 
-    await driver.wait(until.elementLocated(By.css('.chat-container, .sidebar')), 10000);
-    console.log('✅ Logged in successfully');
+    // Step 3: Enter chatroom
+    console.log('Step 3: Entering test chatroom...');
+    const senderChatRoom = await senderDriver.wait(until.elementLocated(By.css('.chat-room')), 10000);
+    const receiverChatRoom = await receiverDriver.wait(until.elementLocated(By.css('.chat-room')), 10000);
+    
+    await senderChatRoom.click();
+    await receiverChatRoom.click();
+    await senderDriver.sleep(2000);
+    
+    await senderDriver.takeScreenshot().then(data => {
+      fs.writeFileSync(path.join(screenshotDir, '2_chatroom_entered.png'), data, 'base64');
+    });
+    console.log('Step 3 PASS: Both users entered chatroom successfully');
 
-    const homeScreenshot = await driver.takeScreenshot();
-    fs.writeFileSync('1_logged_in_dashboard.png', homeScreenshot, 'base64');
-
-    await driver.get('http://localhost:3000/direct-messages');
-    await driver.wait(until.elementLocated(By.css('.chat-container')), 10000);
-    console.log('📨 Direct messages page loaded');
-
-    const dmScreenshot = await driver.takeScreenshot();
-    fs.writeFileSync('2_direct_messages_page.png', dmScreenshot, 'base64');
-
-    const conversationList = await driver.findElements(By.css('.chat-sidebar .room-item'));
-    if (conversationList.length === 0) {
-      throw new Error('No conversations found.');
-    }
-    await conversationList[0].click();
-
-    await driver.sleep(1000);
-    await driver.wait(until.elementLocated(By.css('.chat-area textarea')), 5000);
-
-    const textarea = await driver.findElement(By.css('.chat-area textarea'));
-    await textarea.sendKeys(messageText);
-
-    const sendButton = await driver.findElement(By.css('.chat-area button[type="submit"], .chat-area .send-button'));
+    // Step 4: Send message in chatroom
+    console.log('Step 4: Sending message in chatroom...');
+    const messageInput = await senderDriver.wait(
+      until.elementLocated(By.css('input[placeholder="Type a message..."]')),
+      10000
+    );
+    await senderDriver.wait(until.elementIsVisible(messageInput), 5000);
+    await messageInput.sendKeys(testMessage);
+    
+    // Click send button in chatroom
+    const sendButton = await senderDriver.findElement(By.css('.send-button'));
     await sendButton.click();
+    // Increase wait time for message to be sent and received
+    await senderDriver.sleep(5000);
 
-    console.log('✅ Message sent');
+    await senderDriver.takeScreenshot().then(data => {
+      fs.writeFileSync(path.join(screenshotDir, '3_chatroom_message_sent.png'), data, 'base64');
+    });
+    console.log('Step 4 PASS: Message sent in chatroom');
 
-    await driver.sleep(3000);
-
-    const messageElements = await driver.findElements(By.xpath(`//*[contains(text(), "Hello LearnLink!")]`));
-    if (messageElements.length > 0) {
-      console.log('✅ Message appears in chat');
+    // Step 5: Verify message appears in both chatroom windows
+    console.log('Step 5: Verifying message visibility in chatroom...');
+    
+    // Wait for messages to appear and get all messages
+    await senderDriver.sleep(2000);
+    const senderMessages = await senderDriver.findElements(By.css('.message-text'));
+    const receiverMessages = await receiverDriver.findElements(By.css('.message-text'));
+    
+    // Get the last message from both users
+    const lastSenderMessage = await senderMessages[senderMessages.length - 1].getText();
+    const lastReceiverMessage = await receiverMessages[receiverMessages.length - 1].getText();
+    
+    console.log('Sender message:', lastSenderMessage);
+    console.log('Receiver message:', lastReceiverMessage);
+    
+    if (lastSenderMessage === testMessage && lastReceiverMessage === testMessage) {
+      console.log('Step 5 PASS: Message visible in both chatroom windows');
+      console.log('TEST PASSED: Chatroom messaging functionality working correctly');
     } else {
-      throw new Error('Message not found in chat');
+      throw new Error(`Chatroom message content does not match. Expected: ${testMessage}, Sender: ${lastSenderMessage}, Receiver: ${lastReceiverMessage}`);
     }
 
-    const finalScreenshot = await driver.takeScreenshot();
-    fs.writeFileSync('3_message_sent_confirmation.png', finalScreenshot, 'base64');
-
-    console.log('✅ Test Passed: Send & Receive Message');
+    await receiverDriver.takeScreenshot().then(data => {
+      fs.writeFileSync(path.join(screenshotDir, '4_chatroom_message_received.png'), data, 'base64');
+    });
 
   } catch (error) {
-    console.error('❌ Test failed:', error.message);
+    console.error('CHATROOM TEST FAILED:', error.message);
     try {
-      const failShot = await driver.takeScreenshot();
-      fs.writeFileSync(`error_screenshot_${Date.now()}.png`, failShot, 'base64');
+      const screenshot = await senderDriver.takeScreenshot();
+      fs.writeFileSync(path.join(screenshotDir, `chatroom_sender_error_${Date.now()}.png`), screenshot, 'base64');
+      const receiverScreenshot = await receiverDriver.takeScreenshot();
+      fs.writeFileSync(path.join(screenshotDir, `chatroom_receiver_error_${Date.now()}.png`), receiverScreenshot, 'base64');
     } catch (screenshotError) {
-      console.error('Failed to capture screenshot on error');
+      console.error('Failed to save chatroom error screenshot:', screenshotError.message);
     }
+    throw error;
   } finally {
-    await driver.quit();
-    console.log('🧹 Browser closed');
+    await senderDriver.quit();
+    await receiverDriver.quit();
   }
 }
 
-runSendReceiveMessageTest();
+runChatroomMessageTest().catch(e => {
+  console.error('Chatroom test execution failed:', e.message);
+  process.exit(1);
+});
