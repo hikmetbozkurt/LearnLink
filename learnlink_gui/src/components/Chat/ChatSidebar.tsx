@@ -79,7 +79,6 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({
       }
       
       const response = await api.get(`/api/users/friends/${userId}`);
-      console.log('Friends data:', response.data);
       setFriends(response.data || []);
     } catch (error) {
       console.error('Error fetching friends:', error);

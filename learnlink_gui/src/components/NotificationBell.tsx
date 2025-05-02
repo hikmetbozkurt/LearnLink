@@ -77,11 +77,9 @@ const NotificationBell = forwardRef<NotificationBellRef, NotificationBellProps>(
     const userId = localStorage.getItem('userId');
     
     if (!token || !userId) {
-      console.log('Missing token or userId for socket connection');
       return;
     }
 
-    console.log('Setting up notification socket connection with userId:', userId);
     
     const socket = io('http://localhost:5001', {
       transports: ['websocket'],
@@ -96,7 +94,6 @@ const NotificationBell = forwardRef<NotificationBellRef, NotificationBellProps>(
     });
 
     socket.on('connect', () => {
-      console.log('Connected to notification socket');
       // Register user ID with socket
       socket.emit('user_connected', userId);
     });
@@ -106,7 +103,6 @@ const NotificationBell = forwardRef<NotificationBellRef, NotificationBellProps>(
     });
 
     socket.on('new_notification', (notification) => {
-      console.log('Received new notification:', notification);
       setNotifications(prev => [notification, ...prev]);
       setUnreadCount(prev => prev + 1);
       
@@ -119,7 +115,6 @@ const NotificationBell = forwardRef<NotificationBellRef, NotificationBellProps>(
     });
 
     return () => {
-      console.log('Disconnecting notification socket');
       socket.disconnect();
     };
   }, [showToast]);
@@ -139,19 +134,16 @@ const NotificationBell = forwardRef<NotificationBellRef, NotificationBellProps>(
         setUnreadCount(prev => Math.max(0, prev - 1));
       }
       
-      console.log('Notification clicked:', notification);
       
       // Handle different notification types
       if (notification.type === 'new_assignment' && notification.assignment_id) {
         // Navigate to the assignments page with the specific course selected
         // This will show all assignments for that course
-        console.log(`Navigating to assignment ${notification.assignment_id} in course ${notification.course_id}`);
         navigate(`/assignments?course=${notification.course_id}`);
         onToggle();
       }
       else if (notification.type === 'assignment_submission' && notification.submission_id) {
         // Navigate to the assignments page for the instructor to see all submissions
-        console.log(`Navigating to submissions for assignment ${notification.assignment_id}`);
         navigate(`/assignments?course=${notification.course_id}`);
         onToggle();
       }

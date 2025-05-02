@@ -47,7 +47,6 @@ class ChatRoom {
     try {
       await client.query('BEGIN');
       
-      console.log('Creating chatroom with params:', { name, description, createdBy });
 
       // Create the chatroom
       const result = await client.query(
@@ -63,8 +62,6 @@ class ChatRoom {
         throw new Error('Failed to create chatroom record');
       }
       
-      console.log('Created chatroom:', chatroom);
-
       // Add creator as a member
       await client.query(
         `INSERT INTO chatroom_members (chatroom_id, user_id) 

@@ -64,14 +64,9 @@ const InProgressAssignmentsView: React.FC<InProgressAssignmentsViewProps> = ({
   });
 
   useEffect(() => {
-    console.log("InProgressAssignmentsView - Assignments:", assignments);
-    console.log("User is admin:", isUserAdmin);
-    console.log("Admin courses:", adminCourses);
-    console.log("In-progress assignments:", inProgressAssignments);
   }, [assignments, inProgressAssignments, adminCourses, isUserAdmin]);
 
   const handleAssignmentClick = (assignment: Assignment) => {
-    console.log("Assignment clicked:", assignment);
     setSelectedAssignment(assignment);
   };
 

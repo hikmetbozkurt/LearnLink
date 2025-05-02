@@ -22,16 +22,6 @@ const AuthRedirect: React.FC = () => {
       return false;
     }
   };
-
-  // Effect to store the current path
-  useEffect(() => {
-    if (!isAuthenticated()) {
-      console.log('User not authenticated, showing login page');
-    } else {
-      console.log('User authenticated, redirecting to home');
-    }
-  }, []);
-
   // If authenticated redirect to home, otherwise show login page
   return isAuthenticated() ? <Navigate to="/home" replace /> : <LoginPage />;
 };

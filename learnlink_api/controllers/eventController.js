@@ -23,7 +23,6 @@ export const createEvent = async (req, res) => {
 // Get all events for a user
 export const getEvents = async (req, res) => {
     try {
-        console.log('User object:', req.user);
         
         if (!req.user || !req.user.user_id) {
             console.error('No user or user_id found in request');
@@ -31,7 +30,6 @@ export const getEvents = async (req, res) => {
         }
 
         const userId = req.user.user_id;
-        console.log('Fetching events for user:', userId);
 
         const query = `
             SELECT *
@@ -40,11 +38,8 @@ export const getEvents = async (req, res) => {
             ORDER BY date ASC
         `;
         
-        console.log('Executing query:', query);
-        console.log('With userId:', userId);
 
         const result = await pool.query(query, [userId]);
-        console.log('Query result:', result.rows);
 
         res.json(result.rows);
     } catch (error) {
@@ -63,25 +58,20 @@ export const getUpcomingEvents = async (req, res) => {
     try {
         let { userId } = req.params;
         
-        console.log(`[getUpcomingEvents] Request received for userId: ${userId}, type: ${typeof userId}`);
         
         if (!userId) {
-            console.log('[getUpcomingEvents] No userId provided');
             return res.status(400).json({ error: 'User ID is required' });
         }
 
         // Convert userId to number if it's a string
         if (typeof userId === 'string') {
             userId = parseInt(userId, 10);
-            console.log(`[getUpcomingEvents] Converted userId to number: ${userId}`);
             
             if (isNaN(userId)) {
-                console.log('[getUpcomingEvents] Invalid userId (not a number)');
                 return res.status(400).json({ error: 'Invalid user ID' });
             }
         }
 
-        console.log(`[getUpcomingEvents] Fetching upcoming events for user: ${userId}`);
 
         const query = `
             SELECT *
@@ -95,10 +85,8 @@ export const getUpcomingEvents = async (req, res) => {
             ORDER BY date ASC
         `;
         
-        console.log(`[getUpcomingEvents] Executing query with userId: ${userId}`);
         
         const result = await pool.query(query, [userId]);
-        console.log(`[getUpcomingEvents] Found ${result.rows.length} upcoming events for user ${userId}`);
         
         res.json(result.rows);
     } catch (error) {

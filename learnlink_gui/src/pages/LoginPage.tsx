@@ -39,7 +39,6 @@ const LoginPage = () => {
         const userData = JSON.parse(user);
         // Verify user object has required fields
         if (userData.id || userData.user_id) {
-          console.log('User already logged in, redirecting to home');
           navigate('/home');
         }
       } catch (error) {
@@ -68,13 +67,10 @@ const LoginPage = () => {
 
   const handleGoogleSuccess = async (credentialResponse: any) => {
     try {
-      console.log('Google login started with credential response:', credentialResponse);
-      
       const response = await api.post('/api/auth/google', {
         credential: credentialResponse.credential
       });
 
-      console.log('Google login response:', response);
 
       if (response.data?.token && response.data?.user) {
         // Clean and store token
@@ -92,24 +88,17 @@ const LoginPage = () => {
         localStorage.setItem('token', cleanToken);
         localStorage.setItem('user', JSON.stringify(userData));
         
-        console.log('Google login - Stored auth data:', {
-          token: cleanToken,
-          user: userData
-        });
 
         // Verify data is stored correctly
         const storedToken = localStorage.getItem('token');
         const storedUser = JSON.parse(localStorage.getItem('user') || '{}');
         
         if (storedToken && storedUser.id && storedUser.email) {
-          console.log('Google login - Verification successful, navigating to home');
           navigate('/home');
         } else {
-          console.error('Google login - Failed to verify stored data:', { storedToken, storedUser });
           throw new Error('Failed to store authentication data');
         }
       } else {
-        console.error('Google login - Invalid response format:', response);
         throw new Error('Invalid response format from server');
       }
     } catch (error) {

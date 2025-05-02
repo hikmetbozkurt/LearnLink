@@ -39,7 +39,6 @@ app.get("/uploads/files/:filename", (req, res) => {
         ? originalNameWithTimestamp.substring(dashIndex + 1)
         : originalNameWithTimestamp;
 
-    console.log(`Downloading file: ${filename} as ${originalName}`);
 
     // İndirme başlıklarını ayarla
     res.setHeader(
@@ -90,7 +89,6 @@ io.use(async (socket, next) => {
 });
 
 io.on("connection", (socket) => {
-  console.log("User connected:", socket.id);
 
   socket.on("user_connected", (userId) => {
     if (
@@ -99,26 +97,15 @@ io.on("connection", (socket) => {
         socket.user.id === parseInt(userId))
     ) {
       connectedUsers.set(userId, socket.id);
-      console.log("User registered:", userId);
     }
   });
 
   socket.on("join_room", (roomId) => {
-    console.log("User joining room:", roomId);
     socket.join(roomId.toString());
-    console.log(
-      "Room members after join:",
-      io.sockets.adapter.rooms.get(roomId.toString())?.size
-    );
   });
 
   socket.on("leave_room", (roomId) => {
-    console.log("User leaving room:", roomId);
     socket.leave(roomId.toString());
-    console.log(
-      "Room members after leave:",
-      io.sockets.adapter.rooms.get(roomId.toString())?.size
-    );
   });
 
   socket.on("send_message", async (data) => {
@@ -126,7 +113,6 @@ io.on("connection", (socket) => {
     const userId = socket.user.user_id || socket.user.id;
 
     try {
-      console.log("Received message:", { roomId, message, userId });
 
       // Save message to database
       const messageQuery = `
@@ -153,12 +139,6 @@ io.on("connection", (socket) => {
       };
 
       const roomIdStr = roomId.toString();
-      console.log("Broadcasting message to room:", roomIdStr);
-      console.log(
-        "Room members:",
-        io.sockets.adapter.rooms.get(roomIdStr)?.size
-      );
-      console.log("Message data:", completeMessage);
 
       // Broadcast to everyone in the room
       io.to(roomIdStr).emit("receive_message", completeMessage);
@@ -222,7 +202,6 @@ io.on("connection", (socket) => {
 
   socket.on("chatroom:message", async (data) => {
     try {
-      console.log("Received chatroom message:", data);
 
       // Broadcast message to room
       io.to(data.chatroom_id.toString()).emit("receive_message", {
@@ -300,14 +279,12 @@ io.on("connection", (socket) => {
         break;
       }
     }
-    console.log("User disconnected:", socket.id);
   });
 });
 
 const PORT = process.env.PORT || 5001;
 
 httpServer.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
 });
 
 export default httpServer;

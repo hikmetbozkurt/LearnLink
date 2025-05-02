@@ -90,7 +90,6 @@ const EventModal: React.FC<EventModalProps> = ({
         type: formData.type
       };
 
-      console.log('Creating event with data:', eventData);
 
       if (editingEventId) {
         await eventService.updateEvent(editingEventId, eventData);

@@ -129,7 +129,6 @@ const Header = () => {
                 src={user?.profile_pic ? `${user.profile_pic}?t=${profileImageKey}` : defaultAvatar} 
                 alt="Profile" 
                 onError={(e) => { 
-                  console.log('Error loading profile pic, falling back to default');
                   e.currentTarget.src = defaultAvatar; 
                 }}
               />

@@ -47,12 +47,9 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
 
   useEffect(() => {
     if (user) {
-      // Check if the user has a Google account flag
-      console.log('Current user data:', user);
       
       // If login_provider directly in user object, use that
       if (user.login_provider === 'google') {
-        console.log('User is Google user based on user.login_provider');
         setIsGoogleUser(true);
       } else {
         // Otherwise check via API
@@ -63,11 +60,8 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
 
   const checkIfGoogleUser = async () => {
     try {
-      console.log('Checking if user is Google user...');
       const response = await api.get('/api/auth/check-auth-provider');
-      console.log('Auth provider response:', response.data);
       setIsGoogleUser(response.data.provider === 'google');
-      console.log('isGoogleUser set to:', response.data.provider === 'google');
     } catch (error) {
       console.error('Failed to check auth provider:', error);
       // If we can't determine, assume it's not a Google user for safety
@@ -196,8 +190,6 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
 
   // Account tab rendering - moved to separate render function for clarity
   const renderAccountTab = () => {
-    console.log('Rendering account tab, isGoogleUser:', isGoogleUser);
-    console.log('User login_provider:', user?.login_provider);
     
     // If user has login_provider property directly in user object, prefer that
     const isGoogleAccount = isGoogleUser || user?.login_provider === 'google';

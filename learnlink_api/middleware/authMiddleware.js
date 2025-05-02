@@ -17,7 +17,6 @@ export const authenticateToken = (req, res, next) => {
         return res.status(403).json({ message: 'Invalid or expired token' });
       }
 
-      console.log('Token decoded successfully:', decoded);
       
       // Handle both id and user_id formats
       const userId = decoded.user_id || decoded.id;
@@ -34,7 +33,6 @@ export const authenticateToken = (req, res, next) => {
         role: decoded.role
       };
       
-      console.log('User authenticated:', req.user);
       next();
     });
   } catch (error) {

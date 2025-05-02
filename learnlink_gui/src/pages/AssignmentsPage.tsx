@@ -78,9 +78,7 @@ const AssignmentsPage: React.FC = () => {
     const testApiConnection = async () => {
       try {
         if (process.env.NODE_ENV === "development") {
-          console.log("Testing API connection...");
           const token = localStorage.getItem("token");
-          console.log("Auth token present:", !!token);
 
           // Make a direct fetch call to test connectivity
           const response = await fetch(
@@ -94,9 +92,6 @@ const AssignmentsPage: React.FC = () => {
             }
           );
 
-          console.log("API test response status:", response.status);
-          const data = await response.text();
-          console.log("API test response data:", data);
         }
       } catch (error) {
         console.error("API connection test failed:", error);
@@ -142,7 +137,6 @@ const AssignmentsPage: React.FC = () => {
     const refreshInterval = setInterval(() => {
       if (userCourses.length > 0 && !isLoading) {
         if (process.env.NODE_ENV === "development") {
-          console.log("Auto-refreshing assignments data");
         }
         loadAssignments();
       }
@@ -153,10 +147,6 @@ const AssignmentsPage: React.FC = () => {
 
   // Log when selectedCourse changes
   useEffect(() => {
-    console.log("AssignmentsPage - selectedCourse changed:", {
-      selectedCourse,
-      type: typeof selectedCourse
-    });
   }, [selectedCourse]);
 
   // Add event listener for visibility changes to refresh when user returns to tab
@@ -168,7 +158,6 @@ const AssignmentsPage: React.FC = () => {
         !isLoading
       ) {
         if (process.env.NODE_ENV === "development") {
-          console.log("Page visible again, refreshing assignments");
         }
         loadAssignments();
       }
@@ -215,19 +204,11 @@ const AssignmentsPage: React.FC = () => {
 
     // Filter by course if selected
     if (selectedCourse) {
-      console.log("Filtering assignments by course_id:", {
-        selectedCourse,
-        selectedCourseType: typeof selectedCourse
-      });
+      
       
       filtered = filtered.filter((a) => {
         const courseMatch = String(a.course_id).trim() === String(selectedCourse).trim();
-        console.log(`Assignment ${a.assignment_id} course filtering:`, {
-          assignmentCourseId: a.course_id,
-          assignmentCourseIdType: typeof a.course_id,
-          selectedCourse,
-          match: courseMatch
-        });
+        
         return courseMatch;
       });
     }
@@ -281,7 +262,6 @@ const AssignmentsPage: React.FC = () => {
     try {
       // Check if this is a result from the modal's API call (has assignment_id)
       if (assignmentData.assignment_id) {
-        console.log("Received assignment result from modal:", assignmentData);
         
         // Create a notification for all course members
         try {
@@ -374,7 +354,6 @@ const AssignmentsPage: React.FC = () => {
 
   const checkUpcomingDeadlines = () => {
     if (process.env.NODE_ENV === "development") {
-      console.log("Checking for upcoming deadlines");
     }
 
     // Only check if user has permission to show notifications

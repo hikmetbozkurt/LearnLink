@@ -132,7 +132,6 @@ const EventsDropdown: React.FC<EventsDropdownProps> = ({ isOpen, onToggle, onEve
       }
       
       // Show how many events were deleted
-      console.log(`${result.count} past events deleted successfully`);
     } catch (error) {
       console.error('Error clearing past events:', error);
       setShowConfirmation(false);

@@ -86,17 +86,6 @@ const AssignmentSidebar: React.FC<AssignmentSidebarProps> = ({
           value={selectedCourse || ""}
           onChange={(e) => {
             const newCourseId = e.target.value === "" ? null : e.target.value;
-            console.log("AssignmentSidebar - Course selection changed:", {
-              from: selectedCourse,
-              to: newCourseId,
-              selectedValue: e.target.value,
-              valueType: typeof e.target.value,
-              availableCourses: userCourses.map(c => ({ 
-                id: c.course_id, 
-                title: c.title,
-                idType: typeof c.course_id
-              }))
-            });
             setSelectedCourse(newCourseId);
           }}
           className="course-filter"

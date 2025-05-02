@@ -27,24 +27,13 @@ export const createAssignment = asyncHandler(async (req, res) => {
   const { title, description, due_date, course_id, points, grading_criteria } =
     req.body;
 
-  console.log("Creating assignment with data:", {
-    title,
-    description,
-    due_date,
-    course_id,
-    points,
-    grading_criteria,
-  });
-
   // Parse the date to ensure it's in the correct format for PostgreSQL TIMESTAMP
   let formattedDueDate = due_date;
   try {
     // If date doesn't have timezone information, keep it as is
     // This will respect the user's local timezone when displayed
     if (due_date && !due_date.endsWith('Z')) {
-      console.log("Due date without timezone, preserving as is:", due_date);
     } else {
-      console.log("Due date with timezone, using as is:", due_date);
     }
   } catch (error) {
     console.error("Error processing due date:", error);
@@ -57,7 +46,6 @@ export const createAssignment = asyncHandler(async (req, res) => {
     );
 
     if (!tableCheck.rows[0].exists) {
-      console.log("Assignments table does not exist, creating it");
       await pool.query(`
         CREATE TABLE IF NOT EXISTS assignments (
           assignment_id SERIAL PRIMARY KEY,
@@ -72,7 +60,6 @@ export const createAssignment = asyncHandler(async (req, res) => {
       `);
     } else {
       // Check for missing columns and add them if needed
-      console.log("Checking for missing columns in assignments table");
 
       // Check and upgrade due_date column from DATE to TIMESTAMP if needed
       const dueDateTypeCheck = await pool.query(
@@ -80,7 +67,6 @@ export const createAssignment = asyncHandler(async (req, res) => {
       );
       
       if (dueDateTypeCheck.rows.length > 0 && dueDateTypeCheck.rows[0].data_type === 'date') {
-        console.log("Upgrading due_date column from DATE to TIMESTAMP");
         await pool.query(
           "ALTER TABLE assignments ALTER COLUMN due_date TYPE TIMESTAMP USING due_date::timestamp"
         );
@@ -91,7 +77,6 @@ export const createAssignment = asyncHandler(async (req, res) => {
         "SELECT EXISTS (SELECT FROM information_schema.columns WHERE table_name = 'assignments' AND column_name = 'title')"
       );
       if (!titleCheck.rows[0].exists) {
-        console.log("Adding title column to assignments table");
         await pool.query(
           "ALTER TABLE assignments ADD COLUMN title VARCHAR(255) NOT NULL DEFAULT 'Assignment'"
         );
@@ -102,7 +87,6 @@ export const createAssignment = asyncHandler(async (req, res) => {
         "SELECT EXISTS (SELECT FROM information_schema.columns WHERE table_name = 'assignments' AND column_name = 'points')"
       );
       if (!pointsCheck.rows[0].exists) {
-        console.log("Adding points column to assignments table");
         await pool.query(
           "ALTER TABLE assignments ADD COLUMN points INTEGER DEFAULT 100"
         );
@@ -113,7 +97,6 @@ export const createAssignment = asyncHandler(async (req, res) => {
         "SELECT EXISTS (SELECT FROM information_schema.columns WHERE table_name = 'assignments' AND column_name = 'grading_criteria')"
       );
       if (!gradingCheck.rows[0].exists) {
-        console.log("Adding grading_criteria column to assignments table");
         await pool.query(
           "ALTER TABLE assignments ADD COLUMN grading_criteria TEXT"
         );
@@ -124,7 +107,6 @@ export const createAssignment = asyncHandler(async (req, res) => {
         "SELECT EXISTS (SELECT FROM information_schema.columns WHERE table_name = 'assignments' AND column_name = 'type')"
       );
       if (!typeCheck.rows[0].exists) {
-        console.log("Adding type column to assignments table");
         await pool.query(
           "ALTER TABLE assignments ADD COLUMN type VARCHAR(20) DEFAULT 'assignment'"
         );
@@ -132,7 +114,6 @@ export const createAssignment = asyncHandler(async (req, res) => {
     }
 
     // Now insert the assignment
-    console.log("Inserting new assignment");
     const result = await pool.query(
       "INSERT INTO assignments (title, description, due_date, course_id, points, grading_criteria, type) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *",
       [
@@ -147,7 +128,6 @@ export const createAssignment = asyncHandler(async (req, res) => {
     );
 
     const newAssignment = result.rows[0];
-    console.log("Assignment created successfully:", newAssignment);
 
     // Ensure notifications table has required columns
     await pool.query("ALTER TABLE notifications ADD COLUMN IF NOT EXISTS assignment_id INTEGER");
@@ -162,8 +142,6 @@ export const createAssignment = asyncHandler(async (req, res) => {
 
     if (courseResult.rows.length > 0) {
       const course = courseResult.rows[0];
-      console.log("Found course:", course);
-      console.log("Course title:", course.title);
       
       // Get enrolled users (excluding the instructor)
       const enrolledUsersResult = await pool.query(
@@ -173,7 +151,6 @@ export const createAssignment = asyncHandler(async (req, res) => {
       );
 
       const enrolledUserIds = enrolledUsersResult.rows.map(row => row.user_id);
-      console.log(`Found ${enrolledUserIds.length} enrolled users to notify`);
       
       if (enrolledUserIds.length > 0) {
         // Create notifications for enrolled users
@@ -182,12 +159,9 @@ export const createAssignment = asyncHandler(async (req, res) => {
           course.title, // Using title field from course table
           enrolledUserIds
         );
-        console.log("Assignment notifications created successfully");
       } else {
-        console.log("No enrolled users to notify about new assignment");
       }
     } else {
-      console.log(`Course with ID ${course_id} not found`);
     }
 
     res.status(201).json(newAssignment);
@@ -209,9 +183,7 @@ export const updateAssignment = asyncHandler(async (req, res) => {
     // If date doesn't have timezone information, keep it as is
     // This will respect the user's local timezone when displayed
     if (due_date && !due_date.endsWith('Z')) {
-      console.log("Update - Due date without timezone, preserving as is:", due_date);
     } else {
-      console.log("Update - Due date with timezone, using as is:", due_date);
     }
   } catch (error) {
     console.error("Error processing due date during update:", error);
@@ -288,11 +260,9 @@ export const deleteAssignment = asyncHandler(async (req, res) => {
 
   try {
     // First, delete all submissions for this assignment
-    console.log(`Deleting all submissions for assignment ${id}`);
     await pool.query("DELETE FROM submissions WHERE assignment_id = $1", [id]);
 
     // Then delete the assignment
-    console.log(`Deleting assignment ${id}`);
     const result = await pool.query(
       "DELETE FROM assignments WHERE assignment_id = $1 RETURNING *",
       [id]
@@ -320,9 +290,6 @@ export const getAssignments = asyncHandler(async (req, res) => {
       "SELECT * FROM assignments WHERE course_id = $1 ORDER BY due_date ASC",
       [course_id]
     );
-    console.log(
-      `Found ${result.rows.length} assignments for course ${course_id}`
-    );
     res.json(result.rows);
   } catch (error) {
     console.error(`Error fetching assignments for course ${course_id}:`, error);
@@ -343,7 +310,6 @@ export const submitAssignment = asyncHandler(async (req, res) => {
     fileUrl = `/uploads/${req.file.filename}`;
   }
 
-  console.log("Submitting assignment:", { id, userId, content, fileUrl });
 
   try {
     // First check if the submissions table exists
@@ -352,7 +318,6 @@ export const submitAssignment = asyncHandler(async (req, res) => {
     );
 
     if (!checkTable.rows[0].exists) {
-      console.log("Submissions table does not exist, creating it...");
       // Create the submissions table if it doesn't exist
       await pool.query(`
         CREATE TABLE IF NOT EXISTS submissions (
@@ -366,10 +331,8 @@ export const submitAssignment = asyncHandler(async (req, res) => {
           feedback TEXT
         )
       `);
-      console.log("Submissions table created successfully");
     } else {
       // Check if the required columns exist
-      console.log("Checking if required columns exist in submissions table");
 
       // Check if content column exists
       const contentColumnCheck = await pool.query(
@@ -377,9 +340,6 @@ export const submitAssignment = asyncHandler(async (req, res) => {
       );
 
       if (!contentColumnCheck.rows[0].exists) {
-        console.log(
-          "Content column doesn't exist, adding it to submissions table"
-        );
         await pool.query("ALTER TABLE submissions ADD COLUMN content TEXT");
       }
 
@@ -389,9 +349,6 @@ export const submitAssignment = asyncHandler(async (req, res) => {
       );
 
       if (!submittedAtColumnCheck.rows[0].exists) {
-        console.log(
-          "submitted_at column doesn't exist, adding it to submissions table"
-        );
         await pool.query(
           "ALTER TABLE submissions ADD COLUMN submitted_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP"
         );
@@ -403,9 +360,6 @@ export const submitAssignment = asyncHandler(async (req, res) => {
       );
 
       if (!fileUrlColumnCheck.rows[0].exists) {
-        console.log(
-          "file_url column doesn't exist, adding it to submissions table"
-        );
         await pool.query("ALTER TABLE submissions ADD COLUMN file_url TEXT");
       }
 
@@ -415,9 +369,6 @@ export const submitAssignment = asyncHandler(async (req, res) => {
       );
 
       if (!gradeColumnCheck.rows[0].exists) {
-        console.log(
-          "grade column doesn't exist, adding it to submissions table"
-        );
         await pool.query(
           "ALTER TABLE submissions ADD COLUMN grade VARCHAR(10)"
         );
@@ -429,14 +380,9 @@ export const submitAssignment = asyncHandler(async (req, res) => {
       );
 
       if (!feedbackColumnCheck.rows[0].exists) {
-        console.log(
-          "feedback column doesn't exist, adding it to submissions table"
-        );
         await pool.query("ALTER TABLE submissions ADD COLUMN feedback TEXT");
       }
     }
-
-    console.log("Inserting submission");
 
     let submissionResult;
     
@@ -448,7 +394,6 @@ export const submitAssignment = asyncHandler(async (req, res) => {
         [id, userId, content || "", fileUrl]
       );
 
-      console.log("Submission successful:", submissionResult.rows[0]);
     } catch (insertError) {
       console.error("Error inserting with DEFAULT timestamp:", insertError);
 
@@ -458,10 +403,6 @@ export const submitAssignment = asyncHandler(async (req, res) => {
         [id, userId, content || "", fileUrl]
       );
 
-      console.log(
-        "Submission successful with explicit timestamp:",
-        submissionResult.rows[0]
-      );
     }
     
     // Get assignment and course details for notification
@@ -571,7 +512,6 @@ export const getUserSubmission = asyncHandler(async (req, res) => {
       );
       
       if (!columnCheck.rows[0].exists) {
-        console.log(`${column} column doesn't exist, adding it to submissions table`);
         
         if (column === 'submitted_at') {
           await pool.query(`ALTER TABLE submissions ADD COLUMN ${column} TIMESTAMP DEFAULT CURRENT_TIMESTAMP`);

@@ -33,7 +33,6 @@ const NotificationItem: React.FC<NotificationItemProps> = ({ notification, onMar
   };
 
   const handleClick = async () => {
-    console.log('Notification clicked:', notification);
 
     // Mark as read first
     if (!notification.read) {
@@ -49,7 +48,6 @@ const NotificationItem: React.FC<NotificationItemProps> = ({ notification, onMar
     try {
       switch (notification.type) {
         case 'friend_request':
-          console.log('Navigating to connections page');
           window.location.href = '/connections';
           break;
 
@@ -65,7 +63,6 @@ const NotificationItem: React.FC<NotificationItemProps> = ({ notification, onMar
           break;
 
         default:
-          console.log('Unknown notification type:', notification.type);
       }
     } catch (error) {
       console.error('Error handling notification click:', error);

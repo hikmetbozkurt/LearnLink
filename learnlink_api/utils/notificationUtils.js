@@ -17,16 +17,13 @@ export const setIoInstance = (ioInstance) => {
 export const createNewAssignmentNotification = async (assignment, courseName, enrolledUserIds) => {
   try {
     if (!enrolledUserIds || enrolledUserIds.length === 0) {
-      console.log('No enrolled users to notify about the new assignment');
       return;
     }
 
     const content = `New assignment "${assignment.title}" has been added to ${courseName}. Due date: ${new Date(assignment.due_date).toLocaleDateString()}`;
 
     // If we have socket.io available, use it to send real-time notifications
-    if (io && io.sendAssignmentNotification) {
-      console.log('Using socket.io for new assignment notifications');
-      
+    if (io && io.sendAssignmentNotification) {      
       // Send notifications to each user
       for (const userId of enrolledUserIds) {
         await io.sendAssignmentNotification({
@@ -38,7 +35,6 @@ export const createNewAssignmentNotification = async (assignment, courseName, en
         });
       }
     } else {
-      console.log('Using database insertion for new assignment notifications');
       // Fall back to direct database insertion
       const values = enrolledUserIds.map((userId) => {
         return `(${userId}, '${content}', 'new_assignment', ${assignment.assignment_id}, ${assignment.course_id}, NOW())`;
@@ -53,7 +49,6 @@ export const createNewAssignmentNotification = async (assignment, courseName, en
       await pool.query(query);
     }
 
-    console.log(`Notifications created for ${enrolledUserIds.length} users about new assignment`);
   } catch (error) {
     console.error('Error creating new assignment notifications:', error);
   }
@@ -75,7 +70,6 @@ export const createAssignmentSubmissionNotification = async (submission, user, a
 
     // If we have socket.io available, use it for real-time notification
     if (io && io.sendAssignmentNotification) {
-      console.log('Using socket.io for assignment submission notification');
       
       await io.sendAssignmentNotification({
         recipient_id: instructorId,
@@ -86,7 +80,6 @@ export const createAssignmentSubmissionNotification = async (submission, user, a
         course_id: course.course_id
       });
     } else {
-      console.log('Using database insertion for assignment submission notification');
       
       // Fall back to direct database insertion
       const query = `
@@ -106,7 +99,6 @@ export const createAssignmentSubmissionNotification = async (submission, user, a
       ]);
     }
 
-    console.log(`Notification created for instructor (${instructorId}) about submission from ${user.name}`);
   } catch (error) {
     console.error('Error creating assignment submission notification:', error);
   }

@@ -37,7 +37,6 @@ export class ChatSocket {
 
   setupEventHandlers() {
     this.io.on('connection', (socket) => {
-      console.log(`User connected: ${socket.user.id}`)
 
       // Join user's rooms
       this.handleJoinRooms(socket)
@@ -111,7 +110,4 @@ export class ChatSocket {
     }
   }
 
-  handleDisconnect(socket) {
-    console.log(`User disconnected: ${socket.user.id}`)
-  }
 } 

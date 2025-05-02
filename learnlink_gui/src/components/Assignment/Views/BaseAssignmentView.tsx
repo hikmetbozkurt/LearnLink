@@ -35,55 +35,18 @@ const BaseAssignmentView: React.FC<BaseAssignmentViewProps> = ({
   const { user } = useContext(AuthContext);
   const isUserAdmin = adminCourses.length > 0;
   
-  // DEBUG: Log props received by BaseAssignmentView
-  console.log(`[${viewName}] BaseAssignmentView received:`, {
-    filteredAssignmentsCount: filteredAssignments.length,
-    selectedCourse,
-    selectedCourseType: typeof selectedCourse,
-    userCoursesCount: userCourses.length,
-    adminCoursesCount: adminCourses.length
-  });
   
   // Apply course filter if selected - this is now handled at the parent level
   // We're keeping this implementation as a fallback to ensure proper filtering
   const displayedAssignments = selectedCourse 
     ? filteredAssignments.filter(a => {
         const match = String(a.course_id).trim() === String(selectedCourse).trim();
-        
-        // Log each assignment matching attempt for debugging
-        if (process.env.NODE_ENV === "development") {
-          console.log(`Comparing assignment ${a.assignment_id} course match:`, {
-            assignmentCourseId: a.course_id,
-            assignmentCourseIdType: typeof a.course_id,
-            selectedCourse: selectedCourse,
-            selectedCourseType: typeof selectedCourse,
-            match
-          });
-        }
+
         
         return match;
       })
     : filteredAssignments;
-  
-  // DEBUG: Log filtered assignments  
-  console.log(`[${viewName}] After course filtering:`, {
-    selectedCourse,
-    selectedCourseType: typeof selectedCourse,
-    beforeFilter: filteredAssignments.length,
-    afterFilter: displayedAssignments.length,
-    displayedAssignments: displayedAssignments.map(a => ({ 
-      id: a.assignment_id, 
-      title: a.title, 
-      course_id: a.course_id,
-      course_id_type: typeof a.course_id 
-    })),
-    filteredAssignments: filteredAssignments.slice(0, 3).map(a => ({ 
-      id: a.assignment_id, 
-      title: a.title, 
-      course_id: a.course_id,
-      course_id_type: typeof a.course_id 
-    }))
-  });
+
     
   // Get the course name for the selected course
   const [selectedCourseName, setSelectedCourseName] = useState<string>("");
@@ -100,12 +63,6 @@ const BaseAssignmentView: React.FC<BaseAssignmentViewProps> = ({
       const courseName = course?.title || "Selected Course";
       setSelectedCourseName(courseName);
       
-      // DEBUG: Log course selection details
-      console.log(`[${viewName}] Selected course details:`, {
-        selectedCourse,
-        foundCourseName: courseName,
-        allCourses: allCourses.map(c => ({ id: c.course_id, title: c.title }))
-      });
     } else {
       setSelectedCourseName("");
     }

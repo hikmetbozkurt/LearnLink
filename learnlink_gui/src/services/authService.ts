@@ -28,7 +28,6 @@ export const authService = {
   googleLogin: async (credential: string) => {
     try {
       const response = await api.post('/api/auth/google', { credential });
-      console.log('Google login service - Raw response:', response.data);
       
       // Ensure we have the expected data structure
       if (!response.data?.success || !response.data?.data?.token || !response.data?.data?.user) {
