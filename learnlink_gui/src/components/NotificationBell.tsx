@@ -1,5 +1,5 @@
 import React, { useState, useEffect, forwardRef, useImperativeHandle } from 'react';
-import { FaBell, FaComment, FaEye, FaTrash, FaUserPlus, FaUserFriends } from 'react-icons/fa';
+import { FaBell, FaComment, FaEye, FaTrash, FaUserPlus, FaUserFriends, FaBook, FaClipboardCheck } from 'react-icons/fa';
 import { useNavigate } from 'react-router-dom';
 import api from '../api/axiosConfig';
 import { useToast } from './ToastProvider';
@@ -11,7 +11,11 @@ interface ChatNotification {
   sender_id: number;
   recipient_id: number;
   content: string;
-  chatroom_id: number;
+  chatroom_id?: number;
+  assignment_id?: number;
+  submission_id?: number;
+  course_id?: number;
+  type?: string;
   read: boolean;
   created_at: string;
   updated_at: string;
@@ -23,7 +27,11 @@ export interface NotificationBellRef {
   addNotification: (data: {
     sender_id: number;
     content: string;
-    chatroom_id: number;
+    chatroom_id?: number;
+    assignment_id?: number;
+    submission_id?: number;
+    course_id?: number;
+    type?: string;
   }) => void;
 }
 
@@ -66,9 +74,14 @@ const NotificationBell = forwardRef<NotificationBellRef, NotificationBellProps>(
   // Socket connection for real-time notifications
   useEffect(() => {
     const token = localStorage.getItem('token');
-    if (!token) return;
+    const userId = localStorage.getItem('userId');
+    
+    if (!token || !userId) {
+      return;
+    }
 
-    const socket = io('http://localhost:5001', {
+    
+    const socket = io('http://learnlink-v1-env.eba-b28u347j.eu-north-1.elasticbeanstalk.com', {
       transports: ['websocket'],
       upgrade: false,
       reconnection: true,
@@ -81,18 +94,30 @@ const NotificationBell = forwardRef<NotificationBellRef, NotificationBellProps>(
     });
 
     socket.on('connect', () => {
-      console.log('Connected to notification socket');
+      // Register user ID with socket
+      socket.emit('user_connected', userId);
+    });
+
+    socket.on('connect_error', (error) => {
+      console.error('Socket connection error:', error);
     });
 
     socket.on('new_notification', (notification) => {
       setNotifications(prev => [notification, ...prev]);
       setUnreadCount(prev => prev + 1);
+      
+      // Show toast for new notification
+      const message = notification.type === 'new_assignment' 
+        ? `New assignment: ${notification.content}`
+        : notification.content;
+      
+      showToast(message, 'success');
     });
 
     return () => {
       socket.disconnect();
     };
-  }, []);
+  }, [showToast]);
 
   // Mark notification as read
   const handleNotificationClick = async (notification: ChatNotification) => {
@@ -109,7 +134,21 @@ const NotificationBell = forwardRef<NotificationBellRef, NotificationBellProps>(
         setUnreadCount(prev => Math.max(0, prev - 1));
       }
       
-      if (notification.chatroom_id) {
+      
+      // Handle different notification types
+      if (notification.type === 'new_assignment' && notification.assignment_id) {
+        // Navigate to the assignments page with the specific course selected
+        // This will show all assignments for that course
+        navigate(`/assignments?course=${notification.course_id}`);
+        onToggle();
+      }
+      else if (notification.type === 'assignment_submission' && notification.submission_id) {
+        // Navigate to the assignments page for the instructor to see all submissions
+        navigate(`/assignments?course=${notification.course_id}`);
+        onToggle();
+      }
+      else if (notification.chatroom_id) {
+        // Legacy behavior for chat notifications
         navigate(`/chatrooms?room=${notification.chatroom_id}`);
         onToggle();
       }
@@ -183,13 +222,23 @@ const NotificationBell = forwardRef<NotificationBellRef, NotificationBellProps>(
     return date.toLocaleDateString();
   };
 
-  // Get notification icon based on content
+  // Get notification icon based on content or type
   const getNotificationIcon = (notification: ChatNotification) => {
-    if (notification.content.includes('friend request')) {
+    // Check type first (new field)
+    if (notification.type === 'new_assignment') {
+      return <FaBook />;
+    } 
+    else if (notification.type === 'assignment_submission') {
+      return <FaClipboardCheck />;
+    }
+    // Fallback to content-based detection (legacy behavior)
+    else if (notification.content.includes('friend request')) {
       return <FaUserPlus />;
-    } else if (notification.content.includes('accepted your friend request')) {
+    } 
+    else if (notification.content.includes('accepted your friend request')) {
       return <FaUserFriends />;
-    } else {
+    } 
+    else {
       return <FaComment />;
     }
   };
@@ -203,6 +252,10 @@ const NotificationBell = forwardRef<NotificationBellRef, NotificationBellProps>(
         recipient_id: parseInt(localStorage.getItem('userId') || '0'),
         content: data.content,
         chatroom_id: data.chatroom_id,
+        assignment_id: data.assignment_id,
+        submission_id: data.submission_id,
+        course_id: data.course_id,
+        type: data.type,
         read: false,
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString()

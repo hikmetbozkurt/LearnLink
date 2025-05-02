@@ -70,14 +70,9 @@ const UpcomingAssignmentsView: React.FC<UpcomingAssignmentsViewProps> = ({
   });
 
   useEffect(() => {
-    console.log("UpcomingAssignmentsView - Assignments:", assignments);
-    console.log("User is admin:", isUserAdmin);
-    console.log("Admin courses:", adminCourses);
-    console.log("Upcoming assignments:", upcomingAssignments);
   }, [assignments, upcomingAssignments, adminCourses, isUserAdmin]);
 
   const handleAssignmentClick = (assignment: Assignment) => {
-    console.log("Assignment clicked:", assignment);
     setSelectedAssignment(assignment);
   };
 

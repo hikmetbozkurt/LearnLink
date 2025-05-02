@@ -243,13 +243,6 @@ router.post(
       let { content, type } = req.body;
       const userId = req.user.user_id;
 
-      console.log("Post create request:", {
-        courseId,
-        userId,
-        content,
-        type,
-        file: req.file,
-      });
 
       // SQL sorgusunu başlat
       let query;
@@ -258,8 +251,6 @@ router.post(
 
       // Eğer dosya yüklendiyse
       if (req.file) {
-        console.log("File uploaded:", req.file);
-
         // Dosya uzantısını al
         const fileExtension = path.extname(req.file.originalname).toLowerCase();
 
@@ -344,11 +335,9 @@ router.post(
 
         if (uploadIndex !== -1) {
           fileUrl = "/" + pathParts.slice(uploadIndex).join("/");
-          console.log("File URL generated:", fileUrl);
         } else {
           // Alternatif yol oluşturma (Windows ve Linux arasındaki farklılıklar için)
           fileUrl = "/" + req.file.path.replace(/\\/g, "/");
-          console.log("Alternative file URL:", fileUrl);
         }
       }
 
@@ -365,8 +354,6 @@ router.post(
         RETURNING *
       `;
       params = [courseId, userId, content, type || "text", fileUrl, videoUrl];
-
-      console.log("Executing query with params:", params);
 
       // Post'u oluştur
       const result = await pool.query(query, params);
@@ -430,6 +417,9 @@ router.delete("/posts/:postId", async (req, res) => {
         message: "You do not have permission to delete this post",
       });
     }
+
+    // First delete all comments associated with the post
+    await pool.query("DELETE FROM comments WHERE post_id = $1", [postId]);
 
     // Post'u sil
     await pool.query("DELETE FROM posts WHERE post_id = $1", [postId]);

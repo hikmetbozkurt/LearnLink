@@ -17,7 +17,6 @@ export class EmailService {
   }
 
   async sendVerificationCode(to, code) {
-    console.log('Attempting to send verification code to:', to);
     
     if (!process.env.SMTP_HOST || !process.env.SMTP_PORT || !process.env.SMTP_USER || !process.env.SMTP_PASS) {
       console.error('Missing email configuration:', {
@@ -37,17 +36,11 @@ export class EmailService {
     };
 
     try {
-      console.log('Verifying SMTP connection...');
       await this.transporter.verify();
       
-      console.log('Sending email with options:', {
-        from: mailOptions.from,
-        to: mailOptions.to,
-        subject: mailOptions.subject
-      });
+      
       
       const result = await this.transporter.sendMail(mailOptions);
-      console.log('Email sent successfully:', result.messageId);
       return true;
     } catch (error) {
       console.error('Failed to send verification email:', {

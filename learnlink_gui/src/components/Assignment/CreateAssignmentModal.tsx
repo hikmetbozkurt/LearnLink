@@ -52,11 +52,9 @@ const CreateAssignmentModal: React.FC<CreateAssignmentModalProps> = ({
   const [courses, setCourses] = useState<Course[]>([]);
 
   const loadAdminCourses = useCallback(async () => {
-    console.log("Loading admin courses");
     setIsLoading(true);
     try {
       const adminCoursesData = await courseService.getAdminCourses();
-      console.log("Loaded admin courses:", adminCoursesData);
       setCourses(adminCoursesData);
     } catch (error) {
       console.error("Error loading admin courses:", error);
@@ -108,7 +106,6 @@ const CreateAssignmentModal: React.FC<CreateAssignmentModalProps> = ({
     >
   ) => {
     const { name, value } = e.target;
-    console.log(`Input changed: ${name} = ${value}`);
     setFormData((prev) => ({
       ...prev,
       [name]: value,
@@ -117,7 +114,6 @@ const CreateAssignmentModal: React.FC<CreateAssignmentModalProps> = ({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log("Form submitted with data:", formData);
 
     // Clear previous errors
     setErrorMsg("");
@@ -141,15 +137,10 @@ const CreateAssignmentModal: React.FC<CreateAssignmentModalProps> = ({
     }
 
     // Verify the selected course exists in admin courses
-    console.log("Checking if course is admin course:", {
-      selectedCourseId: formData.course_id,
-      adminCourses: courses.map((c) => ({ id: c.course_id, title: c.title })),
-    });
 
     const isAdmin = courses.some(
       (course) => course.course_id.toString() === formData.course_id.toString()
     );
-    console.log("Is admin for selected course:", isAdmin);
 
     if (!isAdmin) {
       console.error("Selected course is not in admin courses list", {
@@ -165,7 +156,6 @@ const CreateAssignmentModal: React.FC<CreateAssignmentModalProps> = ({
       return;
     }
 
-    console.log("Form validation passed, proceeding with submission");
     setIsLoading(true);
 
     // Ensure due_date is properly formatted as ISO string
@@ -186,7 +176,6 @@ const CreateAssignmentModal: React.FC<CreateAssignmentModalProps> = ({
         
         // Format as an ISO string but without timezone conversion
         dueDate = `${datePart}T${timeWithSeconds}.000`;
-        console.log("Formatted due date without timezone conversion:", dueDate);
       }
     } catch (error) {
       console.error("Error formatting date:", error);
@@ -206,10 +195,7 @@ const CreateAssignmentModal: React.FC<CreateAssignmentModalProps> = ({
     try {
       if (isEdit && initialData && initialData.assignment_id) {
         // Update existing assignment
-        console.log(
-          `Updating assignment ${initialData.assignment_id} with data:`,
-          submissionData
-        );
+
 
         const token = localStorage.getItem("token");
         if (!token) {
@@ -229,7 +215,6 @@ const CreateAssignmentModal: React.FC<CreateAssignmentModalProps> = ({
 
         if (response.ok) {
           const result = await response.json();
-          console.log("Assignment updated successfully:", result);
           setSuccessMsg("Assignment updated successfully!");
           
           // Notify parent component to refresh the assignments list
@@ -245,7 +230,6 @@ const CreateAssignmentModal: React.FC<CreateAssignmentModalProps> = ({
         }
       } else {
         // Create new assignment
-        console.log("Creating new assignment with data:", submissionData);
 
         const token = localStorage.getItem("token");
         if (!token) {
@@ -265,7 +249,6 @@ const CreateAssignmentModal: React.FC<CreateAssignmentModalProps> = ({
 
         if (response.ok) {
           const result = await response.json();
-          console.log("Assignment created successfully:", result);
           setSuccessMsg("Assignment created successfully!");
           
           // Notify parent component to refresh the assignments list
@@ -284,7 +267,6 @@ const CreateAssignmentModal: React.FC<CreateAssignmentModalProps> = ({
       console.error("Error submitting assignment:", error);
       const errorMessage =
         error instanceof Error ? error.message : "Unknown error";
-      console.log("Error details:", errorMessage);
       setErrorMsg(
         `Failed to ${isEdit ? "update" : "create"} assignment: ${errorMessage}`
       );

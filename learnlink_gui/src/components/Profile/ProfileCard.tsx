@@ -15,7 +15,6 @@ interface User {
   email: string;
   first_name?: string;
   last_name?: string;
-  profile_picture?: string;
   profile_pic?: string;
   name?: string;
   role?: string;
@@ -55,7 +54,6 @@ const ProfileCard: React.FC<ProfileCardProps> = ({ user, onClose, currentUser = 
     if (!files || files.length === 0) return;
 
     const file = files[0];
-    console.log('Selected file:', file.name, 'Size:', file.size, 'Type:', file.type);
     
     // Validate file type
     if (!file.type.startsWith('image/')) {
@@ -77,7 +75,6 @@ const ProfileCard: React.FC<ProfileCardProps> = ({ user, onClose, currentUser = 
       const formData = new FormData();
       formData.append('profilePic', file);
       
-      console.log('Preparing to upload profile picture');
       
       // Use axios instead of fetch
       const response = await api.post('/api/users/profile-picture', formData, {
@@ -86,7 +83,6 @@ const ProfileCard: React.FC<ProfileCardProps> = ({ user, onClose, currentUser = 
         }
       });
       
-      console.log('Upload response:', response.data);
       
       if (response.data && response.data.profilePic) {
         // Update the local state to show the new profile picture
@@ -129,7 +125,6 @@ const ProfileCard: React.FC<ProfileCardProps> = ({ user, onClose, currentUser = 
                 alt={user.name || 'User'} 
                 className="profile-image"
                 onError={(e) => {
-                  console.log('Error loading profile pic in ProfileCard, falling back to default');
                   e.currentTarget.src = defaultAvatar;
                   // If we have a broken image URL, clear it so we show the icon instead
                   setLocalProfilePic(undefined);

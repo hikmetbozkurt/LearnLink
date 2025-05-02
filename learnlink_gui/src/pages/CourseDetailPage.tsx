@@ -46,24 +46,8 @@ const CourseDetailPage = () => {
     const fetchCourseAndPosts = async () => {
       try {
         const courseData = await courseService.getCourse(courseId!);
-        console.log("Fetched Course Data:", courseData);
         setCourse(courseData);
         await loadPosts();
-
-        // Debug logları
-        console.log("Course Data:", {
-          courseId: courseData.course_id,
-          instructorId: courseData.instructor_id,
-          instructorName: courseData.instructor_name,
-        });
-        console.log("Current User:", {
-          userId: user?.user_id,
-          name: user?.name,
-        });
-        console.log(
-          "Is Instructor:",
-          courseData.instructor_id?.toString() === user?.user_id?.toString()
-        );
       } catch (error) {
         console.error("Error fetching course details:", error);
         showNotification("Failed to load course details", "error");
@@ -84,13 +68,6 @@ const CourseDetailPage = () => {
     return () => clearInterval(interval);
   }, [courseId, user]);
 
-  // Debug log ekleyelim
-  useEffect(() => {
-    console.log("CourseDetail - User Info:", {
-      user,
-      storedUser: JSON.parse(localStorage.getItem("user") || "null"),
-    });
-  }, [user]);
 
   const handleComment = async (postId: string, content: string) => {
     try {

@@ -27,7 +27,6 @@ export const chatroomController = {
     try {
       const { userId } = req.params;
       
-      console.log(`Getting chatrooms for user ${userId}`);
 
       const result = await pool.query(`
         SELECT c.*, 
@@ -214,7 +213,6 @@ export const chatroomController = {
   deleteChatroom: async (req, res) => {
     try {
       const { chatroomId } = req.params;
-      console.log("Deleting chatroom:", chatroomId);
 
       const deletedChatroom = await ChatRoom.delete(chatroomId);
 

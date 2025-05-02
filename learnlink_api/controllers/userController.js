@@ -348,18 +348,14 @@ export const uploadProfilePicture = asyncHandler(async (req, res) => {
     }
     
     if (!req.file) {
-      console.log('No file in request after multer processing');
       return res.status(400).json({ message: 'No file uploaded' });
     }
     
     try {
-      console.log('File successfully uploaded:', req.file);
       
       // Update user profile in database with full URL path
       const profilePicUrl = `http://localhost:5001/uploads/profile-pics/${req.file.filename}`;
       
-      console.log('Updating profile pic for user:', req.user.user_id);
-      console.log('New profile pic URL:', profilePicUrl);
       
       await pool.query(
         'UPDATE users SET profile_pic = $1 WHERE user_id = $2',

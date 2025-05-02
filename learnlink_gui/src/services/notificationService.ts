@@ -60,20 +60,12 @@ export const notificationService = {
     if (!token) throw new Error('No authentication token found');
     
     try {
-      console.log("Creating assignment notification with:", {
-        course_id: courseId,
-        assignment_id: assignmentId,
-        title: assignmentTitle
-      });
-      
       // Use api config instead of axios directly
       await api.post('/api/notifications/assignment', {
         course_id: courseId,
         assignment_id: assignmentId,
         title: assignmentTitle
       });
-      
-      console.log("Assignment notification created successfully");
     } catch (error) {
       console.error('Error creating assignment notification:', error);
       throw error;

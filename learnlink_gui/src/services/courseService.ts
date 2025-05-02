@@ -37,14 +37,11 @@ export const courseService = {
     
     try {
       const response = await api.get('/api/courses/my-courses');
-      console.log("getMyCourses response:", response.data);
       
       // Debug which courses have is_admin set
       if (Array.isArray(response.data)) {
         const adminCourses = response.data.filter(course => course.is_admin);
-        console.log("Admin courses:", adminCourses);
-        console.log("Non-admin courses:", response.data.filter(course => !course.is_admin));
-      }
+        }
       
       return response.data;
     } catch (error) {
@@ -60,17 +57,14 @@ export const courseService = {
     const now = Date.now();
     // Return cached data if it's still fresh
     if (adminCoursesCache.length > 0 && now - adminCoursesCacheTimestamp < CACHE_DURATION) {
-      console.log("Using cached admin courses", adminCoursesCache);
       return adminCoursesCache;
     }
     
     try {
-      console.log("Fetching courses where user is admin");
       const response = await api.get('/api/courses/my-courses');
       
       // Filter courses where user is admin
       const adminCourses = response.data.filter((course: Course) => course.is_admin);
-      console.log("Admin courses found:", adminCourses);
       
       // Update the cache
       adminCoursesCache = adminCourses;
@@ -89,8 +83,6 @@ export const courseService = {
     category?: string;
   }): Promise<CreateCourseResponse> => {
     try {
-      // Debug için request detaylarını logla
-      console.log('Creating course with data:', courseData);
 
       const formData = new FormData();
       formData.append('title', courseData.title);
@@ -121,9 +113,7 @@ export const courseService = {
 
   joinCourse: async (courseId: string): Promise<{ success: boolean; error?: string }> => {
     try {
-      console.log('Joining course:', courseId); // Debug için
       const response = await api.post(`/api/courses/${courseId}/join`);
-      console.log('Join response:', response.data); // Debug için
       return { success: true };
     } catch (error: any) {
       console.error('Join course error:', error.response?.data);

@@ -17,6 +17,7 @@ import SupportPage from "./pages/SupportPage";
 import Layout from "./components/Layout/Layout";
 
 import RouteGuard from './components/RouteGuard';
+import AuthRedirect from './components/AuthRedirect';
 import DirectMessagesPage from './pages/DirectMessagesPage';
 import CourseDetailPage from './pages/CourseDetailPage';
 import CourseAreaWrapper from './components/Course/CourseAreaWrapper';
@@ -31,7 +32,8 @@ const App: React.FC = () => {
           <Router>
             <Routes>
               {/* Auth Routes - No Layout */}
-              <Route path="/" element={<LoginPage />} />
+              <Route path="/" element={<AuthRedirect />} />
+              <Route path="/login" element={<LoginPage />} />
               <Route path="/forgot-password" element={<ForgotPasswordPage />} />
               <Route path="/reset-password" element={<ResetPasswordPage />} />
               {/* Protected Routes - With Layout */}
@@ -54,7 +56,6 @@ const App: React.FC = () => {
         </EventProvider>
       </AuthProvider>
     </ThemeProvider>
-
   );
 };
 

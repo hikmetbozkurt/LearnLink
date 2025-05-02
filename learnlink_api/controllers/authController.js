@@ -6,6 +6,7 @@ import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import { OAuth2Client } from 'google-auth-library';
 import crypto from 'crypto';
+import config from '../config/env.js';
 
 const authService = new AuthService();
 const emailService = new EmailService();
@@ -25,7 +26,6 @@ const addLoginProviderField = async () => {
     const checkResult = await pool.query(checkColumnQuery);
     
     if (checkResult.rows.length === 0) {
-      console.log('Adding login_provider column to users table...');
       
       // Add the column if it doesn't exist
       await pool.query(`
@@ -48,9 +48,7 @@ const addLoginProviderField = async () => {
         WHERE (password IS NOT NULL AND password != '') AND (login_provider IS NULL)
       `);
       
-      console.log('Migration completed: Added login_provider column to users table');
     } else {
-      console.log('login_provider column already exists in users table');
     }
   } catch (error) {
     console.error('Error during database migration:', error);
@@ -96,7 +94,7 @@ export const login = asyncHandler(async (req, res) => {
     // Generate token
     const token = jwt.sign(
       { user_id: user.user_id, email: user.email },
-      process.env.JWT_SECRET || 'your-secret-key',
+      config.JWT_SECRET,
       { expiresIn: '24h' }
     );
 
@@ -123,11 +121,9 @@ export const login = asyncHandler(async (req, res) => {
 });
 
 export const register = asyncHandler(async (req, res) => {
-  console.log('Register request received:', req.body);
   const { email, password, name, role } = req.body;
 
   if (!email || !password || !name) {
-    console.log('Missing required fields:', { email: !!email, password: !!password, name: !!name });
     return res.status(400).json({ message: 'All fields are required' });
   }
 
@@ -137,7 +133,6 @@ export const register = asyncHandler(async (req, res) => {
       'SELECT * FROM users WHERE email = $1',
       [email]
     );
-    console.log('User exists check result:', { exists: userExists.rows.length > 0 });
 
     if (userExists.rows.length > 0) {
       return res.status(409).json({ message: 'User already exists' });
@@ -148,7 +143,6 @@ export const register = asyncHandler(async (req, res) => {
     const hashedPassword = await bcrypt.hash(password, salt);
 
     // Create user - Modified query to let PostgreSQL handle user_id
-    console.log('Attempting to create user with:', { email, name, role: role || 'student' });
     const result = await pool.query(
       `INSERT INTO users (name, email, password, role, is_active) 
        VALUES ($1, $2, $3, $4, true) 
@@ -157,12 +151,11 @@ export const register = asyncHandler(async (req, res) => {
     );
 
     const newUser = result.rows[0];
-    console.log('User created successfully:', newUser);
 
     // Generate token
     const token = jwt.sign(
       { user_id: newUser.user_id, email: newUser.email },
-      process.env.JWT_SECRET || 'your-secret-key',
+      config.JWT_SECRET,
       { expiresIn: '24h' }
     );
 
@@ -192,10 +185,9 @@ export const register = asyncHandler(async (req, res) => {
 
 export const getProfile = asyncHandler(async (req, res) => {
   const userId = req.user.user_id;
-
   try {
     const result = await pool.query(
-      `SELECT user_id, email, username, first_name, last_name, role, profile_picture
+      `SELECT user_id, email, username, role, profile_pic
        FROM users 
        WHERE user_id = $1`,
       [userId]
@@ -211,10 +203,8 @@ export const getProfile = asyncHandler(async (req, res) => {
       user_id: user.user_id,
       email: user.email,
       username: user.username,
-      first_name: user.first_name,
-      last_name: user.last_name,
       role: user.role,
-      profile_picture: user.profile_picture
+      profile_pic: user.profile_pic
     });
   } catch (error) {
     console.error('Error fetching user profile:', error);
@@ -346,7 +336,7 @@ export const googleLogin = asyncHandler(async (req, res) => {
     // Generate token
     const token = jwt.sign(
       { user_id: user.user_id, email: user.email },
-      process.env.JWT_SECRET || 'your-secret-key',
+      config.JWT_SECRET,
       { expiresIn: '24h' }
     );
 

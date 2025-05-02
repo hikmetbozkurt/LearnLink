@@ -5,7 +5,6 @@ import { encrypt, decrypt } from '../utils/encryption.js';
 export const getDirectMessages = async (req, res) => {
   try {
     const userId = req.user.user_id;
-    console.log('Fetching direct messages for user:', userId);
 
     const query = `
       SELECT 
@@ -27,7 +26,6 @@ export const getDirectMessages = async (req, res) => {
       ORDER BY dm.updated_at DESC
     `;
     const result = await pool.query(query, [userId]);
-    console.log('Found direct messages:', result.rows.length);
     res.json(result.rows);
   } catch (error) {
     console.error('Error getting direct messages:', error);
@@ -40,7 +38,6 @@ export const createDirectMessage = async (req, res) => {
   try {
     const { recipientId } = req.body;
     const userId = req.user.user_id;
-    console.log('Creating direct message:', { userId, recipientId });
 
     // Check if conversation already exists
     const checkQuery = `
@@ -58,7 +55,6 @@ export const createDirectMessage = async (req, res) => {
     const existing = await pool.query(checkQuery, [userId, recipientId]);
     
     if (existing.rows.length > 0) {
-      console.log('Found existing conversation:', existing.rows[0].id);
       return res.json(existing.rows[0]);
     }
 
@@ -69,7 +65,6 @@ export const createDirectMessage = async (req, res) => {
       RETURNING id, user1_id, user2_id, created_at, updated_at
     `;
     const result = await pool.query(query, [userId, recipientId]);
-    console.log('Created new conversation:', result.rows[0].id);
 
     // Get recipient's name for the response
     const userQuery = 'SELECT name FROM users WHERE user_id = $1';
@@ -131,7 +126,6 @@ export const getDirectMessageMessages = async (req, res) => {
     const accessResult = await pool.query(accessQuery, [id, userId]);
     
     if (accessResult.rows.length === 0) {
-      console.log('Access denied for user:', userId);
       return res.status(403).json({ message: 'Access denied' });
     }
     

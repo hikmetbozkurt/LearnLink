@@ -13,28 +13,23 @@ export const authenticateToken = (req, res, next) => {
 
     jwt.verify(token, config.JWT_SECRET, (err, decoded) => {
       if (err) {
-        console.error('Token verification error:', err);
+        console.error('Token verification error:', err.name, err.message);
         return res.status(403).json({ message: 'Invalid or expired token' });
       }
-
-      console.log('Token decoded successfully:', decoded);
-      
-      // Handle both id and user_id formats
+    
       const userId = decoded.user_id || decoded.id;
       if (!userId) {
         console.error('No user ID found in token:', decoded);
         return res.status(403).json({ message: 'Invalid token format' });
       }
-
-      // Set user object with consistent ID format
+    
       req.user = {
         user_id: userId,
         id: userId,
         email: decoded.email,
-        role: decoded.role
+        role: decoded.role || 'student'
       };
-      
-      console.log('User authenticated:', req.user);
+    
       next();
     });
   } catch (error) {

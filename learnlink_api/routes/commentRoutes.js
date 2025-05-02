@@ -4,7 +4,8 @@ import {
   createComment,
   getPostComments,
   getUserCommentStats,
-  getCommentActivityOverTime
+  getCommentActivityOverTime,
+  deleteComment
 } from '../controllers/commentController.js';
 
 const router = express.Router();
@@ -15,6 +16,7 @@ router.use(authenticateToken);
 // Comment routes
 router.post('/posts/:postId/comments', createComment);
 router.get('/posts/:postId/comments', getPostComments);
+router.delete('/comments/:commentId', deleteComment);
 
 // Stats routes
 router.get('/stats/comments', getUserCommentStats);

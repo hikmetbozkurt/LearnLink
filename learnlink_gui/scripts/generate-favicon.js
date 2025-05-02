@@ -27,7 +27,6 @@ async function generateIcons() {
       })
     );
 
-    console.log('Successfully generated favicon and logo files');
   } catch (error) {
     console.error('Error generating icons:', error);
   }

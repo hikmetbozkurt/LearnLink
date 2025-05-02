@@ -45,53 +45,15 @@ const PostList: React.FC<PostListProps> = ({
     commentId: string;
   } | null>(null);
 
-  // Debug için
-  console.log("PostList Props:", {
-    currentUserId,
-    isAdmin,
-    firstPost: posts.data[0],
-  });
-
-  // Debug logları ekleyelim
-  React.useEffect(() => {
-    console.log("Debug PostList:", {
-      posts: postList,
-      currentUserId,
-      isAdmin,
-      firstPostAuthorId: postList[0]?.author_id,
-      firstPostAuthorType: typeof postList[0]?.author_id,
-      currentUserIdType: typeof currentUserId,
-    });
-  }, [postList, currentUserId, isAdmin]);
 
   // canDelete fonksiyonunu güncelleyelim
   const canDelete = (authorId: number | string) => {
-    // Debug için detaylı log
-    console.log("Delete Permission Check:", {
-      authorId,
-      currentUserId,
-      isAdmin,
-      authorIdType: typeof authorId,
-      currentUserIdType: typeof currentUserId,
-      storedUser: JSON.parse(localStorage.getItem("user") || "null"),
-    });
 
     // authorId ve currentUserId string'e çevrilmeli
     const authorIdStr = String(authorId);
     const currentUserIdStr = String(currentUserId);
 
     const isAuthor = authorIdStr === currentUserIdStr;
-
-    console.log("Permission Result:", {
-      isAuthor,
-      isAdmin,
-      canDelete: isAuthor || isAdmin,
-      comparison: {
-        authorIdStr,
-        currentUserIdStr,
-        equal: authorIdStr === currentUserIdStr,
-      },
-    });
 
     return isAuthor || isAdmin;
   };
@@ -164,7 +126,6 @@ const PostList: React.FC<PostListProps> = ({
 
   // Dosya indirme fonksiyonu - yeniden yazıldı, fetch API kullanarak
   const handleDownloadFile = async (fileUrl: string, fileName: string) => {
-    console.log("Downloading file:", fileName, "from URL:", fileUrl);
 
     try {
       // Dosyayı fetch ile al
@@ -194,7 +155,6 @@ const PostList: React.FC<PostListProps> = ({
       document.body.removeChild(downloadLink);
       URL.revokeObjectURL(blobUrl); // Bellek sızıntısını önlemek için
 
-      console.log("Download initiated successfully");
     } catch (error) {
       console.error("Error downloading file:", error);
       alert("Dosya indirilirken bir hata oluştu. Lütfen tekrar deneyin.");
@@ -265,22 +225,6 @@ const PostList: React.FC<PostListProps> = ({
 
     return hasDownloadableExtension || isDownloadableType;
   };
-
-  // Post verilerini konsolda gösterelim (Debug için)
-  React.useEffect(() => {
-    postList.forEach((post) => {
-      console.log("Post Details:", {
-        postId: post.post_id,
-        type: post.type,
-        fileUrl: post.file_url,
-        hasFile: !!post.file_url,
-        fileName: post.file_url ? post.file_url.split("/").pop() : null,
-        isPdf: post.file_url
-          ? post.file_url.toLowerCase().endsWith(".pdf")
-          : false,
-      });
-    });
-  }, [postList]);
 
   return (
     <div className="post-list">

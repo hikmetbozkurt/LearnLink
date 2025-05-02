@@ -7,7 +7,7 @@ import ChatSidebar from '../components/Chat/ChatSidebar';
 import ChatArea from '../components/Chat/ChatArea';
 import '../styles/pages/chatrooms.css';
 
-const SOCKET_URL = 'http://localhost:5001';
+const SOCKET_URL = 'http://learnlink-v1-env.eba-b28u347j.eu-north-1.elasticbeanstalk.com';
 
 interface Message {
   id: number;

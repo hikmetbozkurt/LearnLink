@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { GoogleOAuthProvider, GoogleLogin } from '@react-oauth/google';
 import PersonIcon from "@mui/icons-material/Person";
@@ -13,7 +13,7 @@ import { useToast } from '../components/ToastProvider';
 import { useTheme } from '../context/ThemeContext';
 
 
-const GOOGLE_CLIENT_ID = "69975858042-qg58t1vmhplr463opgmg4dca01jdaal4.apps.googleusercontent.com";
+const GOOGLE_CLIENT_ID = process.env.REACT_APP_GOOGLE_CLIENT_ID;
 
 const LoginPage = () => {
   const [isSignUp, setIsSignUp] = useState(false);
@@ -28,6 +28,27 @@ const LoginPage = () => {
   const [loading, setLoading] = useState(false);
   const { showToast } = useToast();
   const { isDarkMode } = useTheme();
+
+  // Check if user is already logged in
+  useEffect(() => {
+    const token = localStorage.getItem('token');
+    const user = localStorage.getItem('user');
+    
+    if (token && user) {
+      try {
+        const userData = JSON.parse(user);
+        // Verify user object has required fields
+        if (userData.id || userData.user_id) {
+          navigate('/home');
+        }
+      } catch (error) {
+        console.error('Error parsing user data:', error);
+        // Clear invalid data
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+      }
+    }
+  }, [navigate]);
 
   // Toggle between sign-in and sign-up views
   const toggleView = () => {
@@ -46,13 +67,10 @@ const LoginPage = () => {
 
   const handleGoogleSuccess = async (credentialResponse: any) => {
     try {
-      console.log('Google login started with credential response:', credentialResponse);
-      
       const response = await api.post('/api/auth/google', {
         credential: credentialResponse.credential
       });
 
-      console.log('Google login response:', response);
 
       if (response.data?.token && response.data?.user) {
         // Clean and store token
@@ -70,24 +88,17 @@ const LoginPage = () => {
         localStorage.setItem('token', cleanToken);
         localStorage.setItem('user', JSON.stringify(userData));
         
-        console.log('Google login - Stored auth data:', {
-          token: cleanToken,
-          user: userData
-        });
 
         // Verify data is stored correctly
         const storedToken = localStorage.getItem('token');
         const storedUser = JSON.parse(localStorage.getItem('user') || '{}');
         
         if (storedToken && storedUser.id && storedUser.email) {
-          console.log('Google login - Verification successful, navigating to home');
           navigate('/home');
         } else {
-          console.error('Google login - Failed to verify stored data:', { storedToken, storedUser });
           throw new Error('Failed to store authentication data');
         }
       } else {
-        console.error('Google login - Invalid response format:', response);
         throw new Error('Invalid response format from server');
       }
     } catch (error) {
@@ -173,7 +184,7 @@ const LoginPage = () => {
   };
 
   return (
-    <GoogleOAuthProvider clientId={GOOGLE_CLIENT_ID}>
+    <GoogleOAuthProvider clientId={GOOGLE_CLIENT_ID || ""}>
       <div className={`container ${isSignUp ? "active" : ""}`} id="container">
         <div className="form-container sign-up">
           <form onSubmit={handleSignup}>

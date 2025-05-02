@@ -104,12 +104,9 @@ export const assignmentService = {
               let submissions: Submission[] = [];
               
               if (assignmentService._submissionsCache.has(cacheKey)) {
-                console.log(`Using cached submissions for assignment ${assignment.assignment_id}`);
                 submissions = assignmentService._submissionsCache.get(cacheKey) || [];
               } else {
-                console.log(`Fetching submissions for assignment ${assignment.assignment_id}`);
                 submissions = await assignmentService.getSubmissions(assignment.assignment_id);
-                console.log(`Found ${submissions.length} submissions for assignment ${assignment.assignment_id}`);
                 
                 // Cache the submissions
                 assignmentService._submissionsCache.set(cacheKey, submissions);
@@ -125,7 +122,6 @@ export const assignmentService = {
                 graded: submissions.some(s => s.user_id.toString() === userId.toString() && !!s.grade)
               };
               
-              console.log(`Assignment ${assignment.assignment_id} updated with submission_count: ${assignmentWithDefaults.submission_count}`);
               
               // If user has a submission, find their grade
               const userSubmission = submissions.find(s => s.user_id.toString() === userId.toString());
@@ -143,7 +139,6 @@ export const assignmentService = {
               let submission: Submission | null = null;
               
               if (assignmentService._userSubmissionCache.has(cacheKey)) {
-                console.log(`Using cached user submission for assignment ${assignment.assignment_id}`);
                 submission = assignmentService._userSubmissionCache.get(cacheKey) || null;
               } else {
                 const result = await assignmentService.getUserSubmission(assignment.assignment_id);
@@ -290,7 +285,6 @@ export const assignmentService = {
           // Clear the specific cache entry for this user and assignment
           const cacheKey = `user_${userId}_assignment_${assignmentId}`;
           assignmentService._userSubmissionCache.delete(cacheKey);
-          console.log(`Cleared cache for ${cacheKey} after submission`);
         }
       }
       
@@ -307,10 +301,8 @@ export const assignmentService = {
     if (!token) throw new Error('No authentication token found');
     
     try {
-      console.log(`Requesting submissions for assignment ${assignmentId}`);
       const response = await api.get(`/api/assignments/${assignmentId}/submissions`);
       
-      console.log("Submissions API response:", response);
       
       // Handle different response structures
       let submissions: Submission[] = [];
@@ -331,9 +323,6 @@ export const assignmentService = {
           submissions = response.data.data;
         }
       }
-      
-      // Log the parsed submissions
-      console.log(`Found ${submissions.length} submissions for assignment ${assignmentId}:`, submissions);
       
       // Update the cache with this fresh data
       const cacheKey = `assignment_${assignmentId}`;

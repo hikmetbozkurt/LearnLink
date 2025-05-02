@@ -115,4 +115,67 @@ export const getCommentActivityOverTime = asyncHandler(async (req, res) => {
     console.error('Error fetching comment activity over time:', error);
     res.status(500).json({ message: 'Failed to fetch comment activity' });
   }
+});
+
+export const deleteComment = asyncHandler(async (req, res) => {
+  const { commentId } = req.params;
+  const userId = req.user.user_id;
+
+  try {
+    // Get post author and course instructor to check permissions
+    const permissionCheck = await pool.query(
+      `SELECT 
+        c.author_id as comment_author_id,
+        p.author_id as post_author_id,
+        co.instructor_id as course_instructor_id
+       FROM comments c
+       JOIN posts p ON c.post_id = p.post_id
+       JOIN courses co ON p.course_id = co.course_id
+       WHERE c.comment_id = $1`,
+      [commentId]
+    );
+
+    if (permissionCheck.rows.length === 0) {
+      return res.status(404).json({ 
+        message: "Comment not found"
+      });
+    }
+
+    const { 
+      comment_author_id, 
+      post_author_id, 
+      course_instructor_id 
+    } = permissionCheck.rows[0];
+
+    // Only allow comment author, post author, or course instructor to delete
+    if (userId !== comment_author_id && 
+        userId !== post_author_id && 
+        userId !== course_instructor_id) {
+      return res.status(403).json({ 
+        message: "You don't have permission to delete this comment" 
+      });
+    }
+
+    // Delete the comment
+    const result = await pool.query(
+      `DELETE FROM comments 
+       WHERE comment_id = $1
+       RETURNING comment_id`,
+      [commentId]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ 
+        message: "Comment not found" 
+      });
+    }
+
+    res.status(200).json({ 
+      message: "Comment deleted successfully",
+      commentId: result.rows[0].comment_id 
+    });
+  } catch (error) {
+    console.error('Error deleting comment:', error);
+    res.status(500).json({ message: 'Failed to delete comment' });
+  }
 }); 

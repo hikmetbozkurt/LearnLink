@@ -18,7 +18,6 @@ export const getAllCourses = asyncHandler(async (req, res) => {
       [req.user.user_id]
     );
 
-    console.log("All courses:", result.rows);
     res.json(result.rows);
   } catch (error) {
     console.error("Error fetching all courses:", error);
@@ -52,14 +51,11 @@ export const getCourse = asyncHandler(async (req, res) => {
 export const createCourse = asyncHandler(async (req, res) => {
   try {
     // Debug için request body'i logla
-    console.log("Request body:", req.body);
-    console.log("Content-Type:", req.headers["content-type"]);
 
     const { title, description } = req.body;
 
     // Validation
     if (!title || !description) {
-      console.log("Validation failed:", { title, description });
       return res.status(400).json({
         message: "Title and description are required",
       });
@@ -181,7 +177,6 @@ export const getMyCourses = asyncHandler(async (req, res) => {
       [userId]
     );
 
-    console.log("My courses:", result.rows);
     res.json(result.rows);
   } catch (error) {
     console.error("Error fetching my courses:", error);
@@ -355,20 +350,16 @@ export const getUserCourses = asyncHandler(async (req, res) => {
   try {
     let { userId } = req.params;
     
-    console.log(`[getUserCourses] Request received for userId: ${userId}, type: ${typeof userId}`);
     
     if (!userId) {
-      console.log('[getUserCourses] No userId provided');
       return res.status(400).json({ message: "User ID is required" });
     }
 
     // Convert userId to number if it's a string
     if (typeof userId === 'string') {
       userId = parseInt(userId, 10);
-      console.log(`[getUserCourses] Converted userId to number: ${userId}`);
       
       if (isNaN(userId)) {
-        console.log('[getUserCourses] Invalid userId (not a number)');
         return res.status(400).json({ message: "Invalid user ID" });
       }
     }
@@ -386,12 +377,9 @@ export const getUserCourses = asyncHandler(async (req, res) => {
       WHERE c.instructor_id = $1 OR e.user_id = $1
     `;
     
-    console.log(`[getUserCourses] Executing query with userId: ${userId}`);
-    console.log(`[getUserCourses] Query: ${query}`);
     
     const result = await pool.query(query, [userId]);
     
-    console.log(`[getUserCourses] Query result rows: ${result.rows.length}`);
     
     res.json(result.rows);
   } catch (error) {

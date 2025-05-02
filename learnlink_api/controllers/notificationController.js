@@ -43,25 +43,20 @@ export const getUserNotifications = async (req, res) => {
   try {
     let { userId } = req.params;
     
-    console.log(`[getUserNotifications] Request received for userId: ${userId}, type: ${typeof userId}`);
     
     if (!userId) {
-      console.log('[getUserNotifications] No userId provided');
       return res.status(400).json({ message: 'User ID is required' });
     }
     
     // Convert userId to number if it's a string
     if (typeof userId === 'string') {
       userId = parseInt(userId, 10);
-      console.log(`[getUserNotifications] Converted userId to number: ${userId}`);
       
       if (isNaN(userId)) {
-        console.log('[getUserNotifications] Invalid userId (not a number)');
         return res.status(400).json({ message: 'Invalid user ID' });
       }
     }
     
-    console.log(`[getUserNotifications] Fetching notifications for user: ${userId}`);
     
     const query = `
       SELECT * FROM notifications
@@ -69,10 +64,8 @@ export const getUserNotifications = async (req, res) => {
       ORDER BY created_at DESC
     `;
     
-    console.log(`[getUserNotifications] Executing query with userId: ${userId}`);
     
     const result = await pool.query(query, [userId]);
-    console.log(`[getUserNotifications] Found ${result.rows.length} notifications for user ${userId}`);
     
     res.json(result.rows);
   } catch (error) {

@@ -24,15 +24,7 @@ const CourseArea: React.FC<CourseAreaProps> = ({
   const renderActionButtons = (course: Course) => {
     // student_count için null coalescing operator kullanarak varsayılan değer 0 atayalım
     const currentStudentCount = course.student_count ?? 0;
-    
-    // Debug çıktısı
-    console.log("Course:", {
-      courseId: course.course_id,
-      title: course.title,
-      isAdmin: course.is_admin,
-      isEnrolled: course.is_enrolled,
-      activeTab
-    });
+
 
     return (
       <div className="card-actions">

@@ -68,7 +68,6 @@ const HomePage = () => {
         }
         
         const user = JSON.parse(userString);
-        console.log('User from localStorage:', user);
         
         setUserProfile(user);
         
@@ -80,7 +79,6 @@ const HomePage = () => {
           // If user object doesn't have an ID, let's try to update it with a valid ID
           // This is just a temporary fix - ideally the login flow should ensure valid IDs
           if (user.email) {
-            console.log('User has email but no ID. Trying to fix user object...');
             const fixedUser = {...user, user_id: '10', id: '10'};  // Using a default ID as fallback
             localStorage.setItem('user', JSON.stringify(fixedUser));
             await fetchDashboardStats('10');
@@ -111,11 +109,9 @@ const HomePage = () => {
         return;
       }
 
-      console.log('Fetching stats for user ID:', userId);
       
       try {
         // Parallel API calls to get different statistics
-        console.log('Starting API calls for dashboard stats with userId:', userId);
         
         const [
           friendsRes,
@@ -155,15 +151,7 @@ const HomePage = () => {
             return { data: { total: 0 } };
           })
         ]);
-        
-        console.log('API responses received:', {
-          friends: friendsRes.data?.length || 0,
-          courses: coursesRes.data?.length || 0,
-          notifications: notificationsRes.data?.length || 0,
-          events: eventsRes.data?.length || 0,
-          messages: messagesRes.data?.total || 0
-        });
-        
+                
         // Additional API calls might fail, but we should still show the page
         let chatroomsCount = 0;
         let postsCount = 0;

@@ -2,7 +2,7 @@ import dotenv from 'dotenv'
 dotenv.config()
 
 const config = {
-  PORT: process.env.PORT || 5001,
+  PORT: process.env.PORT || process.env.EB_PORT || 5001,
   NODE_ENV: process.env.NODE_ENV || 'development',
   
   // Database
@@ -13,7 +13,7 @@ const config = {
   DB_PORT: process.env.DB_PORT || 5432,
   
   // JWT
-  JWT_SECRET: process.env.JWT_SECRET || 'learnlink-secret-key',
+  JWT_SECRET: process.env.JWT_SECRET || '9f0e4d8d2b8c6aa5fae3839c0cd747c3a20f1d22e7dd6f7c',
   JWT_EXPIRE: '24h',
   
   // Email
@@ -32,7 +32,7 @@ const config = {
   MAX_FILE_SIZE: process.env.MAX_FILE_SIZE || 5 * 1024 * 1024, // 5MB
   
   // CORS
-  CORS_ORIGIN: process.env.CORS_ORIGIN || 'http://localhost:3000'
+  CORS_ORIGIN: process.env.CORS_ORIGIN || '*'
 }
 
 export default config 

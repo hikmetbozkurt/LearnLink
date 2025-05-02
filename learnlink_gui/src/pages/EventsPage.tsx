@@ -72,12 +72,6 @@ const EventsPage: React.FC = () => {
         });
       }
 
-      console.log('Created notification for event:', {
-        eventId: event.id,
-        title: event.title,
-        time: time
-      });
-
       showNotification(content, 'success');
     } catch (error) {
       console.error('Error creating notification:', error);
@@ -93,11 +87,7 @@ const EventsPage: React.FC = () => {
     if (todayEvents.length > 0) {
       for (const event of todayEvents) {
         const time = format(event.date, 'HH:mm');
-        console.log('Creating notification for event:', {
-          title: event.title,
-          time: time,
-          type: event.type
-        });
+        
         
         await createNotification(event);
       }
@@ -115,7 +105,6 @@ const EventsPage: React.FC = () => {
   const loadEvents = async () => {
     try {
       const fetchedEvents = await eventService.getAllEvents();
-      console.log('Events loaded:', fetchedEvents.length);
       
       const formattedEvents = fetchedEvents.map(event => {
         // Parse the UTC date and add 3 hours for Turkey timezone

@@ -19,11 +19,6 @@ const GradedAssignmentsView: React.FC<GradedAssignmentsViewProps> = ({
   onAssignmentUpdated,
   selectedCourse,
 }) => {
-  // Log input assignments
-  if (process.env.NODE_ENV === "development") {
-    console.log("GradedAssignmentsView - Input assignments:", assignments);
-    console.log("GradedAssignmentsView - Selected Course:", selectedCourse);
-  }
 
   // Filter for graded assignments (submitted and graded)
   const filterGradedAssignments = (assignments: Assignment[]): Assignment[] => {
@@ -34,14 +29,6 @@ const GradedAssignmentsView: React.FC<GradedAssignmentsViewProps> = ({
       // An assignment is graded if it's both submitted and graded
       const isEligible = isSubmitted && isGraded;
 
-      // Log each assignment's status
-      if (process.env.NODE_ENV === "development") {
-        console.log(`Graded check - Assignment ${assignment.assignment_id}:`, {
-          submitted: isSubmitted,
-          graded: isGraded,
-          eligible: isEligible,
-        });
-      }
 
       return isEligible;
     });
@@ -49,19 +36,6 @@ const GradedAssignmentsView: React.FC<GradedAssignmentsViewProps> = ({
 
   const filteredAssignments = filterGradedAssignments(assignments);
 
-  // Log filtered assignments
-  if (process.env.NODE_ENV === "development") {
-    console.log(
-      "GradedAssignmentsView - Filtered assignments:",
-      filteredAssignments
-    );
-    if (selectedCourse) {
-      console.log(
-        "GradedAssignmentsView - Course filtered assignments:",
-        filteredAssignments.filter((a) => a.course_id === selectedCourse)
-      );
-    }
-  }
 
   return (
     <BaseAssignmentView

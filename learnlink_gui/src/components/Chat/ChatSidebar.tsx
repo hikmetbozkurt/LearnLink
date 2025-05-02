@@ -9,7 +9,7 @@ interface Friend {
   name: string;
   email: string;
   role: string;
-  profile_picture?: string;
+  profile_pic?: string;
 }
 
 interface ChatRoom {
@@ -79,7 +79,6 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({
       }
       
       const response = await api.get(`/api/users/friends/${userId}`);
-      console.log('Friends data:', response.data);
       setFriends(response.data || []);
     } catch (error) {
       console.error('Error fetching friends:', error);
@@ -239,8 +238,8 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({
                   >
                     <div className="friend-info-container">
                       <div className="friend-avatar">
-                        {friend.profile_picture ? (
-                          <img src={friend.profile_picture} alt={friend.name} />
+                        {friend.profile_pic ? (
+                          <img src={friend.profile_pic} alt={friend.name} />
                         ) : (
                           <FaUser />
                         )}
@@ -248,7 +247,6 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({
                       <div className="friend-info">
                         <span className="friend-name">{friend.name}</span>
                         <span className="friend-email">{friend.email}</span>
-                        <small className="friend-role">{friend.role}</small>
                       </div>
                     </div>
                     <button
