@@ -431,6 +431,9 @@ router.delete("/posts/:postId", async (req, res) => {
       });
     }
 
+    // First delete all comments associated with the post
+    await pool.query("DELETE FROM comments WHERE post_id = $1", [postId]);
+
     // Post'u sil
     await pool.query("DELETE FROM posts WHERE post_id = $1", [postId]);
 

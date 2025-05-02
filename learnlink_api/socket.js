@@ -3,6 +3,47 @@ import jwt from 'jsonwebtoken';
 import config from './config/env.js';
 import pool from './config/database.js';
 
+// Function to ensure notifications table has all required columns
+const ensureNotificationsTableColumns = async () => {
+  try {
+    console.log('Checking notifications table columns...');
+    
+    // Check if assignment_id column exists
+    const assignmentIdCheck = await pool.query(
+      "SELECT EXISTS (SELECT FROM information_schema.columns WHERE table_name = 'notifications' AND column_name = 'assignment_id')"
+    );
+    
+    if (!assignmentIdCheck.rows[0].exists) {
+      console.log('Adding assignment_id column to notifications table');
+      await pool.query("ALTER TABLE notifications ADD COLUMN assignment_id INTEGER");
+    }
+    
+    // Check if submission_id column exists
+    const submissionIdCheck = await pool.query(
+      "SELECT EXISTS (SELECT FROM information_schema.columns WHERE table_name = 'notifications' AND column_name = 'submission_id')"
+    );
+    
+    if (!submissionIdCheck.rows[0].exists) {
+      console.log('Adding submission_id column to notifications table');
+      await pool.query("ALTER TABLE notifications ADD COLUMN submission_id INTEGER");
+    }
+    
+    // Check if course_id column exists
+    const courseIdCheck = await pool.query(
+      "SELECT EXISTS (SELECT FROM information_schema.columns WHERE table_name = 'notifications' AND column_name = 'course_id')"
+    );
+    
+    if (!courseIdCheck.rows[0].exists) {
+      console.log('Adding course_id column to notifications table');
+      await pool.query("ALTER TABLE notifications ADD COLUMN course_id INTEGER");
+    }
+    
+    console.log('Notifications table columns check completed');
+  } catch (error) {
+    console.error('Error ensuring notifications table columns:', error);
+  }
+};
+
 const setupSocket = (server) => {
   const io = new Server(server, {
     cors: {
@@ -11,6 +52,9 @@ const setupSocket = (server) => {
       credentials: true
     }
   });
+
+  // Ensure notifications table has necessary columns
+  ensureNotificationsTableColumns();
 
   // Store user socket mappings
   const userSockets = new Map();
@@ -30,6 +74,45 @@ const setupSocket = (server) => {
       next(new Error('Authentication error'));
     }
   });
+
+  // Function to send assignment notifications to users
+  const sendAssignmentNotification = async (notification) => {
+    try {
+      const { recipient_id, content, type, assignment_id, submission_id, course_id } = notification;
+      
+      // Insert notification into database
+      const notificationQuery = `
+        INSERT INTO notifications 
+          (recipient_id, content, type, assignment_id, submission_id, course_id, created_at)
+        VALUES ($1, $2, $3, $4, $5, $6, CURRENT_TIMESTAMP)
+        RETURNING *
+      `;
+      
+      const result = await pool.query(notificationQuery, [
+        recipient_id,
+        content,
+        type,
+        assignment_id,
+        submission_id,
+        course_id
+      ]);
+      
+      if (result.rows.length > 0) {
+        const newNotification = result.rows[0];
+        const recipientSocketId = userSockets.get(recipient_id.toString());
+        
+        if (recipientSocketId) {
+          io.to(recipientSocketId).emit('new_notification', newNotification);
+          console.log(`Assignment notification sent to user ${recipient_id}`);
+        }
+      }
+    } catch (error) {
+      console.error('Error sending assignment notification:', error);
+    }
+  };
+
+  // Expose function to other modules
+  io.sendAssignmentNotification = sendAssignmentNotification;
 
   io.on('connection', (socket) => {
     console.log('User connected:', socket.user.user_id);
@@ -99,6 +182,11 @@ const setupSocket = (server) => {
       } catch (error) {
         console.error('Error handling direct message:', error);
       }
+    });
+
+    // Handle assignment notifications
+    socket.on('assignment_notification', (notification) => {
+      sendAssignmentNotification(notification);
     });
 
     socket.on('disconnect', () => {

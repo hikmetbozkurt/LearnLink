@@ -1,5 +1,6 @@
 import asyncHandler from "../utils/asyncHandler.js";
 import pool from "../config/database.js";
+import { createNewAssignmentNotification, createAssignmentSubmissionNotification } from '../utils/notificationUtils.js';
 
 export const getAllAssignments = asyncHandler(async (req, res) => {
   const result = await pool.query(
@@ -145,8 +146,51 @@ export const createAssignment = asyncHandler(async (req, res) => {
       ]
     );
 
-    console.log("Assignment created successfully:", result.rows[0]);
-    res.status(201).json(result.rows[0]);
+    const newAssignment = result.rows[0];
+    console.log("Assignment created successfully:", newAssignment);
+
+    // Ensure notifications table has required columns
+    await pool.query("ALTER TABLE notifications ADD COLUMN IF NOT EXISTS assignment_id INTEGER");
+    await pool.query("ALTER TABLE notifications ADD COLUMN IF NOT EXISTS submission_id INTEGER");
+    await pool.query("ALTER TABLE notifications ADD COLUMN IF NOT EXISTS course_id INTEGER");
+    
+    // Get course title and enrolled students
+    const courseResult = await pool.query(
+      "SELECT title, instructor_id FROM courses WHERE course_id = $1",
+      [course_id]
+    );
+
+    if (courseResult.rows.length > 0) {
+      const course = courseResult.rows[0];
+      console.log("Found course:", course);
+      console.log("Course title:", course.title);
+      
+      // Get enrolled users (excluding the instructor)
+      const enrolledUsersResult = await pool.query(
+        `SELECT user_id FROM enrollments 
+         WHERE course_id = $1 AND user_id != $2`,
+        [course_id, course.instructor_id]
+      );
+
+      const enrolledUserIds = enrolledUsersResult.rows.map(row => row.user_id);
+      console.log(`Found ${enrolledUserIds.length} enrolled users to notify`);
+      
+      if (enrolledUserIds.length > 0) {
+        // Create notifications for enrolled users
+        await createNewAssignmentNotification(
+          newAssignment, 
+          course.title, // Using title field from course table
+          enrolledUserIds
+        );
+        console.log("Assignment notifications created successfully");
+      } else {
+        console.log("No enrolled users to notify about new assignment");
+      }
+    } else {
+      console.log(`Course with ID ${course_id} not found`);
+    }
+
+    res.status(201).json(newAssignment);
   } catch (error) {
     console.error("Error in createAssignment:", error);
     res
@@ -394,31 +438,68 @@ export const submitAssignment = asyncHandler(async (req, res) => {
 
     console.log("Inserting submission");
 
+    let submissionResult;
+    
     // Try to insert without specifying submitted_at to use DEFAULT value
     try {
       // Insert the submission
-      const result = await pool.query(
+      submissionResult = await pool.query(
         "INSERT INTO submissions (assignment_id, user_id, content, file_url) VALUES ($1, $2, $3, $4) RETURNING *",
         [id, userId, content || "", fileUrl]
       );
 
-      console.log("Submission successful:", result.rows[0]);
-      res.status(201).json(result.rows[0]);
+      console.log("Submission successful:", submissionResult.rows[0]);
     } catch (insertError) {
       console.error("Error inserting with DEFAULT timestamp:", insertError);
 
       // If that fails, use explicit CURRENT_TIMESTAMP
-      const result = await pool.query(
+      submissionResult = await pool.query(
         "INSERT INTO submissions (assignment_id, user_id, content, file_url, submitted_at) VALUES ($1, $2, $3, $4, CURRENT_TIMESTAMP) RETURNING *",
         [id, userId, content || "", fileUrl]
       );
 
       console.log(
         "Submission successful with explicit timestamp:",
-        result.rows[0]
+        submissionResult.rows[0]
       );
-      res.status(201).json(result.rows[0]);
     }
+    
+    // Get assignment and course details for notification
+    const assignmentResult = await pool.query(
+      `SELECT a.*, c.title as course_name, c.course_id, c.instructor_id 
+       FROM assignments a 
+       JOIN courses c ON a.course_id = c.course_id 
+       WHERE a.assignment_id = $1`,
+      [id]
+    );
+    
+    if (assignmentResult.rows.length > 0) {
+      // Get user details
+      const userResult = await pool.query(
+        "SELECT user_id, name, username FROM users WHERE user_id = $1",
+        [userId]
+      );
+      
+      if (userResult.rows.length > 0) {
+        const assignment = assignmentResult.rows[0];
+        const user = userResult.rows[0];
+        const course = {
+          course_id: assignment.course_id,
+          name: assignment.course_name,
+          instructor_id: assignment.instructor_id
+        };
+        
+        // Create notification for the instructor
+        await createAssignmentSubmissionNotification(
+          submissionResult.rows[0],
+          user,
+          assignment,
+          course
+        );
+      }
+    }
+    
+    res.status(201).json(submissionResult.rows[0]);
   } catch (error) {
     console.error("Error submitting assignment:", error);
     res.status(500).json({
@@ -478,29 +559,46 @@ export const getUserSubmission = asyncHandler(async (req, res) => {
   const userId = req.user.user_id;
 
   try {
-    // First check if the submissions table has the submitted_at column
-    const submittedAtColumnCheck = await pool.query(
-      "SELECT EXISTS (SELECT FROM information_schema.columns WHERE table_name = 'submissions' AND column_name = 'submitted_at')"
-    );
-
-    if (!submittedAtColumnCheck.rows[0].exists) {
-      console.log(
-        "submitted_at column doesn't exist, adding it to submissions table"
+    // Önce tüm gerekli sütunların varlığını kontrol et
+    const columnsToCheck = ['content', 'file_url', 'grade', 'feedback', 'submitted_at'];
+    
+    for (const column of columnsToCheck) {
+      const columnCheck = await pool.query(
+        `SELECT EXISTS (
+          SELECT FROM information_schema.columns 
+          WHERE table_name = 'submissions' AND column_name = $1
+        )`, [column]
       );
-      await pool.query(
-        "ALTER TABLE submissions ADD COLUMN submitted_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP"
-      );
+      
+      if (!columnCheck.rows[0].exists) {
+        console.log(`${column} column doesn't exist, adding it to submissions table`);
+        
+        if (column === 'submitted_at') {
+          await pool.query(`ALTER TABLE submissions ADD COLUMN ${column} TIMESTAMP DEFAULT CURRENT_TIMESTAMP`);
+        } else if (column === 'grade') {
+          await pool.query(`ALTER TABLE submissions ADD COLUMN ${column} VARCHAR(10)`);
+        } else {
+          await pool.query(`ALTER TABLE submissions ADD COLUMN ${column} TEXT`);
+        }
+      }
     }
 
-    // Use timestamp or created_at if available, otherwise modify the query
+    // Sorguyu doğru sütun adlarıyla çalıştır
     const result = await pool.query(
-      `SELECT s.submission_id, s.assignment_id, s.user_id, u.name as user_name,
-       s.content, s.file_url, s.grade, s.feedback,
-       COALESCE(s.submitted_at, NOW()) as submitted_at
-       FROM submissions s
-       JOIN users u ON s.user_id = u.user_id
-       WHERE s.assignment_id = $1 AND s.user_id = $2
-       LIMIT 1`,
+      `SELECT 
+        s.submission_id, 
+        s.assignment_id, 
+        s.user_id, 
+        u.name as user_name,
+        s.content, 
+        s.file_url, 
+        s.grade, 
+        s.feedback,
+        COALESCE(s.submitted_at, s.submissiondate, NOW()) as submitted_at
+      FROM submissions s
+      JOIN users u ON s.user_id = u.user_id
+      WHERE s.assignment_id = $1 AND s.user_id = $2
+      LIMIT 1`,
       [id, userId]
     );
 

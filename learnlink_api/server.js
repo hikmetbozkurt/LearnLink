@@ -9,6 +9,7 @@ import dotenv from "dotenv";
 import express from "express";
 import path from "path";
 import fs from "fs";
+import { setIoInstance } from "./utils/notificationUtils.js";
 
 dotenv.config();
 
@@ -65,6 +66,9 @@ export const io = new Server(httpServer, {
   transports: ["websocket"],
   upgrade: false,
 });
+
+// Set the io instance in notificationUtils
+setIoInstance(io);
 
 // Store connected users
 const connectedUsers = new Map();

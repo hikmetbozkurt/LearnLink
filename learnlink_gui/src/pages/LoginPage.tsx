@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { GoogleOAuthProvider, GoogleLogin } from '@react-oauth/google';
 import PersonIcon from "@mui/icons-material/Person";
@@ -28,6 +28,28 @@ const LoginPage = () => {
   const [loading, setLoading] = useState(false);
   const { showToast } = useToast();
   const { isDarkMode } = useTheme();
+
+  // Check if user is already logged in
+  useEffect(() => {
+    const token = localStorage.getItem('token');
+    const user = localStorage.getItem('user');
+    
+    if (token && user) {
+      try {
+        const userData = JSON.parse(user);
+        // Verify user object has required fields
+        if (userData.id || userData.user_id) {
+          console.log('User already logged in, redirecting to home');
+          navigate('/home');
+        }
+      } catch (error) {
+        console.error('Error parsing user data:', error);
+        // Clear invalid data
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+      }
+    }
+  }, [navigate]);
 
   // Toggle between sign-in and sign-up views
   const toggleView = () => {

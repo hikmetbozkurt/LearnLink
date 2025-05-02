@@ -16,7 +16,7 @@ const RouteGuard = ({ children }: { children: React.ReactNode }) => {
     // Verify we have both token and valid user object
     if (!token || !userStr) {
       console.log('RouteGuard - Missing auth data:', { token, userStr });
-      return <Navigate to="/" replace />;
+      return <Navigate to="/login" replace />;
     }
 
     const user = JSON.parse(userStr);
@@ -27,7 +27,7 @@ const RouteGuard = ({ children }: { children: React.ReactNode }) => {
       console.error('RouteGuard - Invalid user data:', user);
       localStorage.removeItem('token');
       localStorage.removeItem('user');
-      return <Navigate to="/" replace />;
+      return <Navigate to="/login" replace />;
     }
 
     return <>{children}</>;
@@ -35,7 +35,7 @@ const RouteGuard = ({ children }: { children: React.ReactNode }) => {
     console.error('RouteGuard - Error:', error);
     localStorage.removeItem('token');
     localStorage.removeItem('user');
-    return <Navigate to="/" replace />;
+    return <Navigate to="/login" replace />;
   }
 };
 
