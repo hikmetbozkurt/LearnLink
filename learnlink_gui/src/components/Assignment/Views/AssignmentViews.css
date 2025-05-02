@@ -17,6 +17,9 @@
   flex-direction: row;
   align-items: center;
   padding: 15px;
+  width: 100%;
+  overflow: visible;
+  box-sizing: border-box;
 }
 
 .assignments-list.list .assignment-card .assignment-header {
@@ -42,6 +45,37 @@
   display: flex;
   justify-content: flex-end;
   margin-bottom: 20px;
+  background-color: rgba(81, 45, 168, 0.05);
+  padding: 8px 12px;
+  border-radius: 8px;
+  gap: 8px;
+}
+
+.view-btn {
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  padding: 8px 16px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  color: #666;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.view-btn:hover {
+  background-color: rgba(81, 45, 168, 0.1);
+  color: #512da8;
+}
+
+.view-btn.active {
+  background: #512da8;
+  color: white;
+  border-color: #512da8;
+  box-shadow: 0 2px 4px rgba(81, 45, 168, 0.3);
 }
 
 .course-filter-indicator {

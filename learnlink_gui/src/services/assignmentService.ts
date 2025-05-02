@@ -280,6 +280,20 @@ export const assignmentService = {
           'Content-Type': 'multipart/form-data'
         }
       });
+      
+      // Clear the cache for this specific assignment
+      const userStr = localStorage.getItem('user');
+      if (userStr) {
+        const userData = JSON.parse(userStr);
+        const userId = userData.user_id || userData.id;
+        if (userId) {
+          // Clear the specific cache entry for this user and assignment
+          const cacheKey = `user_${userId}_assignment_${assignmentId}`;
+          assignmentService._userSubmissionCache.delete(cacheKey);
+          console.log(`Cleared cache for ${cacheKey} after submission`);
+        }
+      }
+      
       return response.data;
     } catch (error) {
       console.error(`Error submitting assignment ${assignmentId}:`, error);

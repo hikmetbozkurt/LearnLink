@@ -38,6 +38,13 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
   // Check if user logged in with Google
   const [isGoogleUser, setIsGoogleUser] = useState(false);
 
+  // Update currentEmail when user changes to handle account switches
+  useEffect(() => {
+    if (user && user.email) {
+      setCurrentEmail(user.email);
+    }
+  }, [user]);
+
   useEffect(() => {
     if (user) {
       // Check if the user has a Google account flag
@@ -208,7 +215,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
               <FaExclamationTriangle color="#f39c12" />
               <p>You cannot change your email or password directly in LearnLink.</p>
             </div>
-            <p>Current Email: {user?.email}</p>
+            <p>Current Email: {currentEmail}</p>
           </div>
         ) : (
           <>
@@ -222,7 +229,6 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
                     </div>
                   </label>
                   <div className="settings-info-display">
-                    <span>{user?.email}</span>
                     <button 
                       className="settings-action-button"
                       onClick={handleChangeEmailClick}
@@ -239,7 +245,6 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
                     </div>
                   </label>
                   <div className="settings-info-display">
-                    <span>••••••••</span>
                     <button 
                       className="settings-action-button"
                       onClick={handleChangePasswordClick}
@@ -260,7 +265,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
                   <input 
                     type="email" 
                     className="settings-input" 
-                    value={user?.email || ''}
+                    value={currentEmail}
                     disabled
                   />
                 </div>

@@ -172,6 +172,7 @@ const BaseAssignmentView: React.FC<BaseAssignmentViewProps> = ({
               assignment={assignment}
               isAdmin={isAdminForCourse(assignment.course_id)}
               onClick={() => handleAssignmentClick(assignment)}
+              viewMode={viewMode}
             />
           ))
         ) : (

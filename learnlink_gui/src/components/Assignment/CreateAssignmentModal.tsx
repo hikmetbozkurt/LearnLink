@@ -297,7 +297,7 @@ const CreateAssignmentModal: React.FC<CreateAssignmentModalProps> = ({
       <div className="create-assignment-modal">
         <div className="create-assignment-modal-header">
           <h2>{isEdit ? "Edit Assignment" : "Create Assignment"}</h2>
-          <button className="create-assignment-close-button" onClick={onClose}>
+          <button className="close-button" onClick={onClose}>
             <FaTimes />
           </button>
         </div>
