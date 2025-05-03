@@ -73,32 +73,6 @@ const AssignmentsPage: React.FC = () => {
         showNotification("Failed to load courses", "error");
       }
     };
-
-    // Test API connection
-    const testApiConnection = async () => {
-      try {
-        if (process.env.NODE_ENV === "development") {
-          const token = localStorage.getItem("token");
-
-          // Make a direct fetch call to test connectivity
-          const response = await fetch(
-            "http://localhost:5001/api/assignments",
-            {
-              method: "GET",
-              headers: {
-                Authorization: `Bearer ${token}`,
-                "Content-Type": "application/json",
-              },
-            }
-          );
-
-        }
-      } catch (error) {
-        console.error("API connection test failed:", error);
-      }
-    };
-
-    testApiConnection();
     loadCourses();
   }, [showNotification]);
 

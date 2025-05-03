@@ -30,6 +30,7 @@ export const createNewAssignmentNotification = async (assignment, courseName, en
           recipient_id: userId,
           content,
           type: 'new_assignment',
+          reference_id: assignment.assignment_id,
           assignment_id: assignment.assignment_id,
           course_id: assignment.course_id
         });
@@ -37,12 +38,12 @@ export const createNewAssignmentNotification = async (assignment, courseName, en
     } else {
       // Fall back to direct database insertion
       const values = enrolledUserIds.map((userId) => {
-        return `(${userId}, '${content}', 'new_assignment', ${assignment.assignment_id}, ${assignment.course_id}, NOW())`;
+        return `(${assignment.instructor_id}, ${userId}, '${content}', 'new_assignment', ${assignment.assignment_id}, ${assignment.assignment_id}, NULL, ${assignment.course_id}, NOW(), NOW())`;
       }).join(', ');
 
       const query = `
         INSERT INTO notifications 
-          (recipient_id, content, type, assignment_id, course_id, created_at)
+          (sender_id, recipient_id, content, type, reference_id, assignment_id, submission_id, course_id, created_at, updated_at)
         VALUES ${values}
       `;
 
@@ -75,6 +76,7 @@ export const createAssignmentSubmissionNotification = async (submission, user, a
         recipient_id: instructorId,
         content,
         type: 'assignment_submission',
+        reference_id: submission.submission_id,
         assignment_id: assignment.assignment_id,
         submission_id: submission.submission_id,
         course_id: course.course_id
@@ -84,19 +86,23 @@ export const createAssignmentSubmissionNotification = async (submission, user, a
       // Fall back to direct database insertion
       const query = `
         INSERT INTO notifications 
-          (recipient_id, content, type, assignment_id, submission_id, course_id, created_at)
-        VALUES ($1, $2, $3, $4, $5, $6, NOW())
+          (sender_id, recipient_id, content, type, reference_id, assignment_id, submission_id, course_id, created_at, updated_at)
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, NOW(), NOW())
         RETURNING *
       `;
 
-      await pool.query(query, [
-        instructorId, 
-        content, 
-        'assignment_submission', 
-        assignment.assignment_id,
-        submission.submission_id,
-        course.course_id
+      const result = await pool.query(query, [
+        user.user_id,               // sender_id
+        instructorId,               // recipient_id
+        content,                    // content
+        'assignment_submission',    // type
+        submission.submission_id,   // reference_id
+        assignment.assignment_id,   // assignment_id
+        submission.submission_id,   // submission_id
+        course.course_id            // course_id
       ]);
+      
+      console.log('Notification created through utils:', result.rows[0]);
     }
 
   } catch (error) {

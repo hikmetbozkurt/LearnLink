@@ -202,7 +202,7 @@ const CreateAssignmentModal: React.FC<CreateAssignmentModalProps> = ({
           throw new Error("No authentication token found");
         }
 
-        const apiUrl = `http://localhost:5001/api/assignments/${initialData.assignment_id}`;
+        const apiUrl = `http://learnlink-v1-env.eba-b28u347j.eu-north-1.elasticbeanstalk.com/api/assignments/${initialData.assignment_id}`;
 
         const response = await fetch(apiUrl, {
           method: "PUT",
@@ -236,7 +236,7 @@ const CreateAssignmentModal: React.FC<CreateAssignmentModalProps> = ({
           throw new Error("No authentication token found");
         }
 
-        const apiUrl = "http://localhost:5001/api/assignments";
+        const apiUrl = "http://learnlink-v1-env.eba-b28u347j.eu-north-1.elasticbeanstalk.com/api/assignments";
 
         const response = await fetch(apiUrl, {
           method: "POST",

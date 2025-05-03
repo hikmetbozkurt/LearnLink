@@ -65,7 +65,7 @@
   display: block;
   margin-bottom: 8px;
   font-weight: 500;
-  color: #b8b8d0;
+  color: var(--primary);
 }
 
 .sa-textarea {
@@ -76,7 +76,7 @@
   font-family: inherit;
   resize: vertical;
   background-color: var(--background);
-  color: #e2e2e2;
+  color: var(--text-primary);
   transition: border-color 0.2s ease;
 }
 
@@ -197,7 +197,7 @@
 .sa-cancel-button {
   background-color: transparent;
   border: 1px solid #41415a;
-  color: #e2e2e2;
+  color: var(--text-primary);
   padding: 10px 16px;
   border-radius: 5px;
   font-weight: 500;

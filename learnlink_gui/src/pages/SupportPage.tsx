@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import '../styles/pages/shared.css';
 import '../styles/pages/support.css';
 import { 
@@ -31,6 +31,46 @@ interface FAQCategory {
 const SupportPage = () => {
   const [expandedFAQ, setExpandedFAQ] = useState<string | null>(null);
   const [expandedCategory, setExpandedCategory] = useState<string | null>('account');
+
+  // Load LiveChat script when component mounts and remove when unmounts
+  useEffect(() => {
+    // Create script element
+    const script = document.createElement('script');
+    script.src = 'https://app.livechatai.com/embed.js';
+    script.dataset.id = 'cm7lze4k40005js0a2045dxmq';
+    script.async = true;
+    script.defer = true;
+    script.id = 'livechat-script';
+    
+    // Append to document
+    document.head.appendChild(script);
+    
+    // Cleanup function to remove script when component unmounts
+    return () => {
+      // Remove the script
+      const existingScript = document.getElementById('livechat-script');
+      if (existingScript) {
+        existingScript.remove();
+      }
+      
+      // Remove any chat widgets that might have been created
+      const chatWidgets = document.querySelectorAll('.livechatai-iframe-container, .livechatai-widget, [id^="livechatai"]');
+      chatWidgets.forEach(widget => {
+        widget.remove();
+      });
+      
+      // Additionally, remove any global variables that the chat might have created
+      if ((window as any).LiveChatAI) {
+        (window as any).LiveChatAI = undefined;
+      }
+
+      // Remove any other elements LiveChat might have added
+      const livechatElements = document.querySelectorAll('[class*="livechat"], [id*="livechat"]');
+      livechatElements.forEach(element => {
+        element.remove();
+      });
+    };
+  }, []);
 
   const faqCategories: FAQCategory[] = [
     {

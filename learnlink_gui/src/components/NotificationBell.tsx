@@ -52,15 +52,26 @@ const NotificationBell = forwardRef<NotificationBellRef, NotificationBellProps>(
   const fetchNotifications = async () => {
     try {
       setIsLoading(true);
+      console.log('Fetching notifications...');
       const response = await api.get('/api/notifications');
-      if (response.data) {
+      console.log('Notification response:', response);
+      
+      if (response.data && Array.isArray(response.data)) {
         setNotifications(response.data);
         const unreadNotifs = response.data.filter((notif: ChatNotification) => !notif.read);
         setUnreadCount(unreadNotifs.length);
+        console.log(`Found ${response.data.length} notifications, ${unreadNotifs.length} unread`);
+      } else {
+        // Handle case when response.data is not an array
+        console.log('No notifications or invalid response format:', response.data);
+        setNotifications([]);
+        setUnreadCount(0);
       }
     } catch (error) {
       console.error('Error fetching notifications:', error);
       showToast('Failed to load notifications', 'error');
+      setNotifications([]);
+      setUnreadCount(0);
     } finally {
       setIsLoading(false);
     }
@@ -107,9 +118,17 @@ const NotificationBell = forwardRef<NotificationBellRef, NotificationBellProps>(
       setUnreadCount(prev => prev + 1);
       
       // Show toast for new notification
-      const message = notification.type === 'new_assignment' 
-        ? `New assignment: ${notification.content}`
-        : notification.content;
+      let message = '';
+      
+      if (notification.type === 'new_assignment') {
+        message = `New assignment: ${notification.content}`;
+      } 
+      else if (notification.type === 'assignment_submission') {
+        message = `New submission: ${notification.content}`;
+      }
+      else {
+        message = notification.content;
+      }
       
       showToast(message, 'success');
     });
@@ -134,7 +153,6 @@ const NotificationBell = forwardRef<NotificationBellRef, NotificationBellProps>(
         setUnreadCount(prev => Math.max(0, prev - 1));
       }
       
-      
       // Handle different notification types
       if (notification.type === 'new_assignment' && notification.assignment_id) {
         // Navigate to the assignments page with the specific course selected
@@ -143,9 +161,20 @@ const NotificationBell = forwardRef<NotificationBellRef, NotificationBellProps>(
         onToggle();
       }
       else if (notification.type === 'assignment_submission' && notification.submission_id) {
-        // Navigate to the assignments page for the instructor to see all submissions
-        navigate(`/assignments?course=${notification.course_id}`);
-        onToggle();
+        // For submission notifications, navigate to the specific submission
+        if (notification.assignment_id && notification.course_id) {
+          // Navigate to the submissions view for this specific assignment
+          navigate(`/assignments/${notification.assignment_id}/submissions?course=${notification.course_id}`);
+          
+          // Show a toast with additional context
+          showToast('Opening submission details', 'success');
+          
+          onToggle();
+        } else {
+          // Fallback if specific IDs are missing
+          navigate(`/assignments?course=${notification.course_id}`);
+          onToggle();
+        }
       }
       else if (notification.chatroom_id) {
         // Legacy behavior for chat notifications
@@ -229,7 +258,7 @@ const NotificationBell = forwardRef<NotificationBellRef, NotificationBellProps>(
       return <FaBook />;
     } 
     else if (notification.type === 'assignment_submission') {
-      return <FaClipboardCheck />;
+      return <FaClipboardCheck style={{ color: '#4caf50' }} />;
     }
     // Fallback to content-based detection (legacy behavior)
     else if (notification.content.includes('friend request')) {
@@ -241,6 +270,26 @@ const NotificationBell = forwardRef<NotificationBellRef, NotificationBellProps>(
     else {
       return <FaComment />;
     }
+  };
+
+  // Custom renderer for notification content
+  const renderNotificationContent = (notification: ChatNotification) => {
+    if (notification.type === 'assignment_submission') {
+      return (
+        <>
+          <p className="notification-message" style={{ fontWeight: 'bold' }}>
+            {notification.content}
+          </p>
+          <p className="notification-detail" style={{ fontSize: '0.8em', marginTop: '2px' }}>
+            Click to view submission details
+          </p>
+        </>
+      );
+    }
+    
+    return (
+      <p className="notification-message">{notification.content}</p>
+    );
   };
 
   // Expose addNotification method
@@ -318,7 +367,7 @@ const NotificationBell = forwardRef<NotificationBellRef, NotificationBellProps>(
                       {getNotificationIcon(notification)}
                     </div>
                     <div className="notification-content">
-                      <p className="notification-message">{notification.content}</p>
+                      {renderNotificationContent(notification)}
                       <span className="notification-time">
                         {formatTime(notification.created_at)}
                       </span>

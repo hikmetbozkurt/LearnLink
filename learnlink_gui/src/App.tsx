@@ -22,6 +22,7 @@ import DirectMessagesPage from './pages/DirectMessagesPage';
 import CourseDetailPage from './pages/CourseDetailPage';
 import CourseAreaWrapper from './components/Course/CourseAreaWrapper';
 import CourseArea from "./components/Course/CourseArea";
+import RouteChangeTracker from "./components/RouteChangeTracker";
 import './styles/global.css';
 
 const App: React.FC = () => {
@@ -30,6 +31,7 @@ const App: React.FC = () => {
       <AuthProvider>
         <EventProvider>
           <Router>
+            <RouteChangeTracker />
             <Routes>
               {/* Auth Routes - No Layout */}
               <Route path="/" element={<AuthRedirect />} />

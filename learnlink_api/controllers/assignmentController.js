@@ -166,6 +166,7 @@ export const getAssignments = asyncHandler(async (req, res) => {
 export const submitAssignment = asyncHandler(async (req, res) => {
   const { id } = req.params;
   const userId = req.user.user_id;
+  console.log(`Assignment submission attempt by user ${userId} for assignment ${id}`);
   const { content } = req.body;
   let fileUrl = null;
 
@@ -185,6 +186,8 @@ export const submitAssignment = asyncHandler(async (req, res) => {
       "INSERT INTO submissions (assignment_id, user_id, content, file_url, submitted_at) VALUES ($1, $2, $3, $4, CURRENT_TIMESTAMP) RETURNING *",
       [id, userId, content || "", fileUrl]
     );
+    
+    console.log(`Submission created with ID: ${submissionResult.rows[0].submission_id}`);
     
     // Get assignment and course details for notification
     const assignmentResult = await client.query(
@@ -211,14 +214,46 @@ export const submitAssignment = asyncHandler(async (req, res) => {
           instructor_id: assignment.instructor_id
         };
         
-        // Create notification for the instructor
-        await createAssignmentSubmissionNotification(
-          submissionResult.rows[0],
-          user,
-          assignment,
-          course
-        );
+        console.log(`Creating notification for instructor ${course.instructor_id} about submission from ${user.name}`);
+        
+        try {
+          // Create notification for the instructor using direct database insertion
+          // Using the most reliable method directly
+          const submissionDate = new Date().toLocaleString();
+          const notificationContent = `[SUBMISSION] ${user.name} has submitted assignment "${assignment.title}" for course "${course.name}" on ${submissionDate}. Click to view details.`;
+          const instructorId = course.instructor_id;
+          
+          // Use the client from the transaction to ensure consistency
+          const notificationResult = await client.query(
+            `INSERT INTO notifications 
+             (sender_id, recipient_id, content, type, reference_id, assignment_id, submission_id, course_id, created_at, updated_at)
+             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, NOW(), NOW())
+             RETURNING *`,
+            [
+              userId,                               // sender_id
+              instructorId,                         // recipient_id
+              notificationContent,                  // content
+              'assignment_submission',              // type
+              submissionResult.rows[0].submission_id, // reference_id (aynı zamanda submission_id)
+              id,                                   // assignment_id
+              submissionResult.rows[0].submission_id, // submission_id
+              course.course_id                      // course_id
+            ]
+          );
+          
+          console.log('Assignment submission notification inserted successfully! ID:', notificationResult.rows[0].notifications_id);
+          console.log('Notification details:', JSON.stringify(notificationResult.rows[0], null, 2));
+          
+        } catch (notificationError) {
+          console.error('Error creating assignment submission notification:', notificationError);
+          // Continue with the transaction even if notification fails
+          // The submission is more important than the notification
+        }
+      } else {
+        console.error(`User not found for ID ${userId}`);
       }
+    } else {
+      console.error(`Assignment not found for ID ${id}`);
     }
     
     await client.query('COMMIT');
