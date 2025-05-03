@@ -11,8 +11,8 @@ async function runSettingsTabsTest() {
     console.log('🔧 Starting Test: Open Settings Tabs');
 
     const testUrl = 'http://localhost:3000/';
-    const testEmail = 'test@test.com';
-    const testPassword = 'Test1234';
+    const testEmail = 'admin@admin.com';
+    const testPassword = 'Admin123';
 
     // Login
     await driver.get(testUrl);
@@ -25,8 +25,9 @@ async function runSettingsTabsTest() {
 
     try {
       const toast = await driver.wait(until.elementLocated(By.css('.toast.success')), 5000);
-      await driver.executeScript("arguments[0].remove();", toast);
-      console.log('Toast dismissed');
+      // Wait for the toast to disappear naturally (e.g., 5 seconds)
+      await driver.sleep(5000);
+      console.log('Toast disappeared');
     } catch {}
 
     // Open Settings
