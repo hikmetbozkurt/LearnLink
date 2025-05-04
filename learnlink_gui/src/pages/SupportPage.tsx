@@ -34,7 +34,29 @@ const SupportPage = () => {
 
   // Load LiveChat script when component mounts and remove when unmounts
   useEffect(() => {
-    // Create script element
+    // Create a custom style for overriding shadow DOM
+    const customStyle = document.createElement('style');
+    customStyle.textContent = `
+      /* Target shadow DOM elements with CSS variables */
+      :root {
+        --livechat-logo-display: none !important;
+      }
+      
+      /* Global rule to try to force onto shadow DOM */
+      @supports (selector(html:not(#))) {
+        .live-chat-ai-logo-mini {
+          display: none !important;
+        }
+      }
+      
+      /* Try to target shadow parts if they're exposed */
+      ::part(live-chat-ai-logo-mini) {
+        display: none !important;
+      }
+    `;
+    document.head.appendChild(customStyle);
+    
+    // Create script element with custom onload handler
     const script = document.createElement('script');
     script.src = 'https://app.livechatai.com/embed.js';
     script.dataset.id = 'cm7lze4k40005js0a2045dxmq';
@@ -42,15 +64,133 @@ const SupportPage = () => {
     script.defer = true;
     script.id = 'livechat-script';
     
+    // Custom script to handle shadow DOM after LiveChat loads
+    const shadowDomScript = document.createElement('script');
+    shadowDomScript.id = 'shadow-dom-handler';
+    shadowDomScript.textContent = `
+      // Use IIFE to avoid global naming conflicts
+      (function() {
+        // Poll for the shadow DOM element to appear
+        const findAndModifyShadowDom = function() {
+          // Look for all potential LiveChat containers
+          const liveChatElements = document.querySelectorAll('[class*="livechatai"], [id*="livechatai"]');
+          
+          liveChatElements.forEach(el => {
+            // Check if the element has a shadow root
+            if (el.shadowRoot) {
+              // Find the style element in the shadow DOM
+              const styleElement = el.shadowRoot.querySelector('.live-chat-ai-style');
+              if (styleElement) {
+                // Modify the existing style or add new rules
+                let styleContent = styleElement.textContent;
+                
+                // Replace or add the rule for logo-mini
+                if (styleContent.includes('.live-chat-ai-logo-mini')) {
+                  // Replace existing rule with our hidden version
+                  styleContent = styleContent.replace(
+                    /.live-chat-ai-logo-mini\\s*{[^}]*}/g,
+                    '.live-chat-ai-logo-mini { display: none !important; }'
+                  );
+                }
+                
+                // Apply the modified style
+                styleElement.textContent = styleContent;
+              }
+              
+              // Directly try to hide the element if it exists
+              const logoElements = el.shadowRoot.querySelectorAll('.live-chat-ai-logo-mini');
+              logoElements.forEach(logo => {
+                if (logo instanceof HTMLElement) {
+                  logo.style.display = 'none';
+                }
+              });
+            }
+          });
+        };
+        
+        // Only create interval if it doesn't already exist
+        if (!window.shadowDomInterval) {
+          // Run immediately and then on an interval
+          findAndModifyShadowDom();
+          const shadowDomInterval = setInterval(findAndModifyShadowDom, 1000);
+          
+          // Store the interval ID so we can clear it later
+          window.shadowDomInterval = shadowDomInterval;
+        }
+      })();
+    `;
+    
+    // Add script to document after LiveChat script loads
+    script.onload = () => {
+      // Check if the script is already added
+      if (!document.getElementById('shadow-dom-handler')) {
+        document.head.appendChild(shadowDomScript);
+      }
+      
+      // Also try to use constructable stylesheets if supported
+      if (window.ShadowRoot && 'adoptedStyleSheets' in Document.prototype && 'replaceSync' in CSSStyleSheet.prototype && !(window as any).shadowStyleObserver) {
+        try {
+          const sheet = new CSSStyleSheet();
+          sheet.replaceSync('.live-chat-ai-logo-mini { display: none !important; }');
+          
+          // Monitor for shadow roots and apply the stylesheet
+          const observer = new MutationObserver((mutations) => {
+            for (const mutation of mutations) {
+              if (mutation.addedNodes.length) {
+                mutation.addedNodes.forEach((node) => {
+                  if (node instanceof Element) {
+                    if (node.shadowRoot) {
+                      try {
+                        // @ts-ignore - TypeScript might not know about adoptedStyleSheets
+                        node.shadowRoot.adoptedStyleSheets = [...node.shadowRoot.adoptedStyleSheets, sheet];
+                      } catch (e) {
+                        // Ignore errors
+                      }
+                    }
+                  }
+                });
+              }
+            }
+          });
+          
+          observer.observe(document.body, { childList: true, subtree: true });
+          
+          // Store the observer for cleanup
+          (window as any).shadowStyleObserver = observer;
+        } catch (e) {
+          console.error("Failed to use constructable stylesheets:", e);
+        }
+      }
+    };
+    
     // Append to document
     document.head.appendChild(script);
     
     // Cleanup function to remove script when component unmounts
     return () => {
-      // Remove the script
+      // Remove the script and custom style
       const existingScript = document.getElementById('livechat-script');
       if (existingScript) {
         existingScript.remove();
+      }
+      
+      const shadowDomHandler = document.getElementById('shadow-dom-handler');
+      if (shadowDomHandler) {
+        shadowDomHandler.remove();
+      }
+      
+      if (customStyle) {
+        customStyle.remove();
+      }
+      
+      // Clear the interval if it exists
+      if ((window as any).shadowDomInterval) {
+        clearInterval((window as any).shadowDomInterval);
+      }
+      
+      // Disconnect the observer if it exists
+      if ((window as any).shadowStyleObserver) {
+        (window as any).shadowStyleObserver.disconnect();
       }
       
       // Remove any chat widgets that might have been created

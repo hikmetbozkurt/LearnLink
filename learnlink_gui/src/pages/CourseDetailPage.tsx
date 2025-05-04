@@ -27,9 +27,20 @@ const CourseDetailPage = () => {
     message: "",
   });
   const [showCreatePost, setShowCreatePost] = useState(false);
+  const [isInstructor, setIsInstructor] = useState(false);
 
   // user'ı User tipine cast edelim
   const currentUser = user as User;
+
+  // İlgili kullanıcının kurs yöneticisi olup olmadığını kontrol eden useEffect
+  useEffect(() => {
+    if (course) {
+      // API'den dönen is_admin değerini doğrudan kullan
+      setIsInstructor(Boolean(course.is_admin));
+    } else {
+      setIsInstructor(false);
+    }
+  }, [course]);
 
   // Postları yükle
   const loadPosts = async () => {
@@ -66,8 +77,26 @@ const CourseDetailPage = () => {
     }, 5000);
 
     return () => clearInterval(interval);
-  }, [courseId, user]);
+  }, [courseId]);  // user dependency'yi kaldırdım böylece sadece courseId değiştiğinde çalışacak
 
+  // Kullanıcı değiştiğinde kurs bilgilerini yeniden yükle
+  useEffect(() => {
+    const refreshCourseData = async () => {
+      if (courseId) {
+        try {
+          // Önce endpoint'i temizle (cache'i önlemek için)
+          await courseService.getMyCourses();
+          // Sonra kurs detaylarını yenile
+          const freshCourseData = await courseService.getCourse(courseId);
+          setCourse(freshCourseData);
+        } catch (error) {
+          console.error("Error refreshing course data:", error);
+        }
+      }
+    };
+
+    refreshCourseData();
+  }, [courseId, user]); // user değiştiğinde çalışacak
 
   const handleComment = async (postId: string, content: string) => {
     try {
@@ -141,9 +170,7 @@ const CourseDetailPage = () => {
         onCreatePost={() => setShowCreatePost(true)}
         onLeaveCourse={handleLeaveCourse}
         onDeleteCourse={handleDeleteCourse}
-        isInstructor={Boolean(
-          course?.instructor_id?.toString() === user?.user_id?.toString()
-        )}
+        isInstructor={isInstructor}
       />
 
       <div className="course-detail-content">
@@ -155,8 +182,7 @@ const CourseDetailPage = () => {
           currentUserId={user?.user_id || user?.id}
           userName={user?.name}
           isAdmin={Boolean(
-            course?.instructor_id?.toString() === (user?.user_id || user?.id)?.toString() 
-            || user?.role === "admin"
+            isInstructor || user?.role === "admin"
           )}
         />
       </div>

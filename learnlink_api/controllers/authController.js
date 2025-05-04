@@ -27,12 +27,6 @@ const addLoginProviderField = async () => {
     
     if (checkResult.rows.length === 0) {
       
-      // Add the column if it doesn't exist
-      await pool.query(`
-        ALTER TABLE users 
-        ADD COLUMN login_provider VARCHAR(20) NULL
-      `);
-      
       // Set login_provider to 'google' for users who signed up with Google
       // This is a heuristic - users without passwords are likely Google users
       await pool.query(`

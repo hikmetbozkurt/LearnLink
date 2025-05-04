@@ -317,7 +317,10 @@ CREATE TABLE public.course_contents (
     content_id integer NOT NULL,
     file_type character varying(50) NOT NULL,
     submission_date date NOT NULL,
-    course_id integer NOT NULL
+    course_id integer NOT NULL,
+    file_data bytea,
+    mime_type character varying(50),
+    file_name character varying(255)
 );
 
 
@@ -704,6 +707,9 @@ CREATE TABLE public.posts (
     video_url text,
     created_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
     updated_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
+    file_data bytea,
+    mime_type character varying(50),
+    file_name character varying(255),
     CONSTRAINT posts_type_check CHECK (((type)::text = ANY ((ARRAY['text'::character varying, 'pdf'::character varying, 'video'::character varying, 'image'::character varying, 'file'::character varying, 'txt'::character varying, 'rar'::character varying, 'zip'::character varying, 'word'::character varying, 'excel'::character varying, 'powerpoint'::character varying])::text[])))
 );
 
@@ -781,7 +787,10 @@ CREATE TABLE public.submissions (
     content text,
     file_url text,
     grade character varying(10),
-    feedback text
+    feedback text,
+    file_data bytea,
+    mime_type character varying(50),
+    file_name character varying(255)
 );
 
 

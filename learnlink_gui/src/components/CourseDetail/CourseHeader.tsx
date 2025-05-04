@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Course } from "../../types/course";
 import "./CourseHeader.css";
 import ConfirmModal from "../ConfirmModal";
@@ -22,7 +22,12 @@ const CourseHeader: React.FC<CourseHeaderProps> = ({
   isInstructor,
 }) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [showDeleteButton, setShowDeleteButton] = useState(isInstructor);
   const navigate = useNavigate();
+
+  useEffect(() => {
+    setShowDeleteButton(isInstructor);
+  }, [isInstructor]);
 
   const handleActionClick = () => {
     setIsModalOpen(true);
@@ -32,7 +37,7 @@ const CourseHeader: React.FC<CourseHeaderProps> = ({
     try {
       if (!course?.course_id) return;
 
-      if (isInstructor) {
+      if (showDeleteButton) {
         await courseService.deleteCourse(course.course_id);
       } else {
         await courseService.leaveCourse(course.course_id);
@@ -63,10 +68,10 @@ const CourseHeader: React.FC<CourseHeaderProps> = ({
             <h1>{course?.title}</h1>
             <div className="action-buttons">
               <button
-                className={isInstructor ? "delete-course-button" : "leave-course-button"}
+                className={showDeleteButton ? "delete-course-button" : "leave-course-button"}
                 onClick={handleActionClick}
               >
-                {isInstructor ? (
+                {showDeleteButton ? (
                   <>
                     <FaTrash /> Delete Course
                   </>
@@ -92,13 +97,13 @@ const CourseHeader: React.FC<CourseHeaderProps> = ({
 
       <ConfirmModal
         isOpen={isModalOpen}
-        title={isInstructor ? "Delete Course" : "Leave Course"}
+        title={showDeleteButton ? "Delete Course" : "Leave Course"}
         message={
-          isInstructor
+          showDeleteButton
             ? "Are you sure you want to delete this course? This action cannot be undone."
             : "Are you sure you want to leave this course? You can join again later if you change your mind."
         }
-        confirmButtonText={isInstructor ? "Delete Course" : "Leave Course"}
+        confirmButtonText={showDeleteButton ? "Delete Course" : "Leave Course"}
         onConfirm={handleConfirm}
         onCancel={handleCancel}
       />
