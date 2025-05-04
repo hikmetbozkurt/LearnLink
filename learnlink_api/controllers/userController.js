@@ -406,4 +406,47 @@ export const getProfilePicture = asyncHandler(async (req, res) => {
     console.error('Error retrieving profile picture:', error);
     res.status(500).json({ message: 'Server error while retrieving profile picture' });
   }
+});
+
+export const removeProfilePicture = asyncHandler(async (req, res) => {
+  const userId = req.user.user_id;
+  
+  const client = await pool.connect();
+  
+  try {
+    await client.query('BEGIN');
+    
+    // Check if user has a profile picture
+    const checkResult = await client.query(
+      'SELECT id FROM user_profile_pictures WHERE user_id = $1',
+      [userId]
+    );
+    
+    if (checkResult.rows.length === 0) {
+      await client.query('ROLLBACK');
+      return res.status(404).json({ message: 'No profile picture found' });
+    }
+    
+    // Remove profile picture from database
+    await client.query(
+      'DELETE FROM user_profile_pictures WHERE user_id = $1',
+      [userId]
+    );
+    
+    // Update user record to remove profile picture reference
+    await client.query(
+      'UPDATE users SET profile_pic = NULL WHERE user_id = $1',
+      [userId]
+    );
+    
+    await client.query('COMMIT');
+    
+    res.status(200).json({ message: 'Profile picture removed successfully' });
+  } catch (error) {
+    await client.query('ROLLBACK');
+    console.error('Error removing profile picture:', error);
+    res.status(500).json({ message: 'Server error while removing profile picture' });
+  } finally {
+    client.release();
+  }
 }); 

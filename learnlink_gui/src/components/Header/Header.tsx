@@ -4,7 +4,8 @@ import {
   FaSearch, 
   FaCog, 
   FaSignOutAlt,
-  FaUser
+  FaUser,
+  FaSpinner
 } from 'react-icons/fa';
 import NotificationBell, { NotificationBellRef } from '../NotificationBell';
 import EventsDropdown from '../EventsDropdown';
@@ -41,6 +42,8 @@ const Header = () => {
   const [showProfileCard, setShowProfileCard] = useState(false);
   const [showSettingsModal, setShowSettingsModal] = useState(false);
   const [profileImageKey, setProfileImageKey] = useState(Date.now());
+  const [profileImageLoading, setProfileImageLoading] = useState(false);
+  const [profileImageSrc, setProfileImageSrc] = useState<string | null>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const notificationRef = useRef<NotificationBellRef>(null);
 
@@ -187,6 +190,29 @@ const Header = () => {
     }
   };
 
+  // Load profile image when user changes
+  useEffect(() => {
+    if (user?.profile_pic) {
+      const loadProfileImage = async () => {
+        setProfileImageLoading(true);
+        try {
+          const picPath = getProfilePicUrl(user.profile_pic);
+          const blobUrl = await loadImageViaApi(picPath);
+          setProfileImageSrc(blobUrl);
+        } catch (err) {
+          console.error("Error loading profile image:", err);
+          setProfileImageSrc(defaultAvatar);
+        } finally {
+          setProfileImageLoading(false);
+        }
+      };
+      
+      loadProfileImage();
+    } else {
+      setProfileImageSrc(defaultAvatar);
+    }
+  }, [user, profileImageKey]);
+
   const renderDropdownContent = (type: DropdownType) => {
     switch (type) {
       case 'settings':
@@ -218,33 +244,17 @@ const Header = () => {
 
           <div className="header-actions" ref={dropdownRef}>
             <div className="profile-avatar" onClick={() => setShowProfileCard(true)}>
-              {user?.profile_pic ? (
+              {profileImageLoading ? (
+                <div className="loading-spinner">
+                  <FaSpinner className="spinner-icon" />
+                </div>
+              ) : user?.profile_pic ? (
                 <img 
                   key={profileImageKey}
-                  src={defaultAvatar} // Start with default avatar
+                  src={profileImageSrc || defaultAvatar}
                   alt="Profile" 
-                  ref={imgRef => {
-                    // Only load the image once when the component mounts
-                    if (imgRef && !imgRef.dataset.loaded) {
-                      imgRef.dataset.loaded = 'true';
-                      
-                      // After component mounts, try to load the actual image
-                      setTimeout(async () => {
-                        try {
-                          const picPath = getProfilePicUrl(user.profile_pic);
-                          
-                          // Load the image through our authenticated API
-                          const blobUrl = await loadImageViaApi(picPath);
-                          
-                          // Update the image element with the blob URL
-                          if (imgRef) {
-                            imgRef.src = blobUrl;
-                          }
-                        } catch (err) {
-                          console.error("Error loading profile image:", err);
-                        }
-                      }, 100);
-                    }
+                  onError={(e) => { 
+                    e.currentTarget.src = defaultAvatar; 
                   }}
                 />
               ) : (

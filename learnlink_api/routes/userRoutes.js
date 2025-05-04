@@ -11,7 +11,8 @@ import {
   getSentFriendRequests,
   removeFriend,
   uploadProfilePicture,
-  getProfilePicture
+  getProfilePicture,
+  removeProfilePicture
 } from '../controllers/userController.js'
 import path from 'path'
 import fs from 'fs'
@@ -34,6 +35,7 @@ router.delete('/friends/:friendId', removeFriend)
 // Profile picture routes
 router.post('/profile-picture', uploadProfilePicture)
 router.get('/profile-picture/:userId', getProfilePicture)
+router.delete('/profile-picture', removeProfilePicture)
 
 // Proxy to handle old-style profile picture URLs
 router.get('/profile-pic-proxy/:filename', (req, res) => {
