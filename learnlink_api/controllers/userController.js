@@ -1,8 +1,8 @@
 import pool from '../config/database.js';
 import asyncHandler from '../utils/asyncHandler.js';
-import multer from 'multer';
 import path from 'path';
 import fs from 'fs';
+import { memoryUpload } from '../middleware/uploadMiddleware.js';
 
 export const getUser = asyncHandler(async (req, res) => {
   const { id } = req.params;
@@ -308,38 +308,8 @@ export const removeFriend = asyncHandler(async (req, res) => {
   }
 });
 
-// Configure multer for file upload
-const storage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    const uploadDir = path.join(process.cwd(), 'uploads', 'profile-pics');
-    fs.mkdirSync(uploadDir, { recursive: true });
-    cb(null, uploadDir);
-  },
-  filename: function (req, file, cb) {
-    const fileExt = file.originalname.split('.').pop();
-    const fileName = `${req.user.user_id}-${Date.now()}.${fileExt}`;
-    cb(null, fileName);
-  }
-});
-
-const fileFilter = (req, file, cb) => {
-  // Accept only image files
-  if (file.mimetype.startsWith('image/')) {
-    cb(null, true);
-  } else {
-    cb(new Error('Only image files are allowed!'), false);
-  }
-};
-
-const upload = multer({
-  storage,
-  limits: { fileSize: 5 * 1024 * 1024 }, // 5MB
-  fileFilter
-});
-
 export const uploadProfilePicture = asyncHandler(async (req, res) => {
-
-  const uploadSingle = upload.single('profilePic');
+  const uploadSingle = memoryUpload.single('profilePic');
   
   uploadSingle(req, res, async (err) => {
     if (err) {
@@ -351,24 +321,94 @@ export const uploadProfilePicture = asyncHandler(async (req, res) => {
       return res.status(400).json({ message: 'No file uploaded' });
     }
     
+    const client = await pool.connect();
+    
     try {
+      await client.query('BEGIN');
       
-      // Update user profile in database with full URL path
-      const profilePicUrl = `http://localhost:5001/uploads/profile-pics/${req.file.filename}`;
+      const userId = req.user.user_id;
+      const imageData = req.file.buffer;
+      const mimeType = req.file.mimetype;
       
+      console.log("Saving profile picture to database for user:", userId);
+      console.log("Image data length:", imageData.length, "bytes");
+      console.log("MIME type:", mimeType);
       
-      await pool.query(
-        'UPDATE users SET profile_pic = $1 WHERE user_id = $2',
-        [profilePicUrl, req.user.user_id]
+      // Check if user already has a profile picture
+      const existingPic = await client.query(
+        'SELECT id FROM user_profile_pictures WHERE user_id = $1',
+        [userId]
       );
+      
+      let profilePicId;
+      
+      if (existingPic.rows.length > 0) {
+        // Update existing profile picture
+        console.log("Updating existing profile picture for user:", userId);
+        const updateResult = await client.query(
+          'UPDATE user_profile_pictures SET image_data = $1, mime_type = $2, updated_at = CURRENT_TIMESTAMP WHERE user_id = $3 RETURNING id',
+          [imageData, mimeType, userId]
+        );
+        profilePicId = updateResult.rows[0].id;
+      } else {
+        // Insert new profile picture
+        console.log("Creating new profile picture for user:", userId);
+        const insertResult = await client.query(
+          'INSERT INTO user_profile_pictures (user_id, image_data, mime_type) VALUES ($1, $2, $3) RETURNING id',
+          [userId, imageData, mimeType]
+        );
+        profilePicId = insertResult.rows[0].id;
+      }
+      
+      // IMPORTANT: Use a special URL format that won't be captured by the static middleware
+      // Create URL reference for the profile picture with unique format and use absolute URL 
+      // for Elastic Beanstalk environment
+      const profilePicUrl = `http://learnlink-v1-env.eba-b28u347j.eu-north-1.elasticbeanstalk.com/api/users/profile-picture/${userId}`;
+      console.log("Setting profile picture URL to:", profilePicUrl);
+      
+      // Update the user record with the URL reference
+      await client.query(
+        'UPDATE users SET profile_pic = $1 WHERE user_id = $2',
+        [profilePicUrl, userId]
+      );
+      
+      await client.query('COMMIT');
       
       res.status(200).json({
         message: 'Profile picture updated successfully',
-        profilePic: profilePicUrl
+        profilePic: profilePicUrl 
       });
     } catch (error) {
+      await client.query('ROLLBACK');
       console.error('Error updating profile picture in database:', error);
       res.status(500).json({ message: 'Server error while updating profile picture' });
+    } finally {
+      client.release();
     }
   });
+});
+
+export const getProfilePicture = asyncHandler(async (req, res) => {
+  const { userId } = req.params;
+  
+  try {
+    // Get the profile picture from the database
+    const result = await pool.query(
+      'SELECT image_data, mime_type FROM user_profile_pictures WHERE user_id = $1',
+      [userId]
+    );
+    
+    if (result.rows.length === 0) {
+      return res.status(404).json({ message: 'Profile picture not found' });
+    }
+    
+    const { image_data, mime_type } = result.rows[0];
+    
+    // Set content type and send the image data
+    res.set('Content-Type', mime_type);
+    return res.send(image_data);
+  } catch (error) {
+    console.error('Error retrieving profile picture:', error);
+    res.status(500).json({ message: 'Server error while retrieving profile picture' });
+  }
 }); 

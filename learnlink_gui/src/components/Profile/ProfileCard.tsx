@@ -94,7 +94,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({ user, onClose, currentUser = 
           setUser(updatedUserData);
         }
         
-        // Force refresh the image if it's the same URL (useful when re-uploading same image)
+        // Force refresh the image to prevent caching
         const refreshTimestamp = `?t=${new Date().getTime()}`;
         setTimeout(() => {
           setLocalProfilePic(prev => prev ? `${prev.split('?')[0]}${refreshTimestamp}` : prev);
@@ -121,7 +121,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({ user, onClose, currentUser = 
           <div className="profile-avatar">
             {localProfilePic ? (
               <img 
-                src={localProfilePic} 
+                src={`${localProfilePic}${localProfilePic.includes('?') ? '&' : '?'}t=${new Date().getTime()}`} 
                 alt={user.name || 'User'} 
                 className="profile-image"
                 onError={(e) => {

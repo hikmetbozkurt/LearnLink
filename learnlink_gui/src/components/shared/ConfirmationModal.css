@@ -28,9 +28,10 @@
 
 .cancel-button {
   padding: 8px 16px;
-  border: none;
+  border: 1px solid var(--border);
   border-radius: 4px;
-  background-color: #e0e0e0;
+  background-color: var(--surface);
+  color: var(--text-primary);
   cursor: pointer;
 }
 

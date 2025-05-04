@@ -1326,6 +1326,22 @@ CREATE TABLE IF NOT EXISTS posts (
 CREATE INDEX IF NOT EXISTS idx_posts_course_id ON posts(course_id);
 CREATE INDEX IF NOT EXISTS idx_posts_author_id ON posts(author_id);
 
+--
+-- User Profile Pictures tablosu
+--
+
+CREATE TABLE IF NOT EXISTS user_profile_pictures (
+    id SERIAL PRIMARY KEY,
+    user_id INTEGER NOT NULL REFERENCES users(user_id) ON DELETE CASCADE,
+    image_data BYTEA NOT NULL,
+    mime_type VARCHAR(50) NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT unique_user_profile_picture UNIQUE (user_id)
+);
+
+-- Profile resmi için indeks
+CREATE INDEX IF NOT EXISTS idx_profile_pictures_user_id ON user_profile_pictures(user_id);
 
 --
 -- PostgreSQL database dump complete

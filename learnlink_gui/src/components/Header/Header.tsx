@@ -123,14 +123,18 @@ const Header = () => {
 
           <div className="header-actions" ref={dropdownRef}>
             <div className="profile-avatar" onClick={() => setShowProfileCard(true)}>
-              <img 
-                key={profileImageKey}
-                src={user?.profile_pic ? `${user.profile_pic}?t=${profileImageKey}` : defaultAvatar} 
-                alt="Profile" 
-                onError={(e) => { 
-                  e.currentTarget.src = defaultAvatar; 
-                }}
-              />
+              {user?.profile_pic ? (
+                <img 
+                  key={profileImageKey}
+                  src={`${user.profile_pic}${user.profile_pic.includes('?') ? '&' : '?'}t=${profileImageKey}`} 
+                  alt="Profile" 
+                  onError={(e) => { 
+                    e.currentTarget.src = defaultAvatar; 
+                  }}
+                />
+              ) : (
+                <img src={defaultAvatar} alt="Profile" />
+              )}
             </div>
 
             <EventsDropdown 
