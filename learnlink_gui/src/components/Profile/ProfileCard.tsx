@@ -33,6 +33,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({ user, onClose, currentUser = 
   const [error, setError] = useState<string | null>(null);
   const [localProfilePic, setLocalProfilePic] = useState<string | undefined>(user.profile_pic);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const imgRef = useRef<HTMLImageElement>(null);
 
   const formatDate = (dateString: string | undefined) => {
     if (!dateString) return 'N/A';
@@ -75,7 +76,6 @@ const ProfileCard: React.FC<ProfileCardProps> = ({ user, onClose, currentUser = 
       const formData = new FormData();
       formData.append('profilePic', file);
       
-      
       // Use axios instead of fetch
       const response = await api.post('/api/users/profile-picture', formData, {
         headers: {
@@ -83,22 +83,41 @@ const ProfileCard: React.FC<ProfileCardProps> = ({ user, onClose, currentUser = 
         }
       });
       
-      
       if (response.data && response.data.profilePic) {
-        // Update the local state to show the new profile picture
-        setLocalProfilePic(response.data.profilePic);
+        const profilePicUrl = response.data.profilePic;
         
-        // Get updated user data from server
-        const updatedUserData = await authService.getCurrentUser();
-        if (updatedUserData && setUser) {
-          setUser(updatedUserData);
+        // Get the path for API access
+        const picPath = getProfilePicUrl(profilePicUrl);
+        
+        // Immediately update local state with the new URL
+        setLocalProfilePic(profilePicUrl);
+        
+        // Try to load the image via API to verify it works
+        if (picPath) {
+          try {
+            const blobUrl = await loadImageViaApi(picPath);
+            if (blobUrl) {
+              
+              // Update the image element directly if we have a ref
+              if (imgRef.current) {
+                // Reset the loaded flag so it can be refreshed
+                delete imgRef.current.dataset.loaded;
+                imgRef.current.src = blobUrl;
+              }
+            }
+          } catch (err) {
+            console.error("Error loading new profile pic:", err);
+          }
         }
         
-        // Force refresh the image to prevent caching
-        const refreshTimestamp = `?t=${new Date().getTime()}`;
-        setTimeout(() => {
-          setLocalProfilePic(prev => prev ? `${prev.split('?')[0]}${refreshTimestamp}` : prev);
-        }, 100);
+        // Update the user context with the new URL
+        const updatedUserData = await authService.getCurrentUser();
+        if (updatedUserData && setUser) {
+          setUser({
+            ...updatedUserData,
+            profile_pic: profilePicUrl
+          });
+        }
       } else {
         throw new Error('Invalid response format from server');
       }
@@ -107,6 +126,53 @@ const ProfileCard: React.FC<ProfileCardProps> = ({ user, onClose, currentUser = 
       setError(err instanceof Error ? err.message : 'Failed to upload profile picture');
     } finally {
       setUploading(false);
+    }
+  };
+
+  // Function to get the full profile picture URL
+  const getProfilePicUrl = (picPath: string | undefined) => {
+    if (!picPath) return undefined;
+    
+    // For relative URLs that point to the profile picture endpoint,
+    // return just the path since we'll load it via our API
+    if (picPath.startsWith('/api/users/profile-picture/')) {
+      return picPath;
+    }
+    
+    // For absolute URLs to our API server, extract just the path
+    if (picPath.includes('learnlink-v1-env.eba-b28u347j.eu-north-1.elasticbeanstalk.com')) {
+      try {
+        const urlObj = new URL(picPath);
+        return urlObj.pathname;
+      } catch (e) {
+        console.error("Invalid URL:", picPath);
+        return picPath;
+      }
+    }
+    
+    // Default case - just use the URL as is
+    return picPath;
+  };
+  
+  // Function to load an image through our API with auth
+  const loadImageViaApi = async (imagePath: string): Promise<string> => {
+    try {
+      if (!imagePath) return '';
+      
+      // Use a clean path without query params for the API request
+      const cleanPath = imagePath.split('?')[0];
+      
+      // Make an authenticated request to get the image
+      const response = await api.get(cleanPath, {
+        responseType: 'blob'
+      });
+      
+      // Create a blob URL from the response
+      const blob = response.data;
+      return URL.createObjectURL(blob);
+    } catch (error) {
+      console.error('Error loading image via API:', error);
+      return '';
     }
   };
 
@@ -121,13 +187,34 @@ const ProfileCard: React.FC<ProfileCardProps> = ({ user, onClose, currentUser = 
           <div className="profile-avatar">
             {localProfilePic ? (
               <img 
-                src={`${localProfilePic}${localProfilePic.includes('?') ? '&' : '?'}t=${new Date().getTime()}`} 
+                key={new Date().getTime()} 
+                src={defaultAvatar}
                 alt={user.name || 'User'} 
                 className="profile-image"
-                onError={(e) => {
-                  e.currentTarget.src = defaultAvatar;
-                  // If we have a broken image URL, clear it so we show the icon instead
-                  setLocalProfilePic(undefined);
+                ref={imgRef => {
+                  // Only load the image once when the component mounts
+                  if (imgRef && !imgRef.dataset.loaded) {
+                    imgRef.dataset.loaded = 'true';
+                    
+                    // After component mounts, try to load the actual image
+                    setTimeout(async () => {
+                      try {
+                        const picPath = getProfilePicUrl(localProfilePic);
+                        
+                        if (picPath) {
+                          // Load the image through our authenticated API
+                          const blobUrl = await loadImageViaApi(picPath);
+                          
+                          // Update the image element with the blob URL
+                          if (imgRef && blobUrl) {
+                            imgRef.src = blobUrl;
+                          }
+                        }
+                      } catch (err) {
+                        console.error("Error loading profile image in ProfileCard:", err);
+                      }
+                    }, 100);
+                  }
                 }}
               />
             ) : (

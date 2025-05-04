@@ -23,11 +23,8 @@ export const createNotification = async (req, res) => {
 // Handle assignment notifications
 export const createAssignmentNotification = async (req, res) => {
   try {
-    console.log('Received assignment notification request:', req.body);
     const { course_id, assignment_id, title } = req.body;
     const userId = req.user.user_id;
-
-    console.log(`Creating assignment notification for course ${course_id}, assignment ${assignment_id}, by user ${userId}`);
 
     // Validate required fields
     if (!course_id || !assignment_id || !title) {
@@ -53,8 +50,6 @@ export const createAssignmentNotification = async (req, res) => {
     }
 
     const assignment = assignmentResult.rows[0];
-    console.log('Found assignment:', assignment);
-
     // Get course details
     const courseResult = await pool.query(
       "SELECT title, instructor_id FROM courses WHERE course_id = $1",
@@ -70,7 +65,6 @@ export const createAssignmentNotification = async (req, res) => {
     }
 
     const course = courseResult.rows[0];
-    console.log('Found course:', course);
 
     // Check if the user is the course instructor
     if (course.instructor_id !== userId) {
@@ -89,7 +83,6 @@ export const createAssignmentNotification = async (req, res) => {
     );
 
     const enrolledUserIds = enrolledUsersResult.rows.map(row => row.user_id);
-    console.log(`Found ${enrolledUserIds.length} enrolled users to notify`);
 
     if (enrolledUserIds.length > 0) {
       // Create notifications for enrolled users
@@ -100,7 +93,6 @@ export const createAssignmentNotification = async (req, res) => {
           enrolledUserIds
         );
         
-        console.log('Successfully created assignment notifications');
         
         return res.status(201).json({
           success: true,
@@ -111,7 +103,6 @@ export const createAssignmentNotification = async (req, res) => {
         
         // Try direct database insertion as a fallback
         try {
-          console.log('Attempting direct database insertion as fallback');
           const notificationContent = `New assignment: "${title}" was added to ${course.title}`;
           
           for (const recipientId of enrolledUserIds) {
@@ -132,7 +123,6 @@ export const createAssignmentNotification = async (req, res) => {
             );
           }
           
-          console.log('Fallback notification creation successful');
           
           return res.status(201).json({
             success: true,
@@ -148,7 +138,6 @@ export const createAssignmentNotification = async (req, res) => {
         }
       }
     } else {
-      console.log('No enrolled users to notify');
       return res.status(200).json({
         success: true,
         message: "No enrolled users to notify"
@@ -260,8 +249,6 @@ export const getNotifications = async (req, res) => {
   try {
     const userId = req.user.user_id;
     
-    // Log for debugging
-    console.log('Fetching notifications for user:', userId);
     
     // If no user ID in request, return empty array with error message
     if (!userId) {
@@ -278,7 +265,6 @@ export const getNotifications = async (req, res) => {
     `;
     
     const result = await pool.query(query, [userId]);
-    console.log(`Found ${result.rows.length} notifications for user ${userId}`);
     
     res.json(result.rows);
   } catch (error) {
@@ -467,7 +453,6 @@ export const createTestNotification = async (req, res) => {
       1                            // course_id (can be any value)
     ]);
     
-    console.log('Test notification created:', result.rows[0]);
     
     res.status(201).json({
       success: true,

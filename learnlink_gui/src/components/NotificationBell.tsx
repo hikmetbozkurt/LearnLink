@@ -52,18 +52,14 @@ const NotificationBell = forwardRef<NotificationBellRef, NotificationBellProps>(
   const fetchNotifications = async () => {
     try {
       setIsLoading(true);
-      console.log('Fetching notifications...');
       const response = await api.get('/api/notifications');
-      console.log('Notification response:', response);
       
       if (response.data && Array.isArray(response.data)) {
         setNotifications(response.data);
         const unreadNotifs = response.data.filter((notif: ChatNotification) => !notif.read);
         setUnreadCount(unreadNotifs.length);
-        console.log(`Found ${response.data.length} notifications, ${unreadNotifs.length} unread`);
       } else {
         // Handle case when response.data is not an array
-        console.log('No notifications or invalid response format:', response.data);
         setNotifications([]);
         setUnreadCount(0);
       }

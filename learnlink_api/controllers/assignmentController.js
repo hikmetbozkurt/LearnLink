@@ -166,7 +166,6 @@ export const getAssignments = asyncHandler(async (req, res) => {
 export const submitAssignment = asyncHandler(async (req, res) => {
   const { id } = req.params;
   const userId = req.user.user_id;
-  console.log(`Assignment submission attempt by user ${userId} for assignment ${id}`);
   const { content } = req.body;
   let fileUrl = null;
 
@@ -187,7 +186,6 @@ export const submitAssignment = asyncHandler(async (req, res) => {
       [id, userId, content || "", fileUrl]
     );
     
-    console.log(`Submission created with ID: ${submissionResult.rows[0].submission_id}`);
     
     // Get assignment and course details for notification
     const assignmentResult = await client.query(
@@ -214,7 +212,6 @@ export const submitAssignment = asyncHandler(async (req, res) => {
           instructor_id: assignment.instructor_id
         };
         
-        console.log(`Creating notification for instructor ${course.instructor_id} about submission from ${user.name}`);
         
         try {
           // Create notification for the instructor using direct database insertion
@@ -241,8 +238,6 @@ export const submitAssignment = asyncHandler(async (req, res) => {
             ]
           );
           
-          console.log('Assignment submission notification inserted successfully! ID:', notificationResult.rows[0].notifications_id);
-          console.log('Notification details:', JSON.stringify(notificationResult.rows[0], null, 2));
           
         } catch (notificationError) {
           console.error('Error creating assignment submission notification:', notificationError);

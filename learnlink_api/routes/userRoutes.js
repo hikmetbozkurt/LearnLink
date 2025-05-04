@@ -40,12 +40,9 @@ router.get('/profile-pic-proxy/:filename', (req, res) => {
   const filename = req.params.filename;
   const filePath = path.join(process.cwd(), 'uploads', 'profile-pics', filename);
   
-  console.log('Profile picture proxy requested:', filename);
-  console.log('Checking path:', filePath);
   
   // Check if file exists in local filesystem
   if (fs.existsSync(filePath)) {
-    console.log('Serving profile picture from filesystem:', filePath);
     return res.sendFile(filePath);
   }
   
@@ -53,11 +50,9 @@ router.get('/profile-pic-proxy/:filename', (req, res) => {
   const userId = filename.split('-')[0];
   if (userId && !isNaN(parseInt(userId))) {
     // Redirect to the database-backed endpoint
-    console.log('Redirecting to database profile picture for user:', userId);
     return res.redirect(`/api/users/profile-picture/${userId}`);
   }
   
-  console.log('Profile picture not found:', filename);
   return res.status(404).send('Profile picture not found');
 });
 

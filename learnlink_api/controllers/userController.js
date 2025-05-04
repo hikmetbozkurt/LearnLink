@@ -330,9 +330,6 @@ export const uploadProfilePicture = asyncHandler(async (req, res) => {
       const imageData = req.file.buffer;
       const mimeType = req.file.mimetype;
       
-      console.log("Saving profile picture to database for user:", userId);
-      console.log("Image data length:", imageData.length, "bytes");
-      console.log("MIME type:", mimeType);
       
       // Check if user already has a profile picture
       const existingPic = await client.query(
@@ -344,7 +341,6 @@ export const uploadProfilePicture = asyncHandler(async (req, res) => {
       
       if (existingPic.rows.length > 0) {
         // Update existing profile picture
-        console.log("Updating existing profile picture for user:", userId);
         const updateResult = await client.query(
           'UPDATE user_profile_pictures SET image_data = $1, mime_type = $2, updated_at = CURRENT_TIMESTAMP WHERE user_id = $3 RETURNING id',
           [imageData, mimeType, userId]
@@ -352,7 +348,6 @@ export const uploadProfilePicture = asyncHandler(async (req, res) => {
         profilePicId = updateResult.rows[0].id;
       } else {
         // Insert new profile picture
-        console.log("Creating new profile picture for user:", userId);
         const insertResult = await client.query(
           'INSERT INTO user_profile_pictures (user_id, image_data, mime_type) VALUES ($1, $2, $3) RETURNING id',
           [userId, imageData, mimeType]
@@ -361,10 +356,9 @@ export const uploadProfilePicture = asyncHandler(async (req, res) => {
       }
       
       // IMPORTANT: Use a special URL format that won't be captured by the static middleware
-      // Create URL reference for the profile picture with unique format and use absolute URL 
-      // for Elastic Beanstalk environment
-      const profilePicUrl = `http://learnlink-v1-env.eba-b28u347j.eu-north-1.elasticbeanstalk.com/api/users/profile-picture/${userId}`;
-      console.log("Setting profile picture URL to:", profilePicUrl);
+      // Create URL reference for the profile picture with unique format and use relative URL
+      // that works in both local and cloud environments
+      const profilePicUrl = `/api/users/profile-picture/${userId}`;
       
       // Update the user record with the URL reference
       await client.query(
@@ -374,9 +368,10 @@ export const uploadProfilePicture = asyncHandler(async (req, res) => {
       
       await client.query('COMMIT');
       
+      // Return the same format URL as what's in the database
       res.status(200).json({
         message: 'Profile picture updated successfully',
-        profilePic: profilePicUrl 
+        profilePic: profilePicUrl
       });
     } catch (error) {
       await client.query('ROLLBACK');

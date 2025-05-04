@@ -102,7 +102,6 @@ export const createAssignmentSubmissionNotification = async (submission, user, a
         course.course_id            // course_id
       ]);
       
-      console.log('Notification created through utils:', result.rows[0]);
     }
 
   } catch (error) {
