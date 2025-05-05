@@ -9,18 +9,20 @@ import path from 'path';
 import fs from 'fs';
 import { v4 as uuidv4 } from 'uuid';
 import { fileURLToPath } from 'url';
+import config from '../config/env.js';
 
-// Configure AWS with credentials from environment variables
-// AWS SDK will automatically pick up AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY from process.env
+// Configure AWS with credentials from config
 AWS.config.update({
-  region: process.env.AWS_REGION
+  accessKeyId: config.AWS_ACCESS_KEY_ID,
+  secretAccessKey: config.AWS_SECRET_ACCESS_KEY,
+  region: config.AWS_REGION
 });
 
 // Create S3 service object
 const s3 = new AWS.S3();
 
-// Bucket name from environment variables
-const BUCKET_NAME = process.env.AWS_BUCKET_NAME;
+// Bucket name from config
+const BUCKET_NAME = config.AWS_BUCKET_NAME;
 
 /**
  * Uploads a file to S3
