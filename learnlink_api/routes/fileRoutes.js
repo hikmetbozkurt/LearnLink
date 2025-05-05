@@ -6,12 +6,12 @@
 
 import express from 'express';
 import * as fileController from '../controllers/fileUploadController.js';
-import { authenticateJWT } from '../middleware/authMiddleware.js';
+import { authenticateToken } from '../middleware/authMiddleware.js';
 
 const router = express.Router();
 
 // Apply authentication middleware to all routes
-router.use(authenticateJWT);
+router.use(authenticateToken);
 
 // Route for uploading post files
 router.post('/upload/post', fileController.upload.single('file'), fileController.uploadPostFile);

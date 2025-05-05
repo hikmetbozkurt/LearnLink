@@ -4,7 +4,11 @@
  * This service handles file uploads and downloads to/from AWS S3
  */
 
-import AWS from 'aws-sdk';
+// Use dynamic import for aws-sdk since it's a CommonJS module
+import { createRequire } from 'module';
+const require = createRequire(import.meta.url);
+const AWS = require('aws-sdk');
+
 import path from 'path';
 import fs from 'fs';
 import { v4 as uuidv4 } from 'uuid';
