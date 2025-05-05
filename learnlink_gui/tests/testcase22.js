@@ -16,9 +16,9 @@ async function runSubmitHomeworkTest() {
 
     // Test data
     const testUrl = 'http://localhost:3000/';
-    const studentEmail = 'admin@admin.com';
-    const studentPassword = 'Admin123';
-    const homeworkPath = path.join(__dirname, 'hw.docx');
+    const studentEmail = 'hamdi@hamdi.com';
+    const studentPassword = 'Hamdi123';
+    const homeworkPath = path.join(__dirname, 'test.docx');
 
     // Step 1: Login
     console.log('Step 1: Logging in as student...');
@@ -79,14 +79,12 @@ async function runSubmitHomeworkTest() {
 
     // Step 6: Submit the form
     console.log('Step 6: Submitting the form...');
-    // Wait for the submit button in the modal to be clickable
-    await driver.wait(until.elementLocated(By.css('.modal-overlay .submit-button')), 5000);
-    const submitFormButton = await driver.findElement(
-      By.css('.modal-overlay .submit-button')
-    );
+    // Wait for the submit button in the modal to be present and enabled
+    await driver.wait(until.elementLocated(By.css('.sa-submit-button')), 5000);
+    const submitFormButton = await driver.findElement(By.css('.sa-submit-button'));
     await driver.wait(until.elementIsEnabled(submitFormButton), 5000);
     await driver.executeScript("arguments[0].click();", submitFormButton);
-    await driver.sleep(3000); // Increased wait time after submission
+    await driver.sleep(3000); // Wait for submission to process
 
     // Step 7: Verify submission
     try {

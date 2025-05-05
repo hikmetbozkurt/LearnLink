@@ -52,8 +52,7 @@ async function runViewAssignmentsTest() {
     await driver.wait(until.elementLocated(By.css('.assignments-list, .assignment-list, .assignment-card')), 10000);
     console.log('Assignments list loaded');
 
-    // Find the assignment named 'yeter artık baydım' and click it
-    const assignmentName = 'yeter artık baydım';
+    const assignmentName = 'TEST ASSIGNMENT';
     const assignmentItem = await driver.wait(
       until.elementLocated(By.xpath(`//*[contains(@class,'assignment') and contains(text(),'${assignmentName}')] | //*[contains(text(),'${assignmentName}')]`)),
       10000

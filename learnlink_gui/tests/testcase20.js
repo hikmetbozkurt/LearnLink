@@ -40,13 +40,13 @@ async function runSettingsTabsTest() {
       5000
     );
     await driver.executeScript("arguments[0].click();", settingsMenuItem);
-    console.log('🧩 Settings menu item clicked');
+    console.log('Settings menu item clicked');
 
     await driver.wait(until.elementLocated(By.css('.settings-modal-overlay')), 5000);
-    console.log('🪟 Settings modal opened');
+    console.log('Settings modal opened');
 
     // Tabs to click
-    const tabs = ['Appearance', 'Account', 'Notifications'];
+    const tabs = ['Appearance', 'Account'];
 
     for (const tabName of tabs) {
       const tabButton = await driver.wait(

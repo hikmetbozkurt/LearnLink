@@ -27,9 +27,9 @@ async function runDirectMessageTest() {
     console.log('Starting LearnLink Direct Message Test');
     const testUrl = 'http://localhost:3000/';
     const senderEmail = 'admin@admin.com';
-    const receiverEmail = 'test@test.com';
+    const receiverEmail = 'hamdi@hamdi.com';
     const senderPassword = 'Admin123';
-    const receiverPassword = 'Test1234';
+    const receiverPassword = 'Hamdi123';
     const testMessage = 'hi test user!';
 
     // Step 1: Login both users

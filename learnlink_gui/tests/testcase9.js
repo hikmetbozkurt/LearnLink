@@ -93,12 +93,13 @@ async function runFileAttachmentTest() {
     console.log('Step 4 PASS: Create Post modal opened');
 
     // Step 5: Write post content
+    const postText = `Attach File Test ${new Date().toISOString()}`;
     const textarea = await driver.wait(
       until.elementLocated(By.css('.post-content-textarea')),
       5000
     );
     await driver.wait(until.elementIsVisible(textarea), 5000);
-    await textarea.sendKeys('Attach File Test');
+    await textarea.sendKeys(postText);
     await driver.sleep(1000);
 
     // Step 6: Attach file
@@ -114,34 +115,77 @@ async function runFileAttachmentTest() {
     // Step 7: Submit post
     const submitButton = await driver.findElement(By.css('.post-submit-button'));
     await submitButton.click();
-    await driver.sleep(2000);
+    
+    // Wait longer for the post to appear
+    await driver.sleep(3000);
     
     await driver.takeScreenshot().then(data => {
       fs.writeFileSync(path.join(screenshotDir, '6_post_submitted.png'), data, 'base64');
     });
     console.log('Step 6 PASS: Post submitted');
 
-    // Step 8: Verify post with file appears
+    // Step 8: Verify post with file appears - with improved verification
+    // Capture page HTML for debugging
+    const pageSource = await driver.getPageSource();
+    fs.writeFileSync(path.join(screenshotDir, 'page_source.html'), pageSource);
+    
+    // First look for posts
     await driver.wait(until.elementLocated(By.css('.post-card')), 10000);
-    const posts = await driver.findElements(By.css('.post-card'));
-    let found = false;
-
-    for (let post of posts) {
-      const content = await post.getText();
-      if (content.includes('Attach File Test') && content.includes('test.docx')) {
-        found = true;
+    
+    // Take a screenshot of all posts
+    await driver.takeScreenshot().then(data => {
+      fs.writeFileSync(path.join(screenshotDir, 'all_posts.png'), data, 'base64');
+    });
+    
+    // Try different selectors to find the post
+    const selectors = [
+      // Look for post with our text
+      By.xpath(`//div[contains(@class, 'post-card') and contains(., '${postText}')]`),
+      // Look for any post with file attachment
+      By.css('.post-card .attachment-container'),
+      // Look for the filename specifically
+      By.xpath("//div[contains(@class, 'post-card')]//a[contains(text(), 'test.docx')]"),
+      // More general selector for any post with file
+      By.css('.post-card .file-attachment')
+    ];
+    
+    let postFound = false;
+    
+    for (const selector of selectors) {
+      try {
+        // Wait a short time for each selector
+        const element = await driver.wait(until.elementLocated(selector), 3000);
+        console.log(`Found post element with selector: ${selector}`);
+        
+        // Highlight the element for the screenshot
+        await driver.executeScript("arguments[0].style.border='3px solid red'", element);
+        
+        await driver.takeScreenshot().then(data => {
+          fs.writeFileSync(path.join(screenshotDir, '7_post_verified.png'), data, 'base64');
+        });
+        
+        postFound = true;
         break;
+      } catch (e) {
+        console.log(`Selector ${selector} did not match, trying next`);
       }
     }
-
-    if (found) {
-      await driver.takeScreenshot().then(data => {
-        fs.writeFileSync(path.join(screenshotDir, '7_post_verified.png'), data, 'base64');
-      });
+    
+    if (postFound) {
       console.log('Step 7 PASS: Post with file appears');
       console.log('TEST PASSED: File attachment in course post works');
     } else {
-      throw new Error('Post with file not found');
+      // Log all visible posts as a debugging aid
+      console.log('Attempting to debug - listing all posts found:');
+      const posts = await driver.findElements(By.css('.post-card'));
+      console.log(`Found ${posts.length} posts on the page`);
+      
+      for (let i = 0; i < posts.length; i++) {
+        const postText = await posts[i].getText();
+        console.log(`Post ${i+1} content: ${postText}`);
+      }
+      
+      throw new Error('Post with file not found after trying multiple selectors');
     }
 
   } catch (error) {

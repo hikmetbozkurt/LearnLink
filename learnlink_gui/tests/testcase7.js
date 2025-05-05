@@ -29,8 +29,8 @@ async function runChatroomMessageTest() {
     const testUrl = 'http://localhost:3000/';
     const senderEmail = 'admin@admin.com';
     const senderPassword = 'Admin123';
-    const receiverEmail = 'test@test.com';
-    const receiverPassword = 'Test1234';
+    const receiverEmail = 'hamdi@hamdi.com';
+    const receiverPassword = 'Hamdi123';
     const testMessage = 'Hello from chatroom test!';
 
     // Step 1: Login both users
@@ -88,6 +88,16 @@ async function runChatroomMessageTest() {
     await senderDriver.wait(until.elementIsVisible(messageInput), 5000);
     await messageInput.sendKeys(testMessage);
     
+    // Hide live chat widget if present (for both sender and receiver)
+    await senderDriver.executeScript(`
+      var chat = document.getElementById('live-chat-ai-host');
+      if (chat) { chat.style.display = 'none'; }
+    `);
+    await receiverDriver.executeScript(`
+      var chat = document.getElementById('live-chat-ai-host');
+      if (chat) { chat.style.display = 'none'; }
+    `);
+
     // Click send button in chatroom
     const sendButton = await senderDriver.findElement(By.css('.send-button'));
     await sendButton.click();

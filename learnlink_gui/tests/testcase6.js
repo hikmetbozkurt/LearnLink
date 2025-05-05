@@ -64,10 +64,48 @@ async function testCreateChatroom() {
     const submitBtn = await driver.findElement(By.css('.create-button'));
     await submitBtn.click();
 
-    // Wait for room to appear in sidebar
+    // Add a delay to allow backend processing
+    await driver.sleep(3000);
+
+    // Debug: Log all chatroom elements present
+    const html = await driver.findElement(By.css('body')).getAttribute('outerHTML');
+    fs.writeFileSync('after_create_room.html', html);
+    console.log('Debugging: Getting all chat room elements...');
+    const chatRooms = await driver.findElements(By.css('.chat-room'));
+    console.log(`Found ${chatRooms.length} chat rooms`);
+    for (let i = 0; i < chatRooms.length; i++) {
+      try {
+        const h3 = await chatRooms[i].findElement(By.css('h3'));
+        const roomName = await h3.getText();
+        console.log(`Room ${i+1}: ${roomName}`);
+      } catch (e) {
+        console.log(`Room ${i+1}: Could not get name`);
+      }
+    }
+
+    // Take screenshot for debugging
+    const screenshot = await driver.takeScreenshot();
+    fs.writeFileSync('after_create_room.png', screenshot, 'base64');
+
+    // Try a more generic approach - wait for any room to appear first
     console.log('Waiting for room to appear...');
-    await driver.wait(until.elementLocated(By.xpath(`//div[contains(@class, 'chat-room')]//h3[text()='${chatroomName}']`)), 10000);
-    console.log('Chatroom successfully created and visible');
+    await driver.wait(until.elementLocated(By.css('.chat-room')), 20000);
+
+    // Then check if our room is there
+    const roomElements = await driver.findElements(By.css('.chat-room h3'));
+    let roomFound = false;
+    for (const element of roomElements) {
+      const text = await element.getText();
+      if (text.includes(chatroomName)) {
+        roomFound = true;
+        console.log('Chatroom successfully created and visible');
+        break;
+      }
+    }
+
+    if (!roomFound) {
+      throw new Error(`Room "${chatroomName}" not found after creation`);
+    }
 
     const finalScreenshot = await driver.takeScreenshot();
     fs.writeFileSync('5_chatroom_created.png', finalScreenshot, 'base64');
