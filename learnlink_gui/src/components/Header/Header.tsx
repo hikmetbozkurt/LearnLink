@@ -109,45 +109,15 @@ const Header = () => {
     refreshUserData();
   };
 
-  // Function to test if the image URL is accessible
-  const testImageUrl = useCallback(async (url: string) => {
-    try {
-      // Use axios instead of fetch to ensure auth headers are included
-      // Extract the path part of the URL if it's an absolute URL
-      let imagePath = url;
-      if (url.startsWith('http')) {
-        // Extract just the path part (/api/users/profile-picture/9)
-        const urlObj = new URL(url);
-        imagePath = urlObj.pathname;
-      }
-      
-      // Now use our axios instance to make the request (it has auth headers)
-      const response = await api.get(imagePath, {
-        responseType: 'blob'  // Request the image as a blob
-      });
-      
-      if (response.status !== 200) {
-        console.error(`Image fetch failed with status: ${response.status}`);
-        return false;
-      }
-      
-      return true;
-    } catch (error) {
-      console.error("Image fetch error:", error);
-      return false;
-    }
-  }, []);
-
-  // Test the image URL when the user object changes
-  useEffect(() => {
-    if (user?.profile_pic) {
-      testImageUrl(user.profile_pic);
-    }
-  }, [user, testImageUrl]);
 
   // Function to get the full profile picture URL
   const getProfilePicUrl = (picPath: string | undefined) => {
     if (!picPath) return defaultAvatar;
+    
+    // Handle Google profile picture URLs (they should be used directly, not through our API)
+    if (picPath.includes('googleusercontent.com')) {
+      return picPath; // Return the full URL for Google profile pictures
+    }
     
     // For relative URLs that point to the profile picture endpoint,
     // return just the path since we'll load it via our API
@@ -173,6 +143,13 @@ const Header = () => {
   // Function to load an image through our API with auth
   const loadImageViaApi = async (imagePath: string): Promise<string> => {
     try {
+      // For Google URLs, fetch them directly without going through our API
+      if (imagePath.includes('googleusercontent.com')) {
+        const response = await fetch(imagePath);
+        const blob = await response.blob();
+        return URL.createObjectURL(blob);
+      }
+      
       // Use a clean path without query params for the API request
       const cleanPath = imagePath.split('?')[0];
       

@@ -34,8 +34,32 @@ const ProfileCard: React.FC<ProfileCardProps> = ({ user, onClose, currentUser = 
   const [localProfilePic, setLocalProfilePic] = useState<string | undefined>(user.profile_pic);
   const [profileImageLoading, setProfileImageLoading] = useState(false);
   const [profileImageSrc, setProfileImageSrc] = useState<string | null>(null);
+  const [authProvider, setAuthProvider] = useState<string | null>(null);
+  const [isLoadingProvider, setIsLoadingProvider] = useState(true);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const imgRef = useRef<HTMLImageElement>(null);
+
+  useEffect(() => {
+    // Check if the user is using Google login
+    const checkProvider = async () => {
+      try {
+        setIsLoadingProvider(true);
+        const provider = await authService.checkAuthProvider();
+        setAuthProvider(provider);
+      } catch (error) {
+        console.error('Error checking auth provider:', error);
+        setAuthProvider('email'); // Default to email if there's an error
+      } finally {
+        setIsLoadingProvider(false);
+      }
+    };
+
+    if (currentUser) {
+      checkProvider();
+    } else {
+      setIsLoadingProvider(false);
+    }
+  }, [currentUser]);
 
   // Load profile image when component mounts or localProfilePic changes
   useEffect(() => {
@@ -159,6 +183,11 @@ const ProfileCard: React.FC<ProfileCardProps> = ({ user, onClose, currentUser = 
   const getProfilePicUrl = (picPath: string | undefined) => {
     if (!picPath) return undefined;
     
+    // Handle Google profile picture URLs (they should be used directly, not through our API)
+    if (picPath.includes('googleusercontent.com')) {
+      return picPath; // Return the full URL for Google profile pictures
+    }
+    
     // For relative URLs that point to the profile picture endpoint,
     // return just the path since we'll load it via our API
     if (picPath.startsWith('/api/users/profile-picture/')) {
@@ -184,6 +213,13 @@ const ProfileCard: React.FC<ProfileCardProps> = ({ user, onClose, currentUser = 
   const loadImageViaApi = async (imagePath: string): Promise<string> => {
     try {
       if (!imagePath) return '';
+      
+      // For Google URLs, fetch them directly without going through our API
+      if (imagePath.includes('googleusercontent.com')) {
+        const response = await fetch(imagePath);
+        const blob = await response.blob();
+        return URL.createObjectURL(blob);
+      }
       
       // Use a clean path without query params for the API request
       const cleanPath = imagePath.split('?')[0];
@@ -315,15 +351,16 @@ const ProfileCard: React.FC<ProfileCardProps> = ({ user, onClose, currentUser = 
             </div>
           </div>
 
-          <div className="info-item">
-            <FaCalendar className="info-icon" />
-            <div>
-              <label>Member Since</label>
-              <p>{formatDate(user.created_at)}</p>
+          {/* Only show Member Since for non-Google users */}
+          {(!isLoadingProvider && (!currentUser || (currentUser && authProvider !== 'google'))) && (
+            <div className="info-item">
+              <FaCalendar className="info-icon" />
+              <div>
+                <label>Member Since</label>
+                <p>{formatDate(user.created_at)}</p>
+              </div>
             </div>
-          </div>
-
-          
+          )}
         </div>
       </div>
     </div>

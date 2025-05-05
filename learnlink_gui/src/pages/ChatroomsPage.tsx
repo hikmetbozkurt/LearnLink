@@ -272,22 +272,30 @@ const ChatroomsPage = () => {
     room?.name?.toLowerCase().includes(searchQuery.toLowerCase())
   ) || [];
 
-  const handleCreateRoom = async () => {
+  const handleCreateRoom = async (e?: React.FormEvent) => {
+    // Prevent default form submission if event is provided
+    if (e) e.preventDefault();
+    
     if (!formData.roomName.trim()) return;
 
     setIsLoading(true);
     try {
+      console.log('Creating chatroom with name:', formData.roomName.trim());
+      
       const response = await api.post('/api/chatrooms', {
-        name: formData.roomName.trim()
+        name: formData.roomName.trim(),
+        description: '' // Add a description parameter since the backend expects it
       });
 
+      console.log('Chatroom creation response:', response.data);
       setChatRooms(prev => [...prev, response.data]);
       setFormData({ roomName: '' });
       setShowCreateRoom(false);
       setError(null);
-    } catch (err) {
+    } catch (err: any) {
       console.error('Error creating chatroom:', err);
-      setError('Failed to create chatroom');
+      console.error('Error details:', err.response?.data || err.message);
+      setError(err.response?.data?.message || 'Failed to create chatroom');
     } finally {
       setIsLoading(false);
     }
