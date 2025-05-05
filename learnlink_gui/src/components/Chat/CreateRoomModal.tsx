@@ -18,11 +18,16 @@ const CreateRoomModal: React.FC<CreateRoomModalProps> = ({
   onClose,
   isLoading
 }) => {
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    onSubmit(e);
+  };
+
   return (
     <div className="create-room-modal">
       <div className="modal-content">
         <h2>Create New Chat Room</h2>
-        <form onSubmit={onSubmit}>
+        <form onSubmit={handleSubmit}>
           <div className="form-group">
             <label>Room Name</label>
             <input
@@ -38,7 +43,7 @@ const CreateRoomModal: React.FC<CreateRoomModalProps> = ({
             <button type="button" onClick={onClose} disabled={isLoading}>
               Cancel
             </button>
-            <button type="submit" className="create-button" disabled={isLoading}>
+            <button type="submit" className="create-button" disabled={isLoading || !formData.roomName.trim()}>
               {isLoading ? 'Creating...' : 'Create Room'}
             </button>
           </div>

@@ -152,5 +152,16 @@ export const authService = {
       console.error('Error fetching current user:', error);
       return null;
     }
+  },
+  
+  // Check if user is using Google login
+  checkAuthProvider: async () => {
+    try {
+      const response = await api.get('/api/auth/check-auth-provider');
+      return response.data.provider;
+    } catch (error) {
+      console.error('Error checking auth provider:', error);
+      return 'email'; // Default to email if there's an error
+    }
   }
 }; 

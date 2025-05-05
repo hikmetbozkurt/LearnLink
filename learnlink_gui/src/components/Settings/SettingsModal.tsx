@@ -45,6 +45,27 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
     }
   }, [user]);
 
+  // Update currentEmail when the modal opens
+  useEffect(() => {
+    if (isOpen && user && user.email) {
+      setCurrentEmail(user.email);
+      
+      // If we need to refresh user data from the server
+      const refreshUserData = async () => {
+        try {
+          const response = await api.get(`/api/users/${user.id || user.user_id}`);
+          if (response.data && response.data.email) {
+            setCurrentEmail(response.data.email);
+          }
+        } catch (error) {
+          console.error('Failed to fetch user data:', error);
+        }
+      };
+      
+      refreshUserData();
+    }
+  }, [isOpen, user]);
+
   useEffect(() => {
     if (user) {
       
