@@ -67,7 +67,7 @@ export const chatroomController = {
   // Yeni chat odası oluştur
   createChatroom: async (req, res) => {
     const { name, description } = req.body;
-    const userId = req.user.id;
+    const userId = req.user.user_id;
 
     try {
       const result = await pool.query(
