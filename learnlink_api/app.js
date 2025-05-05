@@ -23,7 +23,6 @@ import fileRoutes from './routes/fileRoutes.js';
 dotenv.config();
 
 // Log a message about AWS configuration but don't expose the values
-console.log('AWS S3 configuration loaded from environment variables');
 
 // No hardcoded credentials - the app will use environment variables directly
 // AWS SDK will automatically use AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY,
@@ -45,17 +44,9 @@ app.get('/api/test', (req, res) => {
   });
 });
 
-// Serve static files from uploads directory
-const uploadsPath = path.join(__dirname, 'uploads');
-fs.mkdirSync(uploadsPath, { recursive: true }); // Ensure the directory exists
-app.use('/uploads', express.static(uploadsPath));
-
-// Create temp directory for file uploads
+// Create temp directory for file uploads (temporary storage before S3 upload)
 const tempUploadsPath = path.join(__dirname, 'uploads/temp');
 fs.mkdirSync(tempUploadsPath, { recursive: true }); // Ensure the temp directory exists
-
-// Serve static files from uploads folder
-app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
 // Add request logging middleware
 app.use((req, res, next) => {

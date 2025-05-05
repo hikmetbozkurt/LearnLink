@@ -4,6 +4,7 @@ import multer from "multer";
 import path from "path";
 import fs from "fs";
 import pool from "../config/database.js";
+import * as s3Service from '../services/s3Service.js'; // Import S3 service
 import {
   createPost,
   getCoursePosts,
@@ -243,7 +244,6 @@ router.post(
       let { content, type } = req.body;
       const userId = req.user.user_id;
 
-
       // SQL sorgusunu başlat
       let query;
       let params;
@@ -329,15 +329,21 @@ router.post(
           }
         }
 
-        // Dosya yolu oluştur - req.file.path'i / ile bölüp sadece uploads kısmını al
-        const pathParts = req.file.path.split("\\");
-        const uploadIndex = pathParts.findIndex((part) => part === "uploads");
-
-        if (uploadIndex !== -1) {
-          fileUrl = "/" + pathParts.slice(uploadIndex).join("/");
-        } else {
-          // Alternatif yol oluşturma (Windows ve Linux arasındaki farklılıklar için)
-          fileUrl = "/" + req.file.path.replace(/\\/g, "/");
+        // Always use S3 for file storage
+        try {
+          const folderPath = 'posts/';
+          fileUrl = await s3Service.uploadFile(req.file, folderPath);
+          
+          // After successful S3 upload, we can remove the local temp file
+          if (fs.existsSync(req.file.path)) {
+            fs.unlinkSync(req.file.path);
+          }
+        } catch (s3Error) {
+          console.error('S3 upload failed:', s3Error);
+          return res.status(500).json({
+            message: "Failed to upload file to S3",
+            error: s3Error.message,
+          });
         }
       }
 
@@ -347,13 +353,21 @@ router.post(
         videoUrl = req.body.videoUrl;
       }
 
+      // Extract file metadata to store
+      let fileName = null;
+      let mimeType = null;
+      if (req.file) {
+        fileName = req.file.originalname;
+        mimeType = req.file.mimetype;
+      }
+
       // Tüm post tipleri için tek bir SQL sorgusu kullan
       query = `
-        INSERT INTO posts (course_id, author_id, content, type, file_url, video_url) 
-        VALUES ($1, $2, $3, $4, $5, $6) 
+        INSERT INTO posts (course_id, author_id, content, type, file_url, video_url, file_name, mime_type) 
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8) 
         RETURNING *
       `;
-      params = [courseId, userId, content, type || "text", fileUrl, videoUrl];
+      params = [courseId, userId, content, type || "text", fileUrl, videoUrl, fileName, mimeType];
 
       // Post'u oluştur
       const result = await pool.query(query, params);
