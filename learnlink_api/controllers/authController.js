@@ -239,7 +239,7 @@ export const requestPasswordReset = asyncHandler(async (req, res) => {
 
     if (error.message === 'User not found') {
       res.status(404).json({ message: 'User not found' });
-    } else if (error.message.includes('Email service not configured')) {
+    } else if (error.message.includes('Email service not configured properly')) {
       res.status(500).json({ message: 'Email service configuration error' });
     } else if (error.message.includes('authentication failed')) {
       res.status(500).json({ message: 'Email service authentication error' });

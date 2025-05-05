@@ -4,12 +4,12 @@ import config from '../config/env.js'
 export class EmailService {
   constructor() {
     const smtpConfig = {
-      host: process.env.SMTP_HOST,
-      port: process.env.SMTP_PORT,
+      host: process.env.SMTP_HOST || config.SMTP_HOST,
+      port: process.env.SMTP_PORT || config.SMTP_PORT,
       secure: false,
       auth: {
-        user: process.env.SMTP_USER,
-        pass: process.env.SMTP_PASS
+        user: process.env.SMTP_USER || config.SMTP_USER,
+        pass: process.env.SMTP_PASS || config.SMTP_PASS
       }
     };
 
@@ -18,18 +18,19 @@ export class EmailService {
 
   async sendVerificationCode(to, code) {
     
-    if (!process.env.SMTP_HOST || !process.env.SMTP_PORT || !process.env.SMTP_USER || !process.env.SMTP_PASS) {
+    if (!this.transporter.options.host || !this.transporter.options.port || 
+        !this.transporter.options.auth.user || !this.transporter.options.auth.pass) {
       console.error('Missing email configuration:', {
-        host: !!process.env.SMTP_HOST,
-        port: !!process.env.SMTP_PORT,
-        user: !!process.env.SMTP_USER,
-        pass: !!process.env.SMTP_PASS
+        host: !!this.transporter.options.host,
+        port: !!this.transporter.options.port,
+        user: !!this.transporter.options.auth.user,
+        pass: !!this.transporter.options.auth.pass
       });
       throw new Error('Email service not configured properly');
     }
 
     const mailOptions = {
-      from: process.env.SMTP_USER,
+      from: this.transporter.options.auth.user,
       to: to,
       subject: 'Password Reset Code - LearnLink',
       html: this.getEmailTemplate('verification', { code })
@@ -99,7 +100,7 @@ export class EmailService {
 
   async sendWelcomeEmail(to, name) {
     const mailOptions = {
-      from: process.env.SMTP_USER,
+      from: this.transporter.options.auth.user,
       to: to,
       subject: 'Welcome to LearnLink!',
       html: this.getEmailTemplate('welcome', { name })
