@@ -18,11 +18,25 @@ import commentRoutes from './routes/commentRoutes.js';
 import eventRoutes from './routes/eventRoutes.js';
 import assignmentRoutes from './routes/assignmentRoutes.js';
 import fileRoutes from './routes/fileRoutes.js';
+import { configureBucketCORS } from './services/s3Service.js';
 
 // Load environment variables
 dotenv.config();
 
 // Log a message about AWS configuration but don't expose the values
+
+
+// Configure S3 bucket CORS settings
+configureBucketCORS()
+  .then(success => {
+    if (success) {
+    } else {
+      console.warn('S3 bucket CORS configuration did not complete successfully');
+    }
+  })
+  .catch(err => {
+    console.error('Error during S3 CORS configuration:', err);
+  });
 
 // No hardcoded credentials - the app will use environment variables directly
 // AWS SDK will automatically use AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY,

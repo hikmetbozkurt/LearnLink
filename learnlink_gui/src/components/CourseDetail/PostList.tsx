@@ -128,13 +128,14 @@ const PostList: React.FC<PostListProps> = ({
   // Update the handleDownloadFile function to use the correct base URL
   const handleDownloadFile = async (fileUrl: string, fileName: string) => {
     try {
-      // Determine if it's an S3 URL or local URL based on the path
-      // S3 URLs typically contain amazonaws.com or a similar pattern
-      const isS3Url = fileUrl.includes('amazonaws.com') || fileUrl.includes('s3://');
-      
-      // For S3 URLs, use the URL directly
-      // For local URLs, use the API base URL from the config
-      const fullUrl = isS3Url ? fileUrl : `${api.defaults.baseURL}${fileUrl}`;
+      // For S3 URLs, open in a new window/tab to let the browser handle the Content-Disposition
+      if (fileUrl.includes('amazonaws.com')) {
+        window.open(fileUrl, '_blank');
+        return;
+      }
+
+      // For local URLs, use the fetch approach
+      const fullUrl = fileUrl.startsWith('http') ? fileUrl : `${api.defaults.baseURL}${fileUrl}`;
 
       // Fetch the file from the URL
       const response = await fetch(fullUrl);

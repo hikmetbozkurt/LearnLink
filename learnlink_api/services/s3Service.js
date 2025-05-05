@@ -44,14 +44,23 @@ const uploadFile = async (file, folderPath = '') => {
     const fileExtension = path.extname(file.originalname);
     const fileName = `${folderPath}${Date.now()}-${uuidv4()}${fileExtension}`;
     
+    // Determine if this file type should be downloaded rather than displayed inline
+    const downloadableTypes = ['.txt', '.doc', '.docx', '.xls', '.xlsx', '.ppt', '.pptx', '.zip', '.rar'];
+    const isDownloadable = downloadableTypes.includes(fileExtension.toLowerCase());
+    
     // Set up the upload parameters
     const uploadParams = {
       Bucket: BUCKET_NAME,
       Key: fileName,
       Body: fs.createReadStream(file.path),
       ContentType: file.mimetype,
-      ACL: 'public-read' // Make the file publicly accessible
+      ACL: 'public-read', // Make the file publicly accessible
     };
+    
+    // Add ContentDisposition header for downloadable file types
+    if (isDownloadable) {
+      uploadParams.ContentDisposition = `attachment; filename="${encodeURIComponent(file.originalname)}"`;
+    }
 
     // Upload the file
     const result = await s3.upload(uploadParams).promise();
@@ -117,10 +126,54 @@ const getSignedUrl = async (key, expiresIn = 60) => {
   }
 };
 
+/**
+ * Sets the CORS configuration for the S3 bucket
+ * This should be called when your app initializes
+ */
+const configureBucketCORS = async () => {
+  try {
+    const corsConfig = {
+      CORSRules: [
+        {
+          AllowedHeaders: ['*'],
+          AllowedMethods: ['GET', 'PUT', 'POST', 'DELETE', 'HEAD'],
+          // Allow both production URLs and development URLs
+          AllowedOrigins: [
+            'http://localhost:3000',
+            'https://localhost:3000',
+            'http://learnlink-v1-env.eba-b28u347j.eu-north-1.elasticbeanstalk.com',
+            'https://learnlink-v1-env.eba-b28u347j.eu-north-1.elasticbeanstalk.com',
+            'http://learnlink.co',
+            'https://learnlink.co',
+            'https://*.learnlink.co',
+            'http://*.learnlink.co',
+            '*' // As a fallback - remove this in production for better security
+          ],
+          ExposeHeaders: ['ETag', 'Content-Length', 'Content-Type', 'Content-Disposition', 'x-amz-*'],
+          MaxAgeSeconds: 3600
+        }
+      ]
+    };
+    
+    await s3.putBucketCors({
+      Bucket: BUCKET_NAME,
+      CORSConfiguration: corsConfig
+    }).promise();
+    
+
+    return true;
+  } catch (error) {
+    console.error('Error setting CORS configuration for S3 bucket:', error);
+    // Don't throw error as this is not critical for app functionality
+    return false;
+  }
+};
+
 export {
   uploadFile,
   deleteFile,
   getSignedUrl,
+  configureBucketCORS,
   s3,
   BUCKET_NAME
 }; 
