@@ -3,41 +3,6 @@ import jwt from 'jsonwebtoken';
 import config from './config/env.js';
 import pool from './config/database.js';
 
-// Function to ensure notifications table has all required columns
-const ensureNotificationsTableColumns = async () => {
-  try {
-    
-    // Check if assignment_id column exists
-    const assignmentIdCheck = await pool.query(
-      "SELECT EXISTS (SELECT FROM information_schema.columns WHERE table_name = 'notifications' AND column_name = 'assignment_id')"
-    );
-    
-    if (!assignmentIdCheck.rows[0].exists) {
-      await pool.query("ALTER TABLE notifications ADD COLUMN assignment_id INTEGER");
-    }
-    
-    // Check if submission_id column exists
-    const submissionIdCheck = await pool.query(
-      "SELECT EXISTS (SELECT FROM information_schema.columns WHERE table_name = 'notifications' AND column_name = 'submission_id')"
-    );
-    
-    if (!submissionIdCheck.rows[0].exists) {
-      await pool.query("ALTER TABLE notifications ADD COLUMN submission_id INTEGER");
-    }
-    
-    // Check if course_id column exists
-    const courseIdCheck = await pool.query(
-      "SELECT EXISTS (SELECT FROM information_schema.columns WHERE table_name = 'notifications' AND column_name = 'course_id')"
-    );
-    
-    if (!courseIdCheck.rows[0].exists) {
-      await pool.query("ALTER TABLE notifications ADD COLUMN course_id INTEGER");
-    }
-    
-  } catch (error) {
-    console.error('Error ensuring notifications table columns:', error);
-  }
-};
 
 const setupSocket = (server) => {
   const io = new Server(server, {

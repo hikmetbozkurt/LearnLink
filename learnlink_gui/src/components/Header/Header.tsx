@@ -4,7 +4,8 @@ import {
   FaSearch, 
   FaCog, 
   FaSignOutAlt,
-  FaUser
+  FaUser,
+  FaSpinner
 } from 'react-icons/fa';
 import NotificationBell, { NotificationBellRef } from '../NotificationBell';
 import EventsDropdown from '../EventsDropdown';
@@ -15,6 +16,7 @@ import { useEvent } from '../../contexts/EventContext';
 import './Header.css';
 import defaultAvatar from '../../assets/images/default-avatar.png';
 import { authService } from '../../services/authService';
+import api from '../../api/axiosConfig';
 
 type DropdownType = 'settings' | 'notifications' | 'events' | null;
 
@@ -40,8 +42,23 @@ const Header = () => {
   const [showProfileCard, setShowProfileCard] = useState(false);
   const [showSettingsModal, setShowSettingsModal] = useState(false);
   const [profileImageKey, setProfileImageKey] = useState(Date.now());
+  const [profileImageLoading, setProfileImageLoading] = useState(false);
+  const [profileImageSrc, setProfileImageSrc] = useState<string | null>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const notificationRef = useRef<NotificationBellRef>(null);
+
+  // Force refresh profile image on component mount and every minute
+  useEffect(() => {
+    // Initial refresh
+    setProfileImageKey(Date.now());
+    
+    // Set up periodic refresh
+    const interval = setInterval(() => {
+      setProfileImageKey(Date.now());
+    }, 60000); // Refresh every minute
+    
+    return () => clearInterval(interval);
+  }, []);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -92,6 +109,110 @@ const Header = () => {
     refreshUserData();
   };
 
+  // Function to test if the image URL is accessible
+  const testImageUrl = useCallback(async (url: string) => {
+    try {
+      // Use axios instead of fetch to ensure auth headers are included
+      // Extract the path part of the URL if it's an absolute URL
+      let imagePath = url;
+      if (url.startsWith('http')) {
+        // Extract just the path part (/api/users/profile-picture/9)
+        const urlObj = new URL(url);
+        imagePath = urlObj.pathname;
+      }
+      
+      // Now use our axios instance to make the request (it has auth headers)
+      const response = await api.get(imagePath, {
+        responseType: 'blob'  // Request the image as a blob
+      });
+      
+      if (response.status !== 200) {
+        console.error(`Image fetch failed with status: ${response.status}`);
+        return false;
+      }
+      
+      return true;
+    } catch (error) {
+      console.error("Image fetch error:", error);
+      return false;
+    }
+  }, []);
+
+  // Test the image URL when the user object changes
+  useEffect(() => {
+    if (user?.profile_pic) {
+      testImageUrl(user.profile_pic);
+    }
+  }, [user, testImageUrl]);
+
+  // Function to get the full profile picture URL
+  const getProfilePicUrl = (picPath: string | undefined) => {
+    if (!picPath) return defaultAvatar;
+    
+    // For relative URLs that point to the profile picture endpoint,
+    // return just the path since we'll load it via our API
+    if (picPath.startsWith('/api/users/profile-picture/')) {
+      return picPath;
+    }
+    
+    // For absolute URLs to our API server, extract just the path
+    if (picPath.includes('learnlink-v1-env.eba-b28u347j.eu-north-1.elasticbeanstalk.com')) {
+      try {
+        const urlObj = new URL(picPath);
+        return urlObj.pathname;
+      } catch (e) {
+        console.error("Invalid URL:", picPath);
+        return picPath;
+      }
+    }
+    
+    // Default case - just use the URL as is
+    return picPath;
+  };
+  
+  // Function to load an image through our API with auth
+  const loadImageViaApi = async (imagePath: string): Promise<string> => {
+    try {
+      // Use a clean path without query params for the API request
+      const cleanPath = imagePath.split('?')[0];
+      
+      // Make an authenticated request to get the image
+      const response = await api.get(cleanPath, {
+        responseType: 'blob'
+      });
+      
+      // Create a blob URL from the response
+      const blob = response.data;
+      return URL.createObjectURL(blob);
+    } catch (error) {
+      console.error('Error loading image via API:', error);
+      return defaultAvatar;
+    }
+  };
+
+  // Load profile image when user changes
+  useEffect(() => {
+    if (user?.profile_pic) {
+      const loadProfileImage = async () => {
+        setProfileImageLoading(true);
+        try {
+          const picPath = getProfilePicUrl(user.profile_pic);
+          const blobUrl = await loadImageViaApi(picPath);
+          setProfileImageSrc(blobUrl);
+        } catch (err) {
+          console.error("Error loading profile image:", err);
+          setProfileImageSrc(defaultAvatar);
+        } finally {
+          setProfileImageLoading(false);
+        }
+      };
+      
+      loadProfileImage();
+    } else {
+      setProfileImageSrc(defaultAvatar);
+    }
+  }, [user, profileImageKey]);
+
   const renderDropdownContent = (type: DropdownType) => {
     switch (type) {
       case 'settings':
@@ -123,14 +244,22 @@ const Header = () => {
 
           <div className="header-actions" ref={dropdownRef}>
             <div className="profile-avatar" onClick={() => setShowProfileCard(true)}>
-              <img 
-                key={profileImageKey}
-                src={user?.profile_pic ? `${user.profile_pic}?t=${profileImageKey}` : defaultAvatar} 
-                alt="Profile" 
-                onError={(e) => { 
-                  e.currentTarget.src = defaultAvatar; 
-                }}
-              />
+              {profileImageLoading ? (
+                <div className="loading-spinner">
+                  <FaSpinner className="spinner-icon" />
+                </div>
+              ) : user?.profile_pic ? (
+                <img 
+                  key={profileImageKey}
+                  src={profileImageSrc || defaultAvatar}
+                  alt="Profile" 
+                  onError={(e) => { 
+                    e.currentTarget.src = defaultAvatar; 
+                  }}
+                />
+              ) : (
+                <img src={defaultAvatar} alt="Profile" />
+              )}
             </div>
 
             <EventsDropdown 

@@ -58,18 +58,6 @@ export const notificationService = {
   createAssignmentNotification: async (courseId: string, assignmentId: string, assignmentTitle: string): Promise<void> => {
     const token = localStorage.getItem('token');
     if (!token) throw new Error('No authentication token found');
-    
-    try {
-      // Use api config instead of axios directly
-      await api.post('/api/notifications/assignment', {
-        course_id: courseId,
-        assignment_id: assignmentId,
-        title: assignmentTitle
-      });
-    } catch (error) {
-      console.error('Error creating assignment notification:', error);
-      throw error;
-    }
   },
   
   // Delete a notification

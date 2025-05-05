@@ -1,9 +1,10 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Course } from "../../types/course";
 import "./CourseHeader.css";
 import ConfirmModal from "../ConfirmModal";
 import { useNavigate } from "react-router-dom";
 import { courseService } from "../../services/courseService";
+import { assignmentService } from "../../services/assignmentService";
 import { FaTrash, FaSignOutAlt, FaPlus } from "react-icons/fa";
 
 interface CourseHeaderProps {
@@ -22,7 +23,12 @@ const CourseHeader: React.FC<CourseHeaderProps> = ({
   isInstructor,
 }) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [showDeleteButton, setShowDeleteButton] = useState(isInstructor);
   const navigate = useNavigate();
+
+  useEffect(() => {
+    setShowDeleteButton(isInstructor);
+  }, [isInstructor]);
 
   const handleActionClick = () => {
     setIsModalOpen(true);
@@ -32,8 +38,16 @@ const CourseHeader: React.FC<CourseHeaderProps> = ({
     try {
       if (!course?.course_id) return;
 
-      if (isInstructor) {
+      if (showDeleteButton) {
         await courseService.deleteCourse(course.course_id);
+        
+        // Clear assignment cache after course deletion
+        try {
+          assignmentService.clearSubmissionsCache();
+          assignmentService.clearAssignmentsCache();
+        } catch (error) {
+          console.error("Error clearing assignment cache:", error);
+        }
       } else {
         await courseService.leaveCourse(course.course_id);
       }
@@ -42,10 +56,27 @@ const CourseHeader: React.FC<CourseHeaderProps> = ({
       await courseService.getMyCourses();
 
       setIsModalOpen(false);
-      navigate("/courses", {
-        replace: true,
-        state: { refresh: true }, // state ekleyerek yenileme tetikleyicisi gönder
-      });
+      
+      // Navigate with state to trigger refreshes
+      if (showDeleteButton) {
+        // First navigate to assignments page to refresh it
+        navigate("/assignments", {
+          state: { refresh: true }
+        });
+        
+        // Then navigate to courses page
+        setTimeout(() => {
+          navigate("/courses", {
+            replace: true,
+            state: { refresh: true }
+          });
+        }, 100);
+      } else {
+        navigate("/courses", {
+          replace: true,
+          state: { refresh: true }
+        });
+      }
     } catch (error) {
       console.error("Error:", error);
     }
@@ -63,10 +94,10 @@ const CourseHeader: React.FC<CourseHeaderProps> = ({
             <h1>{course?.title}</h1>
             <div className="action-buttons">
               <button
-                className={isInstructor ? "delete-course-button" : "leave-course-button"}
+                className={showDeleteButton ? "delete-course-button" : "leave-course-button"}
                 onClick={handleActionClick}
               >
-                {isInstructor ? (
+                {showDeleteButton ? (
                   <>
                     <FaTrash /> Delete Course
                   </>
@@ -92,13 +123,13 @@ const CourseHeader: React.FC<CourseHeaderProps> = ({
 
       <ConfirmModal
         isOpen={isModalOpen}
-        title={isInstructor ? "Delete Course" : "Leave Course"}
+        title={showDeleteButton ? "Delete Course" : "Leave Course"}
         message={
-          isInstructor
+          showDeleteButton
             ? "Are you sure you want to delete this course? This action cannot be undone."
             : "Are you sure you want to leave this course? You can join again later if you change your mind."
         }
-        confirmButtonText={isInstructor ? "Delete Course" : "Leave Course"}
+        confirmButtonText={showDeleteButton ? "Delete Course" : "Leave Course"}
         onConfirm={handleConfirm}
         onCancel={handleCancel}
       />

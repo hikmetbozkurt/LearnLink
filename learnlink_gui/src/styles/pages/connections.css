@@ -202,7 +202,7 @@
 }
 
 .accept-friend-btn:hover:not(:disabled) {
-  background-color: var(--success-dark);
+  background-color: #387135;
 }
 
 .reject-friend-btn,

@@ -6,7 +6,10 @@ import {
   markAllAsRead,
   clearAllNotifications,
   deleteNotification,
-  getUserNotifications
+  getUserNotifications,
+  createAssignmentNotification,
+  createSubmissionNotification,
+  createTestNotification
 } from '../controllers/notificationController.js';
 import { authenticateToken } from '../middleware/authMiddleware.js';
 
@@ -17,6 +20,17 @@ router.use(authenticateToken);
 
 // Create a notification
 router.post('/', createNotification);
+
+// Assignment notification endpoints
+router.post('/assignment', createAssignmentNotification);
+router.post('/assignment-submission', createSubmissionNotification);
+
+// Keep the new paths for backward compatibility
+router.post('/assignments', createAssignmentNotification);
+router.post('/assignments-submission', createSubmissionNotification);
+
+// Test notification endpoint (for debugging)
+router.post('/test', createTestNotification);
 
 // Get user's notifications (current user)
 router.get('/', getNotifications);

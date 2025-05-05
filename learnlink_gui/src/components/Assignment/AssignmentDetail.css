@@ -133,7 +133,7 @@
 
 .detail-course {
   font-size: 1rem;
-  color: #666;
+  color: var(--text-primary);
   margin-bottom: 15px;
 }
 
@@ -145,7 +145,7 @@
 .detail-due-date {
   font-size: 1rem;
   margin-bottom: 30px;
-  color: #666;
+  color: var(--text-primary);
 }
 
 .detail-description {
@@ -162,7 +162,7 @@
 .description-content {
   font-size: 1rem;
   line-height: 1.6;
-  color: #444;
+  color: var(--text-primary);
   white-space: pre-wrap;
 }
 
@@ -177,14 +177,14 @@
 .detail-grading-criteria h3 {
   font-size: 1.2rem;
   font-weight: 600;
-  color: #333;
+  color: var(--text-primary);
   margin-bottom: 10px;
 }
 
 .grading-criteria-content {
   font-size: 1rem;
   line-height: 1.6;
-  color: #444;
+  color: var(--text-primary);
   white-space: pre-wrap;
 }
 
@@ -255,7 +255,7 @@
 .submission-content h4, .submission-grade h4, .submission-feedback h4 {
   font-size: 0.9rem;
   font-weight: 600;
-  color: #666;
+  color: var(--text-primary);
   margin-bottom: 5px;
 }
 
@@ -309,13 +309,13 @@
 
 .submission-user {
   font-weight: 600;
-  color: #333;
+  color: var(--text-primary);
   font-size: 1rem;
 }
 
 .submission-date {
   font-size: 0.85rem;
-  color: #666;
+  color: var(--text-primary);
 }
 
 .submission-body {
@@ -327,8 +327,8 @@
   display: inline-flex;
   align-items: center;
   gap: 5px;
-  background-color: #e6f7ff;
-  color: #0288d1;
+  background-color: var(--background);
+  color: var(--text-primary);
   padding: 6px 12px;
   border-radius: 4px;
   text-decoration: none;
@@ -337,7 +337,7 @@
 }
 
 .submission-file:hover {
-  background-color: #bae7ff;
+  background-color: var(--modal-background);
   text-decoration: none;
 }
 
@@ -475,7 +475,7 @@
 .user-submission .submission-grade {
   margin-top: 20px;
   padding: 20px;
-  background: linear-gradient(to right, #fbfcff, #f5f7ff);
+  background: var(--modal-background);
   border-radius: 12px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
   border-left: 4px solid #512da8;
@@ -491,14 +491,14 @@
 .grade-value {
   font-size: 1.5rem;
   font-weight: 700;
-  color: #512da8;
+  color: var(--text-primary);
   margin: 5px 0 15px;
 }
 
 .submission-feedback {
   margin-top: 15px;
   padding: 15px;
-  background-color: #f0f7ff;
+  background-color: var(--modal-background);
   border-radius: 8px;
   border-left: 4px solid #512da8;
 }
@@ -523,7 +523,7 @@
 .user-submission .submission-feedback {
   margin-top: 20px;
   padding: 20px;
-  background: linear-gradient(to right, #f5f9ff, #edf4ff);
+  background: var(--background);
   border-radius: 12px;
   border-left: 4px solid #512da8;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);

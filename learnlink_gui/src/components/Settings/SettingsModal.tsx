@@ -432,12 +432,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
             >
               Account
             </button>
-            <button
-              className={`settings-tab-button ${activeTab === 'notifications' ? 'active' : ''}`}
-              onClick={() => setActiveTab('notifications')}
-            >
-              Notifications
-            </button>
+
           </div>
           <div className="settings-tab-content">
             {activeTab === 'appearance' && (

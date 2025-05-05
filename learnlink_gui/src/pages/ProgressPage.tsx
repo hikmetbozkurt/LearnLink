@@ -385,13 +385,15 @@ const ProgressPage: React.FC = () => {
                   {messageActivity && (
                     <>
                       <div style={{ 
-                        padding: '15px', 
+                        padding: '25px', 
                         borderRadius: '8px', 
                         backgroundColor: isDarkMode ? '#2a2a2a' : '#f5f5f5',
                         boxShadow: isDarkMode ? '0 4px 8px rgba(0,0,0,0.2)' : '0 4px 8px rgba(0,0,0,0.1)',
+                        flex: '1',
+                        marginBottom: '10px'
                       }}>
                         <h3 style={{ marginTop: 0, fontSize: '16px', color: isDarkMode ? '#fff' : '#333' }}>Direct Messages</h3>
-                        <div style={{ fontSize: '20px', fontWeight: 'bold', marginBottom: '5px', color: isDarkMode ? '#7c4dff' : '#512da8' }}>
+                        <div style={{ fontSize: '24px', fontWeight: 'bold', marginBottom: '5px', color: isDarkMode ? '#7c4dff' : '#512da8' }}>
                           {messageActivity.direct_messages || 0}
                         </div>
                         <p style={{ marginBottom: 0, fontSize: '12px', color: isDarkMode ? '#aaa' : '#666' }}>
@@ -402,13 +404,14 @@ const ProgressPage: React.FC = () => {
                       </div>
                       
                       <div style={{ 
-                        padding: '15px', 
+                        padding: '25px', 
                         borderRadius: '8px', 
                         backgroundColor: isDarkMode ? '#2a2a2a' : '#f5f5f5',
                         boxShadow: isDarkMode ? '0 4px 8px rgba(0,0,0,0.2)' : '0 4px 8px rgba(0,0,0,0.1)',
+                        flex: '1'
                       }}>
                         <h3 style={{ marginTop: 0, fontSize: '16px', color: isDarkMode ? '#fff' : '#333' }}>Group Messages</h3>
-                        <div style={{ fontSize: '20px', fontWeight: 'bold', marginBottom: '5px', color: isDarkMode ? '#ff4081' : '#d81b60' }}>
+                        <div style={{ fontSize: '24px', fontWeight: 'bold', marginBottom: '5px', color: isDarkMode ? '#ff4081' : '#d81b60' }}>
                           {messageActivity.group_messages || 0}
                         </div>
                         <p style={{ marginBottom: 0, fontSize: '12px', color: isDarkMode ? '#aaa' : '#666' }}>
@@ -416,18 +419,6 @@ const ProgressPage: React.FC = () => {
                             `${Math.round((messageActivity.group_messages / (messageActivity.direct_messages + messageActivity.group_messages)) * 100)}% of total messages` : 
                             '0% of total messages'}
                         </p>
-                      </div>
-                      
-                      <div style={{ 
-                        padding: '15px', 
-                        borderRadius: '8px', 
-                        backgroundColor: isDarkMode ? '#2a2a2a' : '#f5f5f5',
-                        boxShadow: isDarkMode ? '0 4px 8px rgba(0,0,0,0.2)' : '0 4px 8px rgba(0,0,0,0.1)',
-                      }}>
-                        <h3 style={{ marginTop: 0, fontSize: '16px', color: isDarkMode ? '#fff' : '#333' }}>Total Messages</h3>
-                        <div style={{ fontSize: '20px', fontWeight: 'bold', marginBottom: '5px', color: isDarkMode ? '#64b5f6' : '#1976d2' }}>
-                          {(messageActivity.direct_messages || 0) + (messageActivity.group_messages || 0)}
-                        </div>
                       </div>
                     </>
                   )}
@@ -494,13 +485,15 @@ const ProgressPage: React.FC = () => {
                   {courseActivity && (
                     <>
                       <div style={{ 
-                        padding: '15px', 
+                        padding: '25px', 
                         borderRadius: '8px', 
                         backgroundColor: isDarkMode ? '#2a2a2a' : '#f5f5f5',
                         boxShadow: isDarkMode ? '0 4px 8px rgba(0,0,0,0.2)' : '0 4px 8px rgba(0,0,0,0.1)',
+                        flex: '1',
+                        marginBottom: '10px'
                       }}>
                         <h3 style={{ marginTop: 0, fontSize: '16px', color: isDarkMode ? '#fff' : '#333' }}>Enrolled Courses</h3>
-                        <div style={{ fontSize: '20px', fontWeight: 'bold', marginBottom: '5px', color: isDarkMode ? '#00c851' : '#00695c' }}>
+                        <div style={{ fontSize: '24px', fontWeight: 'bold', marginBottom: '5px', color: isDarkMode ? '#00c851' : '#00695c' }}>
                           {courseActivity.enrolled_courses || 0}
                         </div>
                         <p style={{ marginBottom: 0, fontSize: '12px', color: isDarkMode ? '#aaa' : '#666' }}>
@@ -511,13 +504,14 @@ const ProgressPage: React.FC = () => {
                       </div>
                       
                       <div style={{ 
-                        padding: '15px', 
+                        padding: '25px', 
                         borderRadius: '8px', 
                         backgroundColor: isDarkMode ? '#2a2a2a' : '#f5f5f5',
                         boxShadow: isDarkMode ? '0 4px 8px rgba(0,0,0,0.2)' : '0 4px 8px rgba(0,0,0,0.1)',
+                        flex: '1'
                       }}>
                         <h3 style={{ marginTop: 0, fontSize: '16px', color: isDarkMode ? '#fff' : '#333' }}>Created Courses</h3>
-                        <div style={{ fontSize: '20px', fontWeight: 'bold', marginBottom: '5px', color: isDarkMode ? '#ffab00' : '#f57c00' }}>
+                        <div style={{ fontSize: '24px', fontWeight: 'bold', marginBottom: '5px', color: isDarkMode ? '#ffab00' : '#f57c00' }}>
                           {courseActivity.created_courses || 0}
                         </div>
                         <p style={{ marginBottom: 0, fontSize: '12px', color: isDarkMode ? '#aaa' : '#666' }}>
@@ -525,18 +519,6 @@ const ProgressPage: React.FC = () => {
                             `${Math.round((courseActivity.created_courses / (courseActivity.enrolled_courses + courseActivity.created_courses)) * 100)}% of total courses` : 
                             '0% of total courses'}
                         </p>
-                      </div>
-                      
-                      <div style={{ 
-                        padding: '15px', 
-                        borderRadius: '8px', 
-                        backgroundColor: isDarkMode ? '#2a2a2a' : '#f5f5f5',
-                        boxShadow: isDarkMode ? '0 4px 8px rgba(0,0,0,0.2)' : '0 4px 8px rgba(0,0,0,0.1)',
-                      }}>
-                        <h3 style={{ marginTop: 0, fontSize: '16px', color: isDarkMode ? '#fff' : '#333' }}>Total Courses</h3>
-                        <div style={{ fontSize: '20px', fontWeight: 'bold', marginBottom: '5px', color: isDarkMode ? '#64b5f6' : '#1976d2' }}>
-                          {(courseActivity.enrolled_courses || 0) + (courseActivity.created_courses || 0)}
-                        </div>
                       </div>
                     </>
                   )}

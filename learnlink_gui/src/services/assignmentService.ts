@@ -399,5 +399,15 @@ export const assignmentService = {
   clearSubmissionsCache: () => {
     assignmentService._submissionsCache.clear();
     assignmentService._userSubmissionCache.clear();
+  },
+  
+  // Clear all assignment caches when a course is deleted
+  clearAssignmentsCache: () => {
+    // Clear any future assignment caches that might be added
+    // Currently relies on clearSubmissionsCache to clear the cache
+    assignmentService.clearSubmissionsCache();
+    
+    // Force reload on next assignment page visit
+    localStorage.setItem('assignments_cache_invalidated', 'true');
   }
 }; 

@@ -1,5 +1,5 @@
-import React, { useState, useRef, useContext } from 'react';
-import { FaUser, FaEnvelope, FaCalendar, FaBook, FaCamera } from 'react-icons/fa';
+import React, { useState, useRef, useContext, useEffect } from 'react';
+import { FaUser, FaEnvelope, FaCalendar, FaBook, FaCamera, FaSpinner, FaTrash } from 'react-icons/fa';
 import './ProfileCard.css';
 
 // Add import for axios instance and auth service
@@ -32,7 +32,37 @@ const ProfileCard: React.FC<ProfileCardProps> = ({ user, onClose, currentUser = 
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [localProfilePic, setLocalProfilePic] = useState<string | undefined>(user.profile_pic);
+  const [profileImageLoading, setProfileImageLoading] = useState(false);
+  const [profileImageSrc, setProfileImageSrc] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const imgRef = useRef<HTMLImageElement>(null);
+
+  // Load profile image when component mounts or localProfilePic changes
+  useEffect(() => {
+    if (localProfilePic) {
+      const loadProfileImage = async () => {
+        setProfileImageLoading(true);
+        try {
+          const picPath = getProfilePicUrl(localProfilePic);
+          if (picPath) {
+            const blobUrl = await loadImageViaApi(picPath);
+            setProfileImageSrc(blobUrl);
+          } else {
+            setProfileImageSrc(null);
+          }
+        } catch (err) {
+          console.error("Error loading profile image:", err);
+          setProfileImageSrc(null);
+        } finally {
+          setProfileImageLoading(false);
+        }
+      };
+      
+      loadProfileImage();
+    } else {
+      setProfileImageSrc(null);
+    }
+  }, [localProfilePic]);
 
   const formatDate = (dateString: string | undefined) => {
     if (!dateString) return 'N/A';
@@ -75,7 +105,6 @@ const ProfileCard: React.FC<ProfileCardProps> = ({ user, onClose, currentUser = 
       const formData = new FormData();
       formData.append('profilePic', file);
       
-      
       // Use axios instead of fetch
       const response = await api.post('/api/users/profile-picture', formData, {
         headers: {
@@ -83,28 +112,121 @@ const ProfileCard: React.FC<ProfileCardProps> = ({ user, onClose, currentUser = 
         }
       });
       
-      
       if (response.data && response.data.profilePic) {
-        // Update the local state to show the new profile picture
-        setLocalProfilePic(response.data.profilePic);
+        const profilePicUrl = response.data.profilePic;
         
-        // Get updated user data from server
-        const updatedUserData = await authService.getCurrentUser();
-        if (updatedUserData && setUser) {
-          setUser(updatedUserData);
+        // Get the path for API access
+        const picPath = getProfilePicUrl(profilePicUrl);
+        
+        // Immediately update local state with the new URL
+        setLocalProfilePic(profilePicUrl);
+        
+        // Try to load the image via API to verify it works
+        if (picPath) {
+          setProfileImageLoading(true);
+          try {
+            const blobUrl = await loadImageViaApi(picPath);
+            if (blobUrl) {
+              setProfileImageSrc(blobUrl);
+            }
+          } catch (err) {
+            console.error("Error loading new profile pic:", err);
+          } finally {
+            setProfileImageLoading(false);
+          }
         }
         
-        // Force refresh the image if it's the same URL (useful when re-uploading same image)
-        const refreshTimestamp = `?t=${new Date().getTime()}`;
-        setTimeout(() => {
-          setLocalProfilePic(prev => prev ? `${prev.split('?')[0]}${refreshTimestamp}` : prev);
-        }, 100);
+        // Update the user context with the new URL
+        const updatedUserData = await authService.getCurrentUser();
+        if (updatedUserData && setUser) {
+          setUser({
+            ...updatedUserData,
+            profile_pic: profilePicUrl
+          });
+        }
       } else {
         throw new Error('Invalid response format from server');
       }
     } catch (err) {
       console.error('Error uploading profile picture:', err);
       setError(err instanceof Error ? err.message : 'Failed to upload profile picture');
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  // Function to get the full profile picture URL
+  const getProfilePicUrl = (picPath: string | undefined) => {
+    if (!picPath) return undefined;
+    
+    // For relative URLs that point to the profile picture endpoint,
+    // return just the path since we'll load it via our API
+    if (picPath.startsWith('/api/users/profile-picture/')) {
+      return picPath;
+    }
+    
+    // For absolute URLs to our API server, extract just the path
+    if (picPath.includes('learnlink-v1-env.eba-b28u347j.eu-north-1.elasticbeanstalk.com')) {
+      try {
+        const urlObj = new URL(picPath);
+        return urlObj.pathname;
+      } catch (e) {
+        console.error("Invalid URL:", picPath);
+        return picPath;
+      }
+    }
+    
+    // Default case - just use the URL as is
+    return picPath;
+  };
+  
+  // Function to load an image through our API with auth
+  const loadImageViaApi = async (imagePath: string): Promise<string> => {
+    try {
+      if (!imagePath) return '';
+      
+      // Use a clean path without query params for the API request
+      const cleanPath = imagePath.split('?')[0];
+      
+      // Make an authenticated request to get the image
+      const response = await api.get(cleanPath, {
+        responseType: 'blob'
+      });
+      
+      // Create a blob URL from the response
+      const blob = response.data;
+      return URL.createObjectURL(blob);
+    } catch (error) {
+      console.error('Error loading image via API:', error);
+      return '';
+    }
+  };
+
+  // Function to handle removing the profile photo
+  const handleRemovePhoto = async () => {
+    if (!localProfilePic) return;
+    
+    try {
+      setUploading(true);
+      
+      // Call the API to remove the profile picture
+      await api.delete('/api/users/profile-picture');
+      
+      // Update local state
+      setLocalProfilePic(undefined);
+      setProfileImageSrc(null);
+      
+      // Update user context
+      const updatedUserData = await authService.getCurrentUser();
+      if (updatedUserData && setUser) {
+        setUser({
+          ...updatedUserData,
+          profile_pic: undefined
+        });
+      }
+    } catch (err) {
+      console.error('Error removing profile picture:', err);
+      setError('Failed to remove profile picture');
     } finally {
       setUploading(false);
     }
@@ -119,19 +241,26 @@ const ProfileCard: React.FC<ProfileCardProps> = ({ user, onClose, currentUser = 
         
         <div className="profile-header">
           <div className="profile-avatar">
-            {localProfilePic ? (
+            {profileImageLoading ? (
+              <div className="loading-spinner">
+                <FaSpinner className="spinner-icon" />
+              </div>
+            ) : localProfilePic && profileImageSrc ? (
               <img 
-                src={localProfilePic} 
+                src={profileImageSrc}
                 alt={user.name || 'User'} 
                 className="profile-image"
                 onError={(e) => {
                   e.currentTarget.src = defaultAvatar;
-                  // If we have a broken image URL, clear it so we show the icon instead
                   setLocalProfilePic(undefined);
                 }}
               />
             ) : (
-              <FaUser size={180} />
+              <img 
+                src={defaultAvatar}
+                alt={user.name || 'User'} 
+                className="profile-image"
+              />
             )}
             {currentUser && (
               <div className="change-avatar-overlay" onClick={handleFileSelect}>
@@ -143,13 +272,25 @@ const ProfileCard: React.FC<ProfileCardProps> = ({ user, onClose, currentUser = 
           <h2>{user.name || 'User'}</h2>
           
           {currentUser && (
-            <input
-              type="file"
-              ref={fileInputRef}
-              style={{ display: 'none' }}
-              accept="image/*"
-              onChange={handleFileChange}
-            />
+            <>
+              <input
+                type="file"
+                ref={fileInputRef}
+                style={{ display: 'none' }}
+                accept="image/*"
+                onChange={handleFileChange}
+              />
+              
+              {localProfilePic && (
+                <button 
+                  className="remove-photo-btn" 
+                  onClick={handleRemovePhoto}
+                  disabled={uploading}
+                >
+                  <FaTrash size={14} /> Remove Photo
+                </button>
+              )}
+            </>
           )}
           
           {error && (
