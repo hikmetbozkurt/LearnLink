@@ -32,7 +32,13 @@ const config = {
   MAX_FILE_SIZE: process.env.MAX_FILE_SIZE || 5 * 1024 * 1024, // 5MB
   
   // CORS
-  CORS_ORIGIN: process.env.CORS_ORIGIN || '*'
+  CORS_ORIGIN: process.env.CORS_ORIGIN || '*',
+  
+  // AWS S3
+  AWS_ACCESS_KEY_ID: process.env.AWS_ACCESS_KEY_ID,
+  AWS_SECRET_ACCESS_KEY: process.env.AWS_SECRET_ACCESS_KEY,
+  AWS_REGION: process.env.AWS_REGION || 'eu-north-1',
+  AWS_BUCKET_NAME: process.env.AWS_BUCKET_NAME || 'elasticbeanstalk-eu-north-1-459015013425'
 }
 
 export default config 

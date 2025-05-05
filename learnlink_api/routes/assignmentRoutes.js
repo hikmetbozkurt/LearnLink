@@ -18,24 +18,23 @@ import fs from 'fs'
 
 const router = express.Router()
 
-// Ensure uploads directory exists
-const uploadDir = process.env.UPLOAD_PATH || 'uploads/'
-if (!fs.existsSync(uploadDir)) {
-  fs.mkdirSync(uploadDir, { recursive: true })
-}
-
-// Configure multer for file uploads
+// Configure multer for temporary file storage before S3 upload
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
-    cb(null, uploadDir)
+    // Use a temp directory for files that will be uploaded to S3
+    const tempDir = 'uploads/temp';
+    if (!fs.existsSync(tempDir)) {
+      fs.mkdirSync(tempDir, { recursive: true });
+    }
+    cb(null, tempDir);
   },
   filename: (req, file, cb) => {
     // Generate unique filename with original extension
-    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9)
-    const ext = path.extname(file.originalname)
-    cb(null, 'assignment-' + uniqueSuffix + ext)
+    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+    const ext = path.extname(file.originalname);
+    cb(null, 'temp-' + uniqueSuffix + ext);
   }
-})
+});
 
 const upload = multer({
   storage,

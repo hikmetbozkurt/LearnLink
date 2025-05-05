@@ -1,6 +1,9 @@
 import asyncHandler from "../utils/asyncHandler.js";
 import pool from "../config/database.js";
 import { createNewAssignmentNotification, createAssignmentSubmissionNotification } from '../utils/notificationUtils.js';
+import * as s3Service from '../services/s3Service.js';
+import fs from 'fs';
+import path from 'path';
 
 export const getAllAssignments = asyncHandler(async (req, res) => {
   const result = await pool.query(
@@ -168,10 +171,38 @@ export const submitAssignment = asyncHandler(async (req, res) => {
   const userId = req.user.user_id;
   const { content } = req.body;
   let fileUrl = null;
+  let fileName = null;
+  let mimeType = null;
 
   // Handle file upload if present
   if (req.file) {
-    fileUrl = `/uploads/${req.file.filename}`;
+    try {
+      // Upload to S3
+      const folderPath = 'assignments/';
+      fileUrl = await s3Service.uploadFile(req.file, folderPath);
+      
+      // Truncate filename if it's too long (database constraint)
+      fileName = req.file.originalname.length > 45 
+        ? req.file.originalname.substring(0, 42) + '...' + path.extname(req.file.originalname)
+        : req.file.originalname;
+      
+      // Truncate MIME type if it's too long (database constraint)
+      mimeType = req.file.mimetype.length > 45
+        ? req.file.mimetype.substring(0, 45)
+        : req.file.mimetype;
+      
+      // Remove the temp file after successful S3 upload
+      if (fs.existsSync(req.file.path)) {
+        fs.unlinkSync(req.file.path);
+      }
+      
+    } catch (error) {
+      console.error('Error uploading assignment file to S3:', error);
+      return res.status(500).json({ 
+        message: "Failed to upload assignment file to S3", 
+        error: error.message 
+      });
+    }
   }
 
   // Use a transaction for data consistency
@@ -182,8 +213,8 @@ export const submitAssignment = asyncHandler(async (req, res) => {
 
     // Insert the submission
     const submissionResult = await client.query(
-      "INSERT INTO submissions (assignment_id, user_id, content, file_url, submitted_at) VALUES ($1, $2, $3, $4, CURRENT_TIMESTAMP) RETURNING *",
-      [id, userId, content || "", fileUrl]
+      "INSERT INTO submissions (assignment_id, user_id, content, file_url, file_name, mime_type, submitted_at) VALUES ($1, $2, $3, $4, $5, $6, CURRENT_TIMESTAMP) RETURNING *",
+      [id, userId, content || "", fileUrl, fileName, mimeType]
     );
     
     

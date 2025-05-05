@@ -270,6 +270,11 @@ export const assignmentService = {
     if (!token) throw new Error('No authentication token found');
     
     try {
+      // Ensure storage_type is set to 's3' if it's not already in the FormData
+      if (!submissionData.has('storage_type') && submissionData.has('file')) {
+        submissionData.append('storage_type', 's3');
+      }
+      
       const response = await api.post(`/api/assignments/${assignmentId}/submit`, submissionData, {
         headers: { 
           'Content-Type': 'multipart/form-data'

@@ -228,4 +228,20 @@
   background-color: #4a4a65;
   color: #7f7f9d;
   cursor: not-allowed;
+}
+
+.sa-error-message {
+  display: flex;
+  align-items: center;
+  color: #d32f2f;
+  font-size: 0.85rem;
+  margin-top: 8px;
+  padding: 8px 12px;
+  border-radius: 4px;
+  background-color: rgba(211, 47, 47, 0.08);
+}
+
+.sa-error-message svg {
+  margin-right: 8px;
+  font-size: 0.9rem;
 } 

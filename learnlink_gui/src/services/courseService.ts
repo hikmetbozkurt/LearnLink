@@ -161,12 +161,17 @@ export const courseService = {
 
       if (data instanceof FormData) {
         formData = data;
+        // Ensure storage_type is set to 's3' if it's not already in the FormData and there's a file
+        if (!formData.has('storage_type') && formData.has('file')) {
+          formData.append('storage_type', 's3');
+        }
       } else {
         formData = new FormData();
         formData.append('content', data.content);
         formData.append('type', data.type);
         if (data.file) {
           formData.append('file', data.file);
+          formData.append('storage_type', 's3');
         }
         if (data.videoUrl) {
           formData.append('videoUrl', data.videoUrl);
