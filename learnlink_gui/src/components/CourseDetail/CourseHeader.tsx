@@ -4,6 +4,7 @@ import "./CourseHeader.css";
 import ConfirmModal from "../ConfirmModal";
 import { useNavigate } from "react-router-dom";
 import { courseService } from "../../services/courseService";
+import { assignmentService } from "../../services/assignmentService";
 import { FaTrash, FaSignOutAlt, FaPlus } from "react-icons/fa";
 
 interface CourseHeaderProps {
@@ -39,6 +40,14 @@ const CourseHeader: React.FC<CourseHeaderProps> = ({
 
       if (showDeleteButton) {
         await courseService.deleteCourse(course.course_id);
+        
+        // Clear assignment cache after course deletion
+        try {
+          assignmentService.clearSubmissionsCache();
+          assignmentService.clearAssignmentsCache();
+        } catch (error) {
+          console.error("Error clearing assignment cache:", error);
+        }
       } else {
         await courseService.leaveCourse(course.course_id);
       }
@@ -47,10 +56,27 @@ const CourseHeader: React.FC<CourseHeaderProps> = ({
       await courseService.getMyCourses();
 
       setIsModalOpen(false);
-      navigate("/courses", {
-        replace: true,
-        state: { refresh: true }, // state ekleyerek yenileme tetikleyicisi gönder
-      });
+      
+      // Navigate with state to trigger refreshes
+      if (showDeleteButton) {
+        // First navigate to assignments page to refresh it
+        navigate("/assignments", {
+          state: { refresh: true }
+        });
+        
+        // Then navigate to courses page
+        setTimeout(() => {
+          navigate("/courses", {
+            replace: true,
+            state: { refresh: true }
+          });
+        }, 100);
+      } else {
+        navigate("/courses", {
+          replace: true,
+          state: { refresh: true }
+        });
+      }
     } catch (error) {
       console.error("Error:", error);
     }

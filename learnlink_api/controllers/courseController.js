@@ -134,6 +134,18 @@ export const deleteCourse = asyncHandler(async (req, res) => {
     // İlgili kayıtları sil (transaction kullanarak)
     await pool.query("BEGIN");
     try {
+      // Delete submissions related to course assignments first
+      await pool.query(
+        `DELETE FROM submissions 
+         WHERE assignment_id IN (SELECT assignment_id FROM assignments WHERE course_id = $1)`,
+        [courseId]
+      );
+
+      // Delete assignments related to the course
+      await pool.query("DELETE FROM assignments WHERE course_id = $1", [
+        courseId,
+      ]);
+
       // Önce enrollments'ları sil
       await pool.query("DELETE FROM enrollments WHERE course_id = $1", [
         courseId,

@@ -15,6 +15,7 @@ import { ensureBoolean } from "../utils/assignmentFilters";
 import "../styles/pages/shared.css";
 import "../styles/pages/assignments.css";
 import { differenceInHours, parseISO, format, isPast } from "date-fns";
+import { useLocation } from "react-router-dom";
 
 // Define a local Assignment type that matches the one expected by AssignmentContent
 interface Assignment {
@@ -55,6 +56,7 @@ const AssignmentsPage: React.FC = () => {
   const [paginatedAssignments, setPaginatedAssignments] = useState<
     Assignment[]
   >([]);
+  const location = useLocation();
 
   useEffect(() => {
     // Load user's courses
@@ -74,6 +76,15 @@ const AssignmentsPage: React.FC = () => {
       }
     };
     loadCourses();
+
+    // Check if assignments cache was invalidated (e.g., after course deletion)
+    const cacheInvalidated = localStorage.getItem('assignments_cache_invalidated');
+    if (cacheInvalidated === 'true') {
+      // Clear the flag
+      localStorage.removeItem('assignments_cache_invalidated');
+      // Force clear caches
+      assignmentService.clearSubmissionsCache();
+    }
   }, [showNotification]);
 
   useEffect(() => {
@@ -143,6 +154,24 @@ const AssignmentsPage: React.FC = () => {
       document.removeEventListener("visibilitychange", handleVisibilityChange);
     };
   }, [userCourses, isLoading]);
+
+  // Check for refresh state when component mounts or navigation changes
+  useEffect(() => {
+    // Add your logic here to check for refresh state
+  }, [location]);
+
+  useEffect(() => {
+    // Check if we need to reload assignments based on location state
+    if (location.state?.refresh) {
+      // Clear the state to prevent multiple refreshes
+      window.history.replaceState({}, document.title);
+      
+      // Refresh assignments
+      if (userCourses.length > 0) {
+        loadAssignments();
+      }
+    }
+  }, [location]);
 
   const loadAssignments = async () => {
     setIsLoading(true);
