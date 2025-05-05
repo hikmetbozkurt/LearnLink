@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { FaTimes, FaUpload, FaFile } from 'react-icons/fa';
+import { FaTimes, FaUpload, FaFile, FaExclamationCircle } from 'react-icons/fa';
 import './SubmitAssignmentModal.css';
 
 interface SubmitAssignmentModalProps {
@@ -7,6 +7,47 @@ interface SubmitAssignmentModalProps {
   onClose: () => void;
   onSubmit: (data: any) => void;
 }
+
+// 5MB size limit
+const MAX_FILE_SIZE = 5 * 1024 * 1024;
+
+// Allowed file types
+const ALLOWED_FILE_TYPES = [
+  // Basic file types
+  ".pdf",
+  ".txt",
+  ".zip",
+  ".rar",
+
+  // Microsoft Word
+  ".doc",
+  ".docx",
+  ".docm",
+  ".dot",
+  ".dotx",
+  ".dotm",
+
+  // Microsoft Excel
+  ".xls",
+  ".xlsx",
+  ".xlsm",
+  ".xlt",
+  ".xltx",
+  ".xltm",
+  ".xlsb",
+  ".csv",
+
+  // Microsoft PowerPoint
+  ".ppt",
+  ".pptx",
+  ".pptm",
+  ".pot",
+  ".potx",
+  ".potm",
+  ".pps",
+  ".ppsx",
+  ".ppsm",
+];
 
 const SubmitAssignmentModal: React.FC<SubmitAssignmentModalProps> = ({
   assignmentId,
@@ -16,19 +57,36 @@ const SubmitAssignmentModal: React.FC<SubmitAssignmentModalProps> = ({
   const [content, setContent] = useState('');
   const [file, setFile] = useState<File | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState('');
   
   const handleContentChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     setContent(e.target.value);
   };
   
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files[0]) {
-      setFile(e.target.files[0]);
+    const selectedFile = e.target.files?.[0];
+    if (!selectedFile) return;
+    
+    // Check file extension
+    const fileExtension = '.' + selectedFile.name.split('.').pop()?.toLowerCase();
+    if (!ALLOWED_FILE_TYPES.includes(fileExtension)) {
+      setError(`Only ${ALLOWED_FILE_TYPES.join(', ')} files are allowed`);
+      return;
     }
+    
+    // Check file size
+    if (selectedFile.size > MAX_FILE_SIZE) {
+      setError('File size should be less than 5MB');
+      return;
+    }
+    
+    setFile(selectedFile);
+    setError('');
   };
   
   const handleRemoveFile = () => {
     setFile(null);
+    setError('');
   };
   
   const handleSubmit = (e: React.FormEvent) => {
@@ -45,6 +103,8 @@ const SubmitAssignmentModal: React.FC<SubmitAssignmentModalProps> = ({
     
     if (file) {
       formData.append('file', file);
+      // Add S3 specific metadata
+      formData.append('storage_type', 's3');
     }
     
     onSubmit(formData);
@@ -80,13 +140,14 @@ const SubmitAssignmentModal: React.FC<SubmitAssignmentModalProps> = ({
               <div className="sa-file-upload-container">
                 <label htmlFor="file-upload" className="sa-file-upload-label">
                   <FaUpload />
-                  <span>Choose a file to upload</span>
+                  <span>Choose a file to upload (max 5MB)</span>
                 </label>
                 <input
                   id="file-upload"
                   type="file"
                   onChange={handleFileChange}
                   className="sa-file-input"
+                  accept={ALLOWED_FILE_TYPES.join(',')}
                 />
               </div>
             ) : (
@@ -105,6 +166,13 @@ const SubmitAssignmentModal: React.FC<SubmitAssignmentModalProps> = ({
                 </button>
               </div>
             )}
+            
+            {error && (
+              <div className="sa-error-message">
+                <FaExclamationCircle />{' '}
+                {error}
+              </div>
+            )}
           </div>
           
           {!content.trim() && !file && (
@@ -120,7 +188,7 @@ const SubmitAssignmentModal: React.FC<SubmitAssignmentModalProps> = ({
             <button 
               type="submit" 
               className="sa-submit-button"
-              disabled={isLoading || (!content.trim() && !file)}
+              disabled={isLoading || (!content.trim() && !file) || !!error}
             >
               {isLoading ? 'Submitting...' : 'Submit Assignment'}
             </button>

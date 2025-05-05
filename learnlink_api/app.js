@@ -4,6 +4,7 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import { dirname } from 'path';
 import fs from 'fs';
+import dotenv from 'dotenv';
 import authRoutes from './routes/authRoutes.js';
 import userRoutes from './routes/userRoutes.js';
 import chatRoutes from './routes/chatRoutes.js';
@@ -16,7 +17,17 @@ import postRoutes from './routes/postRoutes.js';
 import commentRoutes from './routes/commentRoutes.js';
 import eventRoutes from './routes/eventRoutes.js';
 import assignmentRoutes from './routes/assignmentRoutes.js';
+import fileRoutes from './routes/fileRoutes.js';
 
+// Load environment variables
+dotenv.config();
+
+// Log a message about AWS configuration but don't expose the values
+console.log('AWS S3 configuration loaded from environment variables');
+
+// No hardcoded credentials - the app will use environment variables directly
+// AWS SDK will automatically use AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY,
+// AWS_REGION and AWS_BUCKET_NAME from process.env
 
 const app = express();
 const __filename = fileURLToPath(import.meta.url);
@@ -39,6 +50,10 @@ const uploadsPath = path.join(__dirname, 'uploads');
 fs.mkdirSync(uploadsPath, { recursive: true }); // Ensure the directory exists
 app.use('/uploads', express.static(uploadsPath));
 
+// Create temp directory for file uploads
+const tempUploadsPath = path.join(__dirname, 'uploads/temp');
+fs.mkdirSync(tempUploadsPath, { recursive: true }); // Ensure the temp directory exists
+
 // Serve static files from uploads folder
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
@@ -60,9 +75,20 @@ app.use("/api", postRoutes);
 app.use("/api", commentRoutes);
 app.use("/api/events", eventRoutes);
 app.use("/api/assignments", assignmentRoutes);
+app.use("/api/files", fileRoutes); // Add file routes
 
 // Add a test route to check API connectivity
 
+// Handle multer file size errors
+app.use((err, req, res, next) => {
+  if (err.code === 'LIMIT_FILE_SIZE') {
+    return res.status(400).json({
+      success: false,
+      message: 'File size exceeds the 5MB limit'
+    });
+  }
+  next(err);
+});
 
 // Global error handler
 app.use((err, req, res, next) => {

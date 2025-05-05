@@ -10,6 +10,7 @@ import {
 } from "react-icons/fa";
 import ConfirmationModal from "../shared/ConfirmationModal";
 import "./PostList.css";
+import api from "../../api/axiosConfig";
 
 interface PostListProps {
   posts: {
@@ -124,37 +125,43 @@ const PostList: React.FC<PostListProps> = ({
     return url;
   };
 
-  // Dosya indirme fonksiyonu - yeniden yazıldı, fetch API kullanarak
+  // Update the handleDownloadFile function to use the correct base URL
   const handleDownloadFile = async (fileUrl: string, fileName: string) => {
-
     try {
-      // Dosyayı fetch ile al
-      const response = await fetch(fileUrl);
+      // Determine if it's an S3 URL or local URL based on the path
+      // S3 URLs typically contain amazonaws.com or a similar pattern
+      const isS3Url = fileUrl.includes('amazonaws.com') || fileUrl.includes('s3://');
+      
+      // For S3 URLs, use the URL directly
+      // For local URLs, use the API base URL from the config
+      const fullUrl = isS3Url ? fileUrl : `${api.defaults.baseURL}${fileUrl}`;
 
-      // Hata kontrolü
+      // Fetch the file from the URL
+      const response = await fetch(fullUrl);
+
+      // Error handling
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
 
-      // Blob olarak al (ikili dosya içeriği)
+      // Get the file as a blob
       const blob = await response.blob();
 
-      // Blob için URL oluştur
+      // Create a URL for the blob
       const blobUrl = URL.createObjectURL(blob);
 
-      // İndirme bağlantısı oluştur
+      // Create a download link
       const downloadLink = document.createElement("a");
       downloadLink.href = blobUrl;
-      downloadLink.download = fileName; // İndirilecek dosyanın adı
+      downloadLink.download = fileName;
 
-      // Bağlantıyı DOM'a ekle ve tıkla
+      // Add the link to the DOM and click it
       document.body.appendChild(downloadLink);
       downloadLink.click();
 
-      // Temizlik
+      // Clean up
       document.body.removeChild(downloadLink);
-      URL.revokeObjectURL(blobUrl); // Bellek sızıntısını önlemek için
-
+      URL.revokeObjectURL(blobUrl);
     } catch (error) {
       console.error("Error downloading file:", error);
       alert("Dosya indirilirken bir hata oluştu. Lütfen tekrar deneyin.");
@@ -257,25 +264,39 @@ const PostList: React.FC<PostListProps> = ({
                 // İndirilebilir dosyalar için download butonu
                 <button
                   onClick={() => {
-                    if (!post.file_url) return; // TypeScript için güvenlik kontrolü
+                    if (!post.file_url) return; // TypeScript safety check
 
-                    const fileUrl = `http://localhost:5001${post.file_url}`;
+                    // Determine if it's an S3 URL or local URL
+                    const isS3Url = post.file_url.includes('amazonaws.com') || post.file_url.includes('s3://');
+                    
+                    // Use the URL directly for S3, or use the API base URL for local files
+                    const fileUrl = isS3Url ? post.file_url : `${api.defaults.baseURL}${post.file_url}`;
 
-                    // Dosya adını güvenli bir şekilde alalım
+                    // Get the filename safely
                     let fileName = "file";
                     try {
-                      const pathParts = post.file_url.split("/");
-                      const lastPart = pathParts[pathParts.length - 1];
-                      if (lastPart && lastPart.includes("-")) {
-                        fileName = lastPart.substring(
-                          lastPart.indexOf("-") + 1
-                        );
+                      // For S3 URLs, extract the filename after the last / and possibly after any query parameters
+                      if (isS3Url) {
+                        const pathParts = post.file_url.split('/');
+                        let lastPart = pathParts[pathParts.length - 1];
+                        // Remove any query parameters
+                        if (lastPart.includes('?')) {
+                          lastPart = lastPart.split('?')[0];
+                        }
+                        fileName = decodeURIComponent(lastPart);
+                      } else {
+                        // For local files, use the existing logic
+                        const pathParts = post.file_url.split('/');
+                        const lastPart = pathParts[pathParts.length - 1];
+                        if (lastPart && lastPart.includes("-")) {
+                          fileName = lastPart.substring(lastPart.indexOf("-") + 1);
+                        }
                       }
                     } catch (error) {
-                      console.error("Dosya adı alınamadı:", error);
+                      console.error("Failed to get filename:", error);
                     }
 
-                    // Yeni indirme fonksiyonunu kullan
+                    // Use the updated download function
                     handleDownloadFile(fileUrl, fileName);
                   }}
                   className="download-button"
@@ -306,7 +327,11 @@ const PostList: React.FC<PostListProps> = ({
               ) : (
                 // PDF ve diğer dosyalar için normal bağlantı
                 <a
-                  href={`http://localhost:5001${post.file_url}`}
+                  href={
+                    post.file_url.includes('amazonaws.com') || post.file_url.includes('s3://') 
+                      ? post.file_url 
+                      : `${api.defaults.baseURL}${post.file_url}`
+                  }
                   target="_blank"
                   rel="noopener noreferrer"
                   className="pdf-link"
@@ -324,13 +349,25 @@ const PostList: React.FC<PostListProps> = ({
                       return post.type === "pdf" ? "PDF Dosyası" : "Dosya";
 
                     try {
-                      const parts = post.file_url.split("/");
-                      const lastPart = parts[parts.length - 1];
-                      if (lastPart && lastPart.includes("-")) {
-                        return lastPart.substring(lastPart.indexOf("-") + 1);
+                      // For S3 URLs, use a different filename extraction method
+                      if (post.file_url.includes('amazonaws.com') || post.file_url.includes('s3://')) {
+                        const parts = post.file_url.split('/');
+                        let lastPart = parts[parts.length - 1];
+                        // Remove query parameters if any
+                        if (lastPart.includes('?')) {
+                          lastPart = lastPart.split('?')[0];
+                        }
+                        return decodeURIComponent(lastPart);
+                      } else {
+                        // For local files, use existing logic
+                        const parts = post.file_url.split("/");
+                        const lastPart = parts[parts.length - 1];
+                        if (lastPart && lastPart.includes("-")) {
+                          return lastPart.substring(lastPart.indexOf("-") + 1);
+                        }
                       }
                     } catch (error) {
-                      console.error("Dosya adı gösterimi alınamadı:", error);
+                      console.error("Failed to get filename:", error);
                     }
 
                     return post.type === "pdf" ? "PDF Dosyası" : "Dosya";

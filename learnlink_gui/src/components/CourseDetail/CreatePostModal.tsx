@@ -10,7 +10,7 @@ interface CreatePostModalProps {
   isLoading?: boolean;
 }
 
-const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
+const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
 const ALLOWED_FILE_TYPES = [
   // Temel dosya tipleri
   ".pdf",
@@ -85,7 +85,7 @@ const CreatePostModal: React.FC<CreatePostModalProps> = ({
 
     // Dosya boyutunu kontrol et
     if (selectedFile.size > MAX_FILE_SIZE) {
-      setError("File size should be less than 10MB");
+      setError("File size should be less than 5MB");
       return;
     }
 
@@ -113,6 +113,8 @@ const CreatePostModal: React.FC<CreatePostModalProps> = ({
       else if (file) {
         formData.append("type", "file");
         formData.append("file", file);
+        // Add S3 specific metadata
+        formData.append("storage_type", "s3");
       }
       // Sadece text
       else {
@@ -163,7 +165,7 @@ const CreatePostModal: React.FC<CreatePostModalProps> = ({
 
               <div className="post-attachment-section">
                 <label htmlFor="file-upload" className="post-file-upload-label">
-                <FaPaperclip /> Attach File
+                <FaPaperclip /> Attach File (max 5MB)
               </label>
               <input
                 id="file-upload"
@@ -201,7 +203,7 @@ const CreatePostModal: React.FC<CreatePostModalProps> = ({
             <button
               type="submit"
                 className="post-submit-button"
-              disabled={isLoading || !content.trim()}
+              disabled={isLoading || !content.trim() || !!error}
             >
               {isLoading ? "Posting..." : "Post"}
             </button>
