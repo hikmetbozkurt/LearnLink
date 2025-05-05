@@ -3,6 +3,7 @@ import pool from "../config/database.js";
 import { createNewAssignmentNotification, createAssignmentSubmissionNotification } from '../utils/notificationUtils.js';
 import * as s3Service from '../services/s3Service.js';
 import fs from 'fs';
+import path from 'path';
 
 export const getAllAssignments = asyncHandler(async (req, res) => {
   const result = await pool.query(
@@ -179,8 +180,16 @@ export const submitAssignment = asyncHandler(async (req, res) => {
       // Upload to S3
       const folderPath = 'assignments/';
       fileUrl = await s3Service.uploadFile(req.file, folderPath);
-      fileName = req.file.originalname;
-      mimeType = req.file.mimetype;
+      
+      // Truncate filename if it's too long (database constraint)
+      fileName = req.file.originalname.length > 45 
+        ? req.file.originalname.substring(0, 42) + '...' + path.extname(req.file.originalname)
+        : req.file.originalname;
+      
+      // Truncate MIME type if it's too long (database constraint)
+      mimeType = req.file.mimetype.length > 45
+        ? req.file.mimetype.substring(0, 45)
+        : req.file.mimetype;
       
       // Remove the temp file after successful S3 upload
       if (fs.existsSync(req.file.path)) {

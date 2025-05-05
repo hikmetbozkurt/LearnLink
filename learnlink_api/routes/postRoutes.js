@@ -357,8 +357,15 @@ router.post(
       let fileName = null;
       let mimeType = null;
       if (req.file) {
-        fileName = req.file.originalname;
-        mimeType = req.file.mimetype;
+        // Truncate filename if it's too long (database constraint)
+        fileName = req.file.originalname.length > 45 
+          ? req.file.originalname.substring(0, 42) + '...' + path.extname(req.file.originalname)
+          : req.file.originalname;
+        
+        // Truncate MIME type if it's too long (database constraint)
+        mimeType = req.file.mimetype.length > 45
+          ? req.file.mimetype.substring(0, 45)
+          : req.file.mimetype;
       }
 
       // Tüm post tipleri için tek bir SQL sorgusu kullan
