@@ -38,7 +38,6 @@ app.get("/uploads/files/:filename", (req, res) => {
         ? originalNameWithTimestamp.substring(dashIndex + 1)
         : originalNameWithTimestamp;
 
-
     // İndirme başlıklarını ayarla
     res.setHeader(
       "Content-Disposition",
@@ -57,7 +56,12 @@ app.use("/uploads", express.static("uploads"));
 // Create Socket.IO instance
 export const io = new Server(httpServer, {
   cors: {
-    origin: "http://localhost:3000",
+    origin: [
+      "https://golearnlink.com",
+      "https://www.golearnlink.com",
+      "https://learnlink-gui.vercel.app",
+      "http://localhost:3000",
+    ],
     methods: ["GET", "POST"],
     credentials: true,
   },
@@ -85,7 +89,6 @@ io.use(async (socket, next) => {
 });
 
 io.on("connection", (socket) => {
-
   socket.on("user_connected", (userId) => {
     if (
       socket.user &&
@@ -109,7 +112,6 @@ io.on("connection", (socket) => {
     const userId = socket.user.user_id || socket.user.id;
 
     try {
-
       // Save message to database
       const messageQuery = `
         INSERT INTO messages (chatroom_id, sender_id, content, created_at)
@@ -135,7 +137,7 @@ io.on("connection", (socket) => {
       };
 
       const roomIdStr = roomId.toString();
-      
+
       // Broadcast to everyone in the room
       io.to(roomIdStr).emit("receive_message", completeMessage);
 
@@ -198,7 +200,6 @@ io.on("connection", (socket) => {
 
   socket.on("chatroom:message", async (data) => {
     try {
-
       // Broadcast message to room
       io.to(data.chatroom_id.toString()).emit("receive_message", {
         ...data,
@@ -278,10 +279,9 @@ io.on("connection", (socket) => {
   });
 });
 
-const PORT = process.env.PORT || 5001;
-
+const PORT = process.env.PORT || 80;
 httpServer.listen(PORT, () => {
-  //console.log(`Server running on port ${PORT}`);
+  console.log(`Running on`, PORT);
 });
 
 export default httpServer;

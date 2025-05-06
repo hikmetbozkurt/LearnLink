@@ -39,6 +39,11 @@ app.use(
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+// Very simple root health check that should always work
+app.get("/", (req, res) => {
+  res.status(200).send("OK");
+});
+
 // Serve static files from uploads directory
 const uploadsPath = path.join(__dirname, "uploads");
 fs.mkdirSync(uploadsPath, { recursive: true }); // Ensure the directory exists
@@ -81,8 +86,8 @@ app.use("/api/events", eventRoutes);
 app.use("/api/assignments", assignmentRoutes);
 
 // Add a test route to check API connectivity
-app.get("/", (req, res) => {
-  res.send("LearnLink backend is running");
+app.get("/api/test", (req, res) => {
+  res.status(200).send("LearnLink backend is running");
 });
 
 // Global error handler
