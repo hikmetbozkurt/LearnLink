@@ -10,6 +10,7 @@ import config from '../config/env.js';
 
 const authService = new AuthService();
 const emailService = new EmailService();
+console.log('Initializing Google OAuth client with ID:', process.env.GOOGLE_CLIENT_ID);
 const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
 // Database migration for login_provider field

@@ -14,6 +14,7 @@ import { useTheme } from '../context/ThemeContext';
 
 
 const GOOGLE_CLIENT_ID = process.env.REACT_APP_GOOGLE_CLIENT_ID;
+console.log('Using Google Client ID:', GOOGLE_CLIENT_ID);
 
 const LoginPage = () => {
   const [isSignUp, setIsSignUp] = useState(false);
@@ -200,6 +201,7 @@ const LoginPage = () => {
                 shape="rectangular"
                 useOneTap={false}
                 ux_mode="popup"
+                context="signup"
               />
             </div>
 
@@ -282,6 +284,7 @@ const LoginPage = () => {
                 shape="rectangular"
                 useOneTap={false}
                 ux_mode="popup"
+                context="signin"
               />
             </div>
 
