@@ -331,18 +331,52 @@ router.post(
 
         // Always use S3 for file storage
         try {
-          const folderPath = 'posts/';
-          fileUrl = await s3Service.uploadFile(req.file, folderPath);
+          // FORCE S3 STORAGE - NO FALLBACK
+          const useLocalFallback = false; // force S3 storage
           
-          // After successful S3 upload, we can remove the local temp file
-          if (fs.existsSync(req.file.path)) {
-            fs.unlinkSync(req.file.path);
+          if (useLocalFallback) {
+            // This branch should never execute now
+            const relativePath = req.file.path.replace(/^.*[\\\/]uploads[\\\/]/, 'uploads/');
+            fileUrl = `${process.env.API_URL || 'http://localhost:5001'}/${relativePath}`;
+          } else {
+            // Normal S3 upload
+            const folderPath = 'posts/';
+            
+            // Check S3 Configuration
+            if (!s3Service.BUCKET_NAME) {
+              throw new Error('S3 bucket name is not configured');
+            }
+            
+            // Upload to S3 with detailed error handling
+            try {
+              fileUrl = await s3Service.uploadFile(req.file, folderPath);
+              
+              // Verify the fileUrl is from S3
+              if (!fileUrl.includes('amazonaws.com')) {
+                console.error('WARNING: File URL does not appear to be from S3:', fileUrl);
+              }
+            } catch (uploadError) {
+              console.error("S3 upload error details:", {
+                message: uploadError.message,
+                code: uploadError.code,
+                statusCode: uploadError.statusCode,
+                time: new Date().toISOString()
+              });
+              throw uploadError;
+            }
+            
+            // After successful S3 upload, we can remove the local temp file
+            if (fs.existsSync(req.file.path)) {
+              fs.unlinkSync(req.file.path);
+            }
           }
         } catch (s3Error) {
-          console.error('S3 upload failed:', s3Error);
+          console.error('Upload failed:', s3Error);
+          console.error('Error stack:', s3Error.stack);
           return res.status(500).json({
-            message: "Failed to upload file to S3",
+            message: "Failed to upload file",
             error: s3Error.message,
+            details: s3Error.code || s3Error.name
           });
         }
       }

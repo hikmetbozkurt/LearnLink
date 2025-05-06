@@ -38,6 +38,21 @@ const uploadsPath = path.join(__dirname, 'uploads');
 fs.mkdirSync(uploadsPath, { recursive: true }); // Ensure the directory exists
 app.use('/uploads', express.static(uploadsPath));
 
+// Ensure all uploads subdirectories exist
+['files', 'images', 'pdf'].forEach(dir => {
+  const dirPath = path.join(uploadsPath, dir);
+  fs.mkdirSync(dirPath, { recursive: true });
+  console.log(`Ensured uploads directory exists: ${dirPath}`);
+});
+
+// Add CORS headers for file downloads
+app.use('/uploads', (req, res, next) => {
+  res.header('Access-Control-Allow-Origin', '*');
+  res.header('Access-Control-Allow-Methods', 'GET, OPTIONS');
+  res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  next();
+});
+
 // Serve static files from uploads folder
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
