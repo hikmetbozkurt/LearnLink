@@ -39,11 +39,6 @@ app.use(
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Very simple root health check that should always work
-app.get("/", (req, res) => {
-  res.status(200).send("OK");
-});
-
 // Serve static files from uploads directory
 const uploadsPath = path.join(__dirname, "uploads");
 fs.mkdirSync(uploadsPath, { recursive: true }); // Ensure the directory exists
@@ -85,6 +80,15 @@ app.use("/api", commentRoutes);
 app.use("/api/events", eventRoutes);
 app.use("/api/assignments", assignmentRoutes);
 
+// Root path handler for health checks - place it after all other routes
+app.get("/", (req, res) => {
+  res.status(200).json({
+    status: "success",
+    message: "LearnLink API is running",
+    timestamp: new Date().toISOString(),
+  });
+});
+
 // Add a test route to check API connectivity
 app.get("/api/test", (req, res) => {
   res.status(200).send("LearnLink backend is running");
@@ -105,8 +109,8 @@ app.use((err, req, res, next) => {
   });
 });
 
-// Handle 404 errors
-app.use((req, res) => {
+// Handle 404 errors - this must be the very last middleware
+app.use("*", (req, res) => {
   res.status(404).json({
     error: {
       message: "Not Found",
