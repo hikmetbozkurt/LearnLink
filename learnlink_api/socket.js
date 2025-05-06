@@ -3,7 +3,6 @@ import jwt from 'jsonwebtoken';
 import config from './config/env.js';
 import pool from './config/database.js';
 
-
 const setupSocket = (server) => {
   const io = new Server(server, {
     cors: {
@@ -12,9 +11,6 @@ const setupSocket = (server) => {
       credentials: true
     }
   });
-
-  // Ensure notifications table has necessary columns
-  ensureNotificationsTableColumns();
 
   // Store user socket mappings
   const userSockets = new Map();
@@ -35,62 +31,29 @@ const setupSocket = (server) => {
     }
   });
 
-  // Function to send assignment notifications to users
-  const sendAssignmentNotification = async (notification) => {
-    try {
-      const { recipient_id, content, type, assignment_id, submission_id, course_id } = notification;
-      
-      // Insert notification into database
-      const notificationQuery = `
-        INSERT INTO notifications 
-          (recipient_id, content, type, assignment_id, submission_id, course_id, created_at)
-        VALUES ($1, $2, $3, $4, $5, $6, CURRENT_TIMESTAMP)
-        RETURNING *
-      `;
-      
-      const result = await pool.query(notificationQuery, [
-        recipient_id,
-        content,
-        type,
-        assignment_id,
-        submission_id,
-        course_id
-      ]);
-      
-      if (result.rows.length > 0) {
-        const newNotification = result.rows[0];
-        const recipientSocketId = userSockets.get(recipient_id.toString());
-        
-        if (recipientSocketId) {
-          io.to(recipientSocketId).emit('new_notification', newNotification);
-        }
-      }
-    } catch (error) {
-      console.error('Error sending assignment notification:', error);
-    }
-  };
-
-  // Expose function to other modules
-  io.sendAssignmentNotification = sendAssignmentNotification;
-
   io.on('connection', (socket) => {
+    console.log('User connected:', socket.user.user_id);
 
     socket.on('user_connected', (userId) => {
       userSockets.set(userId, socket.id);
+      console.log('User socket mapped:', userId, socket.id);
     });
 
     // Handle joining direct message conversations
     socket.on('join_dm', (dmId) => {
       socket.join(`dm_${dmId}`);
+      console.log(`User ${socket.user.user_id} joined DM conversation: ${dmId}`);
     });
 
     // Handle leaving direct message conversations
     socket.on('leave_dm', (dmId) => {
       socket.leave(`dm_${dmId}`);
+      console.log(`User ${socket.user.user_id} left DM conversation: ${dmId}`);
     });
 
     // Handle direct messages
     socket.on('direct_message', async (message) => {
+      console.log('Direct message received:', message);
       
       try {
         // Get the other user's ID from the direct message conversation
@@ -138,12 +101,8 @@ const setupSocket = (server) => {
       }
     });
 
-    // Handle assignment notifications
-    socket.on('assignment_notification', (notification) => {
-      sendAssignmentNotification(notification);
-    });
-
     socket.on('disconnect', () => {
+      console.log('User disconnected:', socket.user.user_id);
       // Remove user socket mapping
       for (const [userId, socketId] of userSockets.entries()) {
         if (socketId === socket.id) {

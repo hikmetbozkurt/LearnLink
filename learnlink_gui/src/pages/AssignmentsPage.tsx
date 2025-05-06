@@ -183,7 +183,7 @@ const AssignmentsPage: React.FC = () => {
       const courseIds = userCourses.map((course) => course.course_id);
 
       if (courseIds.length === 0) {
-        console.warn("No course IDs found for user, can't load assignments");
+        //console.warn("No course IDs found for user, can't load assignments");
         setAssignments([]);
         setIsLoading(false);
         return;
@@ -276,7 +276,7 @@ const AssignmentsPage: React.FC = () => {
               assignmentData.title
             );
           } else {
-            console.warn("Missing required properties for notification:", assignmentData);
+            //console.warn("Missing required properties for notification:", assignmentData);
           }
         } catch (notificationError) {
           console.error("Error creating notification:", notificationError);

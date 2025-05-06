@@ -7,7 +7,7 @@ export const authenticateToken = (req, res, next) => {
     const token = authHeader && authHeader.split(' ')[1];
 
     if (!token) {
-      console.warn('Authentication failed: No token provided');
+      //console.warn('Authentication failed: No token provided');
       return res.status(401).json({ message: 'No token provided' });
     }
 

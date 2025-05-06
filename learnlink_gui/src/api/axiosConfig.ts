@@ -1,10 +1,13 @@
 import axios from "axios";
+import API_BASE_URL from "./apiConfig";
 
 const api = axios.create({
-    baseURL: "https://api.golearnlink.com",
+    baseURL: API_BASE_URL,
     headers: {
         "Content-Type": "application/json",
     },
+    // Temporarily disable withCredentials for local development
+    withCredentials: false,
 });
 
 // Request interceptor
@@ -15,6 +18,9 @@ api.interceptors.request.use(
             // Clean token and add to headers
             const cleanToken = token.replace(/['"]+/g, '');
             config.headers.Authorization = `Bearer ${cleanToken}`;
+            console.log('Request with token:', { url: config.url, method: config.method, baseURL: config.baseURL, headers: config.headers });
+        } else {
+            console.log('Request without token:', { url: config.url, method: config.method, baseURL: config.baseURL });
         }
         return config;
     },
@@ -29,12 +35,13 @@ api.interceptors.response.use(
     (response) => response,
     (error) => {
         if (error.response?.status === 401) {
+            console.log('Unauthorized request, clearing auth data');
             // Clear auth data
             localStorage.removeItem("token");
             localStorage.removeItem("user");
             // Only redirect if we're not already on the login page
-            if (window.location.pathname !== '/login' && window.location.pathname !== '/') {
-                window.location.href = "/login";
+            if (window.location.pathname !== '/') {
+                window.location.href = "/";
             }
         }
         return Promise.reject(error);
