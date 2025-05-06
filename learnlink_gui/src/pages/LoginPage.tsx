@@ -14,7 +14,6 @@ import { useTheme } from '../context/ThemeContext';
 
 
 const GOOGLE_CLIENT_ID = process.env.REACT_APP_GOOGLE_CLIENT_ID;
-console.log('Using Google Client ID:', GOOGLE_CLIENT_ID);
 
 const LoginPage = () => {
   const [isSignUp, setIsSignUp] = useState(false);
@@ -80,6 +79,7 @@ const LoginPage = () => {
         // Ensure user data has all required fields
         const userData = {
           id: response.data.user.user_id || response.data.user.id,
+          user_id: response.data.user.user_id || response.data.user.id,
           email: response.data.user.email,
           name: response.data.user.name,
           role: response.data.user.role || 'student'

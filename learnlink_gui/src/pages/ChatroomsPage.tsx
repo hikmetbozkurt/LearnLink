@@ -280,14 +280,12 @@ const ChatroomsPage = () => {
 
     setIsLoading(true);
     try {
-      console.log('Creating chatroom with name:', formData.roomName.trim());
       
       const response = await api.post('/api/chatrooms', {
         name: formData.roomName.trim(),
         description: '' // Add a description parameter since the backend expects it
       });
 
-      console.log('Chatroom creation response:', response.data);
       setChatRooms(prev => [...prev, response.data]);
       setFormData({ roomName: '' });
       setShowCreateRoom(false);

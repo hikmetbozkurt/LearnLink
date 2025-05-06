@@ -28,12 +28,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   useEffect(() => {
     const storedUser = localStorage.getItem("user");
     if (storedUser) {
+
       const parsedUser = JSON.parse(storedUser);
+
       // user_id ve id alanlarını normalize et
       const normalizedUser = {
         ...parsedUser,
         user_id: parsedUser.user_id || parsedUser.id, // id'yi user_id olarak da kullan
       };
+
       setUser(normalizedUser);
     }
   }, []);

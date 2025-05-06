@@ -42,7 +42,6 @@ app.use('/uploads', express.static(uploadsPath));
 ['files', 'images', 'pdf'].forEach(dir => {
   const dirPath = path.join(uploadsPath, dir);
   fs.mkdirSync(dirPath, { recursive: true });
-  console.log(`Ensured uploads directory exists: ${dirPath}`);
 });
 
 // Add CORS headers for file downloads
@@ -58,7 +57,6 @@ app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
 // Add request logging middleware
 app.use((req, res, next) => {
-  console.log(`${new Date().toISOString()} - ${req.method} ${req.originalUrl}`);
   next();
 });
 
@@ -102,7 +100,6 @@ app.use((err, req, res, next) => {
 
 // Handle 404 errors
 app.use((req, res) => {
-  console.log(`404 Not Found: ${req.method} ${req.originalUrl}`);
   res.status(404).json({ 
     error: {
       message: 'Not Found',

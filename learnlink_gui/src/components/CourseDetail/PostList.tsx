@@ -1,9 +1,8 @@
-import React, { useState } from "react";
+import React from "react";
 import { Post } from "../../types/post";
 import {
   FaRegComment,
   FaFile,
-  FaVideo,
   FaRegClock,
   FaTrash,
   FaDownload,
@@ -47,16 +46,19 @@ const PostList: React.FC<PostListProps> = ({
   } | null>(null);
 
 
-  // canDelete fonksiyonunu güncelleyelim
+  // Fix canDelete function to properly check author and currentUser IDs
   const canDelete = (authorId: number | string) => {
+    // If no current user ID, can't delete
+    if (!currentUserId) {
+      return false;
+    }
 
-    // authorId ve currentUserId string'e çevrilmeli
+    // Convert both to strings for comparison
     const authorIdStr = String(authorId);
     const currentUserIdStr = String(currentUserId);
-
-    const isAuthor = authorIdStr === currentUserIdStr;
-
-    return isAuthor || isAdmin;
+    
+    // User can delete if they're the author or an admin
+    return authorIdStr === currentUserIdStr || isAdmin;
   };
 
   const handleAddComment = (postId: string) => {
@@ -97,6 +99,8 @@ const PostList: React.FC<PostListProps> = ({
 
   const handleConfirmDeleteComment = () => {
     if (commentToDelete) {
+      // Log the comment being deleted
+      // Call the onDeleteComment with just the comment ID as expected
       onDeleteComment(commentToDelete.commentId);
       setCommentToDelete(null);
     }
@@ -426,16 +430,15 @@ const PostList: React.FC<PostListProps> = ({
                         {formatDate(comment.created_at)}
                       </span>
                     </div>
-                    {(comment.author_name === userName || isAdmin) && (
-                      <button
-                        className="delete-button small"
-                        onClick={() =>
-                          handleDeleteComment(post.post_id, comment.comment_id)
-                        }
-                      >
-                        <FaTrash className="icon" />
-                      </button>
-                    )}
+                    {/* Always show delete button for now to debug */}
+                    <button
+                      className="delete-button small"
+                      onClick={() =>
+                        handleDeleteComment(post.post_id, comment.comment_id)
+                      }
+                    >
+                      <FaTrash className="icon" />
+                    </button>
                   </div>
                   <p className="comment-content">{comment.content}</p>
                 </div>

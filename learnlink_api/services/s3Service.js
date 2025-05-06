@@ -94,7 +94,6 @@ const uploadFile = async (file, folderPath = '') => {
 
       // Log upload attempt in development only
       if (process.env.NODE_ENV !== 'production') {
-        console.log(`S3 upload attempt: ${fileName}, size: ${fileContent.length} bytes, type: ${file.mimetype}`);
       }
 
       // Upload the file
@@ -112,7 +111,6 @@ const uploadFile = async (file, folderPath = '') => {
       
       // Success log only in development
       if (process.env.NODE_ENV !== 'production') {
-        console.log(`S3 upload successful: ${result.Location}`);
       }
       
       // Clear the timeout and resolve with the file URL

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useContext } from "react";
+import React, { useState, useEffect, useContext, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { NotificationContext } from "../contexts/NotificationContext";
 import CourseHeader from "../components/CourseDetail/CourseHeader";
@@ -9,13 +9,30 @@ import { Course } from "../types/course";
 import { Post } from "../types/post";
 import "../styles/pages/CourseDetail.css";
 import { AuthContext } from "../contexts/AuthContext";
-import { User } from "../types/user";
 
 const CourseDetailPage = () => {
   const { courseId } = useParams<{ courseId: string }>();
   const navigate = useNavigate();
   const { showNotification } = useContext(NotificationContext);
   const { user } = useContext(AuthContext);
+  
+  // Create the ref to track component mount state
+  const isMounted = useRef(true);
+  
+  // Fallback to localStorage if context user is undefined
+  const getCurrentUser = () => {
+    if (user) return user;
+    try {
+      const storedUser = localStorage.getItem("user");
+      return storedUser ? JSON.parse(storedUser) : null;
+    } catch (e) {
+      console.error("Error parsing user from localStorage:", e);
+      return null;
+    }
+  };
+  
+  const currentUser = getCurrentUser();
+  
   const [course, setCourse] = useState<Course | null>(null);
   const [posts, setPosts] = useState<{
     data: Post[];
@@ -29,80 +46,60 @@ const CourseDetailPage = () => {
   const [showCreatePost, setShowCreatePost] = useState(false);
   const [isInstructor, setIsInstructor] = useState(false);
 
-  // user'ı User tipine cast edelim
-  const currentUser = user as User;
-
-  // İlgili kullanıcının kurs yöneticisi olup olmadığını kontrol eden useEffect
-  useEffect(() => {
-    if (course) {
-      // API'den dönen is_admin değerini doğrudan kullan
-      setIsInstructor(Boolean(course.is_admin));
-    } else {
-      setIsInstructor(false);
-    }
-  }, [course]);
-
-  // Postları yükle
-  const loadPosts = async () => {
+  // Dedicated function to fetch posts that can be reused
+  const fetchPosts = async () => {
+    if (!courseId) return;
+    
     try {
-      const postsData = await courseService.getCoursePosts(courseId!);
+
+      const postsData = await courseService.getCoursePosts(courseId);
+
       setPosts(postsData);
     } catch (error) {
       console.error("Error loading posts:", error);
-      showNotification("Failed to load posts", "error");
     }
   };
 
+  // Main effect for initial data loading and post refresh
   useEffect(() => {
-    const fetchCourseAndPosts = async () => {
+
+    
+    // Load course data only once at mount
+    const fetchCourseData = async () => {
+      if (!courseId) return;
+      
       try {
-        const courseData = await courseService.getCourse(courseId!);
+        const courseData = await courseService.getCourse(courseId);
         setCourse(courseData);
-        await loadPosts();
+        setIsInstructor(Boolean(courseData.is_admin));
       } catch (error) {
         console.error("Error fetching course details:", error);
         showNotification("Failed to load course details", "error");
       }
     };
+    
+    // Execute initial data load
+    fetchCourseData();
+    fetchPosts(); // Fetch posts immediately
 
-    if (courseId) {
-      fetchCourseAndPosts();
-    }
-
-    // Her 5 saniyede bir postları yenile
+    // Set up interval for regular post updates
     const interval = setInterval(() => {
-      if (courseId) {
-        loadPosts();
-      }
+
+      fetchPosts();
     }, 5000);
+    
+    // Cleanup on unmount
+    return () => {
 
-    return () => clearInterval(interval);
-  }, [courseId]);  // user dependency'yi kaldırdım böylece sadece courseId değiştiğinde çalışacak
-
-  // Kullanıcı değiştiğinde kurs bilgilerini yeniden yükle
-  useEffect(() => {
-    const refreshCourseData = async () => {
-      if (courseId) {
-        try {
-          // Önce endpoint'i temizle (cache'i önlemek için)
-          await courseService.getMyCourses();
-          // Sonra kurs detaylarını yenile
-          const freshCourseData = await courseService.getCourse(courseId);
-          setCourse(freshCourseData);
-        } catch (error) {
-          console.error("Error refreshing course data:", error);
-        }
-      }
+      clearInterval(interval);
+      isMounted.current = false;
     };
-
-    refreshCourseData();
-  }, [courseId, user]); // user değiştiğinde çalışacak
+  }, [courseId, showNotification]);
 
   const handleComment = async (postId: string, content: string) => {
     try {
       await courseService.addComment(postId, content);
-      const newPosts = await courseService.getCoursePosts(courseId!);
-      setPosts(newPosts);
+      await fetchPosts();
     } catch (error) {
       console.error("Error adding comment:", error);
     }
@@ -110,7 +107,7 @@ const CourseDetailPage = () => {
 
   const handlePostCreated = async (post: Post) => {
     try {
-      await loadPosts(); // Yeni post eklenince tüm postları yeniden yükle
+      await fetchPosts();
       setShowCreatePost(false);
       showNotification("Post created successfully", "success");
     } catch (error) {
@@ -122,7 +119,7 @@ const CourseDetailPage = () => {
   const handleDeletePost = async (postId: string) => {
     try {
       await courseService.deletePost(postId);
-      await loadPosts(); // Postları yeniden yükle
+      await fetchPosts();
       showNotification("Post deleted successfully", "success");
     } catch (error) {
       console.error("Error deleting post:", error);
@@ -132,8 +129,9 @@ const CourseDetailPage = () => {
 
   const handleDeleteComment = async (commentId: string) => {
     try {
+
       await courseService.deleteComment(commentId);
-      await loadPosts(); // Postları yeniden yükle
+      await fetchPosts();
       showNotification("Comment deleted successfully", "success");
     } catch (error) {
       console.error("Error deleting comment:", error);
@@ -145,7 +143,6 @@ const CourseDetailPage = () => {
     try {
       if (!course?.course_id) return;
       await courseService.leaveCourse(course.course_id);
-      // Başarılı olduğunda doğrudan yönlendir
       navigate("/courses", { replace: true });
     } catch (error) {
       console.error("Error leaving course:", error);
@@ -156,7 +153,6 @@ const CourseDetailPage = () => {
     try {
       if (!course?.course_id) return;
       await courseService.deleteCourse(course.course_id);
-      // Başarılı olduğunda doğrudan yönlendir
       navigate("/courses", { replace: true });
     } catch (error) {
       console.error("Error deleting course:", error);
@@ -179,11 +175,9 @@ const CourseDetailPage = () => {
           onComment={handleComment}
           onDeletePost={handleDeletePost}
           onDeleteComment={handleDeleteComment}
-          currentUserId={user?.user_id || user?.id}
-          userName={user?.name}
-          isAdmin={Boolean(
-            isInstructor || user?.role === "admin"
-          )}
+          currentUserId={currentUser?.user_id || currentUser?.id}
+          userName={currentUser?.name}
+          isAdmin={Boolean(isInstructor || currentUser?.role === "admin")}
         />
       </div>
 

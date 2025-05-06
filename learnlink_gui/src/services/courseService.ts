@@ -204,7 +204,7 @@ export const courseService = {
     try {
       await api.delete(`/api/comments/${commentId}`);
     } catch (error) {
-      console.error('Error deleting comment:', error);
+      console.error("Error deleting comment:", error);
       throw error;
     }
   },
