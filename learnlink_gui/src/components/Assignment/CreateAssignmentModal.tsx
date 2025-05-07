@@ -162,18 +162,18 @@ const CreateAssignmentModal: React.FC<CreateAssignmentModalProps> = ({
     let dueDate = formData.due_date;
     try {
       // Parse the datetime-local input which is in the format "YYYY-MM-DDThh:mm"
-      if (dueDate && dueDate.includes('T')) {
+      if (dueDate && dueDate.includes("T")) {
         // Extract the date and time parts
-        const [datePart, timePart] = dueDate.split('T');
-        
+        const [datePart, timePart] = dueDate.split("T");
+
         // Ensure we have seconds
         let timeWithSeconds = timePart;
-        if (!timeWithSeconds.includes(':')) {
-          timeWithSeconds += ':00';
-        } else if (timeWithSeconds.split(':').length === 2) {
-          timeWithSeconds += ':00';
+        if (!timeWithSeconds.includes(":")) {
+          timeWithSeconds += ":00";
+        } else if (timeWithSeconds.split(":").length === 2) {
+          timeWithSeconds += ":00";
         }
-        
+
         // Format as an ISO string but without timezone conversion
         dueDate = `${datePart}T${timeWithSeconds}.000`;
       }
@@ -196,7 +196,6 @@ const CreateAssignmentModal: React.FC<CreateAssignmentModalProps> = ({
       if (isEdit && initialData && initialData.assignment_id) {
         // Update existing assignment
 
-
         const token = localStorage.getItem("token");
         if (!token) {
           throw new Error("No authentication token found");
@@ -216,11 +215,11 @@ const CreateAssignmentModal: React.FC<CreateAssignmentModalProps> = ({
         if (response.ok) {
           const result = await response.json();
           setSuccessMsg("Assignment updated successfully!");
-          
+
           // Notify parent component to refresh the assignments list
           // Pass the result to maintain compatibility with existing code
           onSubmit(result);
-          
+
           // Close the modal after successful submission
           onClose();
         } else {
@@ -236,7 +235,8 @@ const CreateAssignmentModal: React.FC<CreateAssignmentModalProps> = ({
           throw new Error("No authentication token found");
         }
 
-        const apiUrl = "http://learnlink-v1-env.eba-b28u347j.eu-north-1.elasticbeanstalk.com/api/assignments";
+        const apiUrl =
+          "https://learnlink-v1-env.eba-b28u347j.eu-north-1.elasticbeanstalk.com/api/assignments";
 
         const response = await fetch(apiUrl, {
           method: "POST",
@@ -250,11 +250,11 @@ const CreateAssignmentModal: React.FC<CreateAssignmentModalProps> = ({
         if (response.ok) {
           const result = await response.json();
           setSuccessMsg("Assignment created successfully!");
-          
+
           // Notify parent component to refresh the assignments list
           // Pass the result to maintain compatibility with existing code
           onSubmit(result);
-          
+
           // Close the modal after successful submission
           onClose();
         } else {
@@ -348,7 +348,9 @@ const CreateAssignmentModal: React.FC<CreateAssignmentModalProps> = ({
                 max="1000"
                 required
               />
-              <p className="create-assignment-field-hint">Maximum points students can earn</p>
+              <p className="create-assignment-field-hint">
+                Maximum points students can earn
+              </p>
             </div>
           </div>
 
@@ -410,7 +412,11 @@ const CreateAssignmentModal: React.FC<CreateAssignmentModalProps> = ({
           </div>
 
           <div className="create-assignment-form-actions">
-            <button type="button" className="create-assignment-cancel-button" onClick={onClose}>
+            <button
+              type="button"
+              className="create-assignment-cancel-button"
+              onClick={onClose}
+            >
               Cancel
             </button>
             <button
