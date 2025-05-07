@@ -39,16 +39,6 @@ app.use(
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Root path handler for health checks - place it before all other routes
-app.get("/", (req, res) => {
-  res.status(200).send("OK");
-});
-
-// Add a specific health check endpoint
-app.get("/health", (req, res) => {
-  res.status(200).send("Healthy");
-});
-
 // Serve static files from uploads directory
 const uploadsPath = path.join(__dirname, "uploads");
 fs.mkdirSync(uploadsPath, { recursive: true }); // Ensure the directory exists
@@ -89,6 +79,15 @@ app.use("/api", postRoutes);
 app.use("/api", commentRoutes);
 app.use("/api/events", eventRoutes);
 app.use("/api/assignments", assignmentRoutes);
+
+// Root path handler for health checks - place it after all other routes
+app.get("/", (req, res) => {
+  res.status(200).json({
+    status: "success",
+    message: "LearnLink API is running",
+    timestamp: new Date().toISOString(),
+  });
+});
 
 // Add a test route to check API connectivity
 app.get("/api/test", (req, res) => {
